@@ -162,12 +162,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const tags = ["CSEP_Applicant", `Industry: ${industry}`];
+      const newsletterCheckbox = document.getElementById('csep-newsletter');
+      if (newsletterCheckbox && newsletterCheckbox.checked) {
+        tags.push("SES_Newsletter_Subscriber");
+      }
+
       const payload = {
         person: {
           firstName,
           lastName,
           emails: [{ value: email }],
-          tags: ["CSEP_Applicant", `Industry: ${industry}`]
+          tags: tags
         },
         source: "SES Website - CSEP",
         system: "Custom",
@@ -219,18 +225,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
+      const tags = [
+        "Membership_Applicant", 
+        `Tier: ${tier}`, 
+        ...industries.map(ind => `Industry: ${ind}`),
+        `Clientele: ${formData.get('clientele') || 'Not Selected'}`
+      ];
+
+      const newsletterCheckbox = document.getElementById('mem-newsletter');
+      if (newsletterCheckbox && newsletterCheckbox.checked) {
+        tags.push("SES_Newsletter_Subscriber");
+      }
+
       const payload = {
         person: {
           firstName: firstName,
           lastName: lastName,
           emails: [{ value: email }],
           phones: [{ value: formData.get('phone') || '' }],
-          tags: [
-            "Membership_Applicant", 
-            `Tier: ${tier}`, 
-            ...industries.map(ind => `Industry: ${ind}`),
-            `Clientele: ${formData.get('clientele') || 'Not Selected'}`
-          ]
+          tags: tags
         },
         source: "SES Website - Membership",
         system: "Custom",
