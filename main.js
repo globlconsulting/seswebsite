@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = {
         person: {
           emails: [{ value: email }],
-          tags: ["Newsletter_Subscriber"]
+          tags: ["SES_Newsletter_Subscriber"]
         },
         source: "SES Website - Newsletter",
         system: "Custom",
