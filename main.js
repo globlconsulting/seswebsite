@@ -88,19 +88,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- FUB API HELPER ---
+  async function sendToFUB(payload, submitBtn, originalBtnText, successMessage, form, notificationEl) {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'SUBMITTING...';
+    }
+
+    try {
+      const response = await fetch('/api/fub', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        showNotification(successMessage, 'success', notificationEl);
+        if (form) form.reset();
+      } else {
+        throw new Error('Failed to send data');
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification('An error occurred. Please try again later or contact support.', 'error', notificationEl);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    }
+  }
+
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  function showNotification(message, type, notificationEl) {
+    if (notificationEl) {
+      notificationEl.textContent = message;
+      notificationEl.className = 'form-notification';
+      notificationEl.classList.add(type);
+      notificationEl.style.display = 'block';
+      notificationEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Fallback if no notification element is provided (like newsletter)
+      alert(message);
+    }
+  }
+
   // --- CSEP FORM VALIDATION & SUBMISSION HANDLING ---
   const csepForm = document.getElementById('csep-application');
-  const formNotification = document.getElementById('form-notification');
+  const csepNotification = document.getElementById('form-notification');
 
   if (csepForm) {
     csepForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
-      // Reset notifications
-      formNotification.style.display = 'none';
-      formNotification.className = 'form-notification';
+      if (csepNotification) csepNotification.style.display = 'none';
 
-      // Capture inputs
       const firstName = document.getElementById('first-name').value.trim();
       const lastName = document.getElementById('last-name').value.trim();
       const email = document.getElementById('email').value.trim();
@@ -108,51 +153,126 @@ document.addEventListener('DOMContentLoaded', () => {
       const experience = document.getElementById('experience').value;
       const consent = document.getElementById('consent').checked;
 
-      // Basic validation checks
-      if (!firstName || !lastName || !email || !industry || !experience) {
-        showNotification('Please fill in all required fields.', 'error');
+      if (!firstName || !lastName || !email || !industry || !experience || !consent) {
+        showNotification('Please fill in all required fields and consent to the rules.', 'error', csepNotification);
         return;
       }
-
       if (!validateEmail(email)) {
-        showNotification('Please enter a valid email address.', 'error');
+        showNotification('Please enter a valid email address.', 'error', csepNotification);
         return;
       }
 
-      if (!consent) {
-        showNotification('You must consent to the application rules.', 'error');
-        return;
-      }
+      const payload = {
+        person: {
+          firstName,
+          lastName,
+          emails: [{ value: email }],
+          tags: ["CSEP_Applicant", `Industry: ${industry}`]
+        },
+        source: "SES Website - CSEP",
+        system: "Custom",
+        type: "Inquiry",
+        message: `Years of experience: ${experience}`
+      };
 
-      // Simulate API submit
       const submitBtn = csepForm.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.textContent;
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'SUBMITTING APPLICATION...';
-
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
-        showNotification(`Congratulations, ${firstName}! Your application for the CSEP designation has been submitted successfully. A Sellebrity Council member will contact you within 48 hours.`, 'success');
-        csepForm.reset();
-      }, 1500);
+      const successMsg = `Congratulations, ${firstName}! Your application for the CSEP designation has been submitted successfully. A Sellebrity Council member will contact you within 48 hours.`;
+      
+      sendToFUB(payload, submitBtn, submitBtn.textContent, successMsg, csepForm, csepNotification);
     });
   }
 
-  // Helper validation functions
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+  // --- MEMBERSHIP FORM VALIDATION & SUBMISSION HANDLING ---
+  const membershipForm = document.getElementById('membership-application');
+  if (membershipForm) {
+    // Create a notification element for the membership form if it doesn't exist
+    let memNotification = document.getElementById('mem-form-notification');
+    if (!memNotification) {
+      memNotification = document.createElement('div');
+      memNotification.id = 'mem-form-notification';
+      memNotification.className = 'form-notification';
+      memNotification.style.display = 'none';
+      membershipForm.parentNode.insertBefore(memNotification, membershipForm);
+    }
+
+    membershipForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      memNotification.style.display = 'none';
+
+      const formData = new FormData(membershipForm);
+      const email = formData.get('email');
+      
+      if (!validateEmail(email)) {
+        showNotification('Please enter a valid email address.', 'error', memNotification);
+        return;
+      }
+
+      // Collect multiple checkboxes for industry
+      const industries = [];
+      membershipForm.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        industries.push(cb.parentNode.textContent.trim());
+      });
+
+      const tier = formData.get('tier') || 'Not Selected';
+      const fullName = formData.get('fullName') || '';
+      const nameParts = fullName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const payload = {
+        person: {
+          firstName: firstName,
+          lastName: lastName,
+          emails: [{ value: email }],
+          phones: [{ value: formData.get('phone') || '' }],
+          tags: [
+            "Membership_Applicant", 
+            `Tier: ${tier}`, 
+            ...industries.map(ind => `Industry: ${ind}`),
+            `Clientele: ${formData.get('clientele') || 'Not Selected'}`
+          ]
+        },
+        source: "SES Website - Membership",
+        system: "Custom",
+        type: "Inquiry",
+        message: `Company: ${formData.get('company') || ''}\nTitle: ${formData.get('title') || ''}\nReferrer: ${formData.get('referrer') || ''}`
+      };
+
+      const submitBtn = membershipForm.querySelector('button[type="submit"]');
+      const successMsg = `Thank you, ${firstName}! Your application for membership has been submitted securely.`;
+      
+      sendToFUB(payload, submitBtn, submitBtn.textContent, successMsg, membershipForm, memNotification);
+    });
   }
 
-  function showNotification(message, type) {
-    if (formNotification) {
-      formNotification.textContent = message;
-      formNotification.classList.add(type);
-      formNotification.style.display = 'block';
-      formNotification.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
+  // --- NEWSLETTER FORM SUBMISSION HANDLING ---
+  const newsletterForms = document.querySelectorAll('.newsletter-form');
+  newsletterForms.forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInput = form.querySelector('input[type="email"]');
+      const email = emailInput ? emailInput.value.trim() : '';
+
+      if (!validateEmail(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const payload = {
+        person: {
+          emails: [{ value: email }],
+          tags: ["Newsletter_Subscriber"]
+        },
+        source: "SES Website - Newsletter",
+        system: "Custom",
+        type: "Inquiry"
+      };
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : '→';
+      sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", form, null);
+    });
+  });
 });
 
 // ============================================================

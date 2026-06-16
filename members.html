@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SES Membership Application — Sports & Entertainment Society. Join the network trusted by the industry's elite.">
+  <title>SES Membership Application | The Sports & Entertainment Society</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+
+  <!-- AMBIENT PARTICLE BACKGROUND -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- HEADER & NAVIGATION -->
+  <header>
+    <div class="container nav-container">
+      <a href="index.html" class="logo-link" id="nav-logo-link">
+        <div class="logo-placeholder-header">
+          <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img" style="height:50px;width:auto;display:block;">
+        </div>
+      </a>
+      
+      <div class="nav-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <nav id="nav-menu">
+        <ul class="nav-links" id="nav-list">
+          <li><a href="index.html" id="nav-home">Home</a></li>
+          <li><a href="book.html" id="nav-book">The Book</a></li>
+          <li><a href="csep.html" id="nav-csep">CSEP Certification</a></li>
+          <li><a href="blog.html" id="nav-blog">Blog/Media</a></li>
+          <li><a href="members.html" class="active" id="nav-members">Members</a></li>
+          <li class="header-cta"><a href="csep.html#apply" class="btn btn-outline-gold" id="nav-apply-btn">Apply Now</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero" style="padding-top: 150px; padding-bottom: 60px; text-align: center;">
+    <div class="container">
+      <span class="hero-tag">MEMBERSHIP APPLICATION</span>
+      <h1 class="page-title" style="font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 900; margin-bottom: 1.5rem; margin-top: 1rem;">Join the network trusted by the industry's elite.</h1>
+      <p style="font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.8;">
+        Complete the form below to apply for membership. All information is kept strictly confidential and reviewed by the SES team.
+      </p>
+    </div>
+  </section>
+
+  <section class="members-form-section" style="padding-bottom: 8rem; position: relative; z-index: 2;">
+    <div class="container" style="max-width: 800px;">
+      
+      <!-- Tier Table -->
+      <div class="application-container reveal" style="margin-bottom: 3rem; padding: 2.5rem; overflow-x: auto;">
+        <span class="section-tag" style="margin-bottom: 1.5rem; display: block; text-align: center;">Membership Tiers at a Glance</span>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: left; min-width: 600px;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <th style="padding: 1rem; color: var(--text-muted); font-weight: 500; width: 35%;">Benefit</th>
+              <th style="padding: 1rem; color: var(--text-light); text-align: center; font-weight: 500;">General</th>
+              <th style="padding: 1rem; color: var(--color-blue); text-align: center; font-weight: 500;">Sellebrity</th>
+              <th style="padding: 1rem; color: var(--color-gold); text-align: center; font-weight: 500;">Guild</th>
+              <th style="padding: 1rem; color: var(--color-orange); text-align: center; font-weight: 500;">Council</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem; color: var(--text-light);">Email list</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem; color: var(--text-light);">Website profile</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem; color: var(--text-light);">Contact links on profile</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem; color: var(--text-light);">Annual member spotlight</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem; color: var(--text-light);">Blog / authority articles</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+            <tr>
+              <td style="padding: 1rem; color: var(--text-light);">Council designation on profile</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--text-muted);">—</td>
+              <td style="padding: 1rem; text-align: center; color: var(--color-gold);">✦</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; font-style: italic;">* CSEP badge added to all profiles upon completion of the designation.</p>
+      </div>
+
+      <!-- Application Form -->
+      <form class="reveal" id="membership-application">
+        
+        <!-- Membership Selection -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Membership Selection</h3>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="margin-bottom: 1rem;">Which membership are you applying for? <span style="color: var(--color-gold);">*</span></label>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                <input type="radio" name="tier" value="general" style="margin-top: 4px; accent-color: var(--color-gold);">
+                <div>
+                  <span style="color: var(--text-light); font-weight: 500;">General Membership</span>
+                  <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Email list access</span>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                <input type="radio" name="tier" value="sellebrity" style="margin-top: 4px; accent-color: var(--color-gold);">
+                <div>
+                  <span style="color: var(--text-light); font-weight: 500;">Sellebrity <span style="font-size: 0.75rem; background: rgba(44, 111, 173, 0.2); color: var(--color-blue); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CSEP Required</span></span>
+                  <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">CSEP required (6-month window upon approval)</span>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                <input type="radio" name="tier" value="guild" style="margin-top: 4px; accent-color: var(--color-gold);">
+                <div>
+                  <span style="color: var(--text-light); font-weight: 500;">Sellebrity Guild <span style="font-size: 0.75rem; background: rgba(181, 142, 49, 0.2); color: var(--color-gold); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CSEP + Experience</span></span>
+                  <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">CSEP + 3 or more years of S&E experience</span>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                <input type="radio" name="tier" value="council" style="margin-top: 4px; accent-color: var(--color-gold);">
+                <div>
+                  <span style="color: var(--text-light); font-weight: 500;">Sellebrity Council <span style="font-size: 0.75rem; background: rgba(220, 95, 30, 0.2); color: var(--color-orange); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">Appointment Only</span></span>
+                  <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Appointment only</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Personal Information</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Full name <span style="color: var(--color-gold);">*</span></label>
+              <input type="text" name="fullName" required placeholder="First and last name">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Title <span style="color: var(--color-gold);">*</span></label>
+              <input type="text" name="title" required placeholder="e.g. Founder, VP, Senior Advisor">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Email address <span style="color: var(--color-gold);">*</span></label>
+              <input type="email" name="email" required placeholder="you@company.com">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Phone number <span style="color: var(--color-gold);">*</span></label>
+              <input type="tel" name="phone" required placeholder="+1 (000) 000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Current company <span style="color: var(--color-gold);">*</span></label>
+              <input type="text" name="company" required placeholder="Company or firm name">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Website <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
+              <input type="url" placeholder="https://yourwebsite.com">
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
+            <label>Referred by <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
+            <input type="text" name="referrer" placeholder="Name of person who referred you">
+          </div>
+          
+          <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
+            <label>How did you hear about the Sports & Entertainment Society?</label>
+            <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+              <option value="">Select one</option>
+              <option>Referral from a colleague</option>
+              <option>Social media</option>
+              <option>The Sellebrity 2.0 book</option>
+              <option>Podcast or media feature</option>
+              <option>Industry event</option>
+              <option>Web search</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Professional Background -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Professional Background</h3>
+          
+          <div class="form-group">
+            <label style="margin-bottom: 1rem;">Industry / profession <span style="color: var(--color-gold);">*</span></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Wealth Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Business Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Law</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Accounting</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Real Estate</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Health & Wellness</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Travel & Hospitality</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Technology</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Retail Goods & Services</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Philanthropy</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Venture Capital</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Other</label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Previous experience in this industry</label>
+            <textarea style="min-height: 100px;" placeholder="Describe your background working with sports and entertainment clients..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label style="margin-bottom: 1rem;">Primary S&E clientele <span style="color: var(--color-gold);">*</span></label>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Athletes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Entertainers</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Both</label>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Years servicing S&E clients <span style="color: var(--color-gold);">*</span></label>
+              <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+                <option value="">Select</option>
+                <option>Less than 1 year</option>
+                <option>1–3 years</option>
+                <option>3–5 years</option>
+                <option>5–10 years</option>
+                <option>10+ years</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>S&E clients served in last 3 years <span style="color: var(--color-gold);">*</span></label>
+              <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+                <option value="">Select</option>
+                <option>None yet</option>
+                <option>1–5</option>
+                <option>5–10</option>
+                <option>10–20</option>
+                <option>20+</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Education, certifications, special designations & board positions</label>
+            <textarea style="min-height: 100px;" placeholder="List relevant degrees, licenses, certifications, or board positions..."></textarea>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="margin-bottom: 1rem;">Have you ever played sports or worked as an entertainer?</label>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" style="accent-color: var(--color-gold);"> No</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Online Presence -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Online Presence</h3>
+          
+          <div class="form-group">
+            <label>Service areas</label>
+            <input type="text" placeholder="e.g. Los Angeles, New York, Miami, National">
+          </div>
+          <div class="form-group">
+            <label>Media links <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
+            <input type="text" placeholder="LinkedIn, Instagram, press features, podcast appearances...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Headshot</label>
+            <div style="border: 1px dashed rgba(255,255,255,0.2); border-radius: 4px; padding: 2rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; background: rgba(5, 8, 17, 0.4); transition: border-color 0.2s ease;">
+              <span style="font-size: 1.5rem; color: var(--color-gold);">📷</span>
+              <div>
+                <strong style="color: var(--text-light); display: block;">Upload a professional photo</strong>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">JPG or PNG, minimum 400×400px recommended</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biography -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Profile & Biography</h3>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Biography <span style="color: var(--color-gold);">*</span></label>
+            <textarea style="min-height:130px" required placeholder="Write a professional third-person biography (150–300 words recommended). This will be used on your SES member profile."></textarea>
+          </div>
+        </div>
+
+        <!-- Certification & References -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Certification & References</h3>
+          
+          <div class="form-group">
+            <label style="margin-bottom: 1rem;">Have you completed the CSEP designation?</label>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> Yes — I am already CSEP certified</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> No — I plan to complete it</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> Currently in progress</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Professional references</label>
+            <textarea style="min-height:100px" placeholder="Please provide 2–3 professional references (name, title, company, email or phone). References should be from within or adjacent to the sports and entertainment industry."></textarea>
+          </div>
+          <div class="form-group">
+            <label style="margin-bottom: 1rem;">Do you have a confidentiality protocol or NDA in place in your business?</label>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> No</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> In progress</label>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="margin-bottom: 1rem;">Are you open to referral partnerships with other SES members?</label>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> No</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> Open to discussing</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statement of Interest -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Statement of Interest</h3>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Why are you interested in joining the Sports & Entertainment Society? <span style="color: var(--color-gold);">*</span></label>
+            <textarea style="min-height:120px" required placeholder="Tell us about your goals and what you hope to gain and contribute as a member..."></textarea>
+          </div>
+        </div>
+
+        <!-- A Little About You -->
+        <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
+          <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">A Little About You</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Favorite sports team <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
+              <input type="text" placeholder="e.g. LA Lakers">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Favorite movie <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
+              <input type="text" placeholder="e.g. The Godfather">
+            </div>
+          </div>
+        </div>
+
+        <!-- Confidentiality Agreement & Notices -->
+        <div style="background: rgba(181, 142, 49, 0.05); border: 1px solid rgba(181, 142, 49, 0.2); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 1rem;">
+          <span style="color: var(--color-gold); font-size: 1.5rem;">🔒</span>
+          <div>
+            <p style="color: var(--text-light); margin-bottom: 0.5rem; font-size: 0.95rem;">Before submitting your application, please review and sign the <a href="#" style="color: var(--color-gold); text-decoration: underline;">SES Non-Disclosure Agreement &rarr;</a></p>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">All members are required to uphold the Society's confidentiality standards.</p>
+          </div>
+        </div>
+
+        <div style="background: rgba(5, 8, 17, 0.8); border-left: 3px solid var(--color-gold); padding: 1.5rem; margin-bottom: 3rem; border-radius: 0 8px 8px 0;">
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+            <strong style="color: var(--color-gold);">About the CSEP designation:</strong> Upon approval, Sellebrity and Sellebrity Guild members will receive a link to begin the Certified Sports & Entertainment Professional (CSEP) designation. Approved members have <strong>6 months</strong> to complete the designation. Membership payment details will be provided after your application is reviewed and approved.
+          </p>
+        </div>
+
+        <!-- Submit -->
+        <div style="text-align: center;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem;">Submit Application</button>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; line-height: 1.6;">
+            Your information is kept strictly confidential.<br>
+            You will be contacted within 5–7 business days of submission.
+          </p>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-info">
+          <a href="index.html" class="logo-link">
+            <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img logo-img-footer" style="height:60px;max-height:60px;width:auto;display:block;">
+          </a>
+          <p class="footer-desc">The premier society for professionals servicing celebrities, athletes, and entertainers.</p>
+        </div>
+        <div class="footer-links-group">
+          <h4 class="footer-heading">NAVIGATION</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="book.html">The Book</a></li>
+            <li><a href="csep.html">CSEP Certification</a></li>
+            <li><a href="blog.html">Blog/Media</a></li>
+            <li><a href="members.html">Members</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-group">
+          <h4 class="footer-heading">COMMUNITIES</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#membership-card-general">General</a></li>
+            <li><a href="index.html#membership-card-professional">Industry Professionals</a></li>
+            <li><a href="index.html#membership-card-vendors">Brands & Vendors</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-group">
+          <h4 class="footer-heading">CONTACT</h4>
+          <ul class="footer-links">
+            <li><a href="mailto:info@sportsandentertainmentsociety.com">info@sportsandentertainmentsociety.com</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 The Sports & Entertainment Society. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
