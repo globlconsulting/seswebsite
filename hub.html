@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Society Hub - Dashboard</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+  <style>
+    /* Hub Layout Styles */
+    body { margin: 0; padding: 0; background: #0a0a0a; color: white; display: flex; height: 100vh; overflow: hidden; }
+    
+    .sidebar { width: 250px; background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px 0; }
+    .sidebar-logo { padding: 0 20px 20px; text-align: center; border-bottom: 1px solid #333; margin-bottom: 20px; }
+    .sidebar-logo img { max-height: 40px; }
+    
+    .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; display: flex; flex-direction: column; }
+    .nav-item { padding: 15px 20px; cursor: pointer; color: #888; transition: all 0.3s; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
+    .nav-item:hover, .nav-item.active { color: #c8a97e; background: rgba(200, 169, 126, 0.1); border-left: 3px solid #c8a97e; }
+    
+    .sidebar-footer { padding: 20px; text-align: center; border-top: 1px solid #333; }
+    .btn-logout { background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-transform: uppercase; width: 100%; transition: all 0.3s; }
+    .btn-logout:hover { background: #c8a97e; color: black; }
+    
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #050505; position: relative; z-index: 10; }
+    .hub-header { padding: 20px 40px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: #050505; }
+    .hub-header h1 { margin: 0; font-size: 1.5rem; color: #c8a97e; font-weight: 400; letter-spacing: 2px; }
+    
+    .content-area { padding: 40px; }
+    
+    /* Loading overlay */
+    #auth-loader { position: fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; z-index:9999; display: flex; justify-content: center; align-items: center; color:#c8a97e; font-size: 1.2rem; }
+    
+    /* Section visibility */
+    .hub-section { display: none; }
+    .hub-section.active { display: block; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Scrolling Updates */
+    .updates-wrapper { height: 250px; overflow: hidden; position: relative; padding: 10px 0; }
+    .updates-scroller { display: flex; flex-direction: column; animation: scrollUpdates 15s linear infinite; }
+    .updates-wrapper:hover .updates-scroller { animation-play-state: paused; }
+    @keyframes scrollUpdates {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full screen loader while checking auth -->
+  <div id="auth-loader">Authenticating Identity...</div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo">
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-target="connect">Connect</li>
+      <li class="nav-item" data-target="learn">Learn</li>
+      <li class="nav-item" data-target="tools">Vault & Tools</li>
+      <li class="nav-item" data-target="opportunities">Opportunities</li>
+      <li class="nav-item" data-target="performance">Performance</li>
+      <li class="nav-item" data-target="intelligence">Intelligence Center</li>
+      <li class="nav-item" data-target="write-article" id="nav-write-article" style="display:none; color: var(--color-gold);">Write Article</li>
+      <li class="nav-item" data-target="profile" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">My Profile</li>
+      <li class="nav-item" data-target="admin-panel" id="nav-admin-panel" style="display:none; color: #ef4444; margin-top: 10px;">Admin Panel</li>
+    </ul>
+    <div class="sidebar-footer">
+      <div id="user-email-display" style="font-size:0.75rem; color:#666; margin-bottom:10px; word-break:break-all;"></div>
+      <button class="btn-logout" id="btn-logout">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="main-content">
+    <div class="hub-header">
+      <h1 id="section-title">CONNECT: Member Directory</h1>
+    </div>
+    
+    <div class="content-area">
+      
+      <!-- 1. CONNECT -->
+      <section id="connect" class="hub-section active">
+        <!-- Restricted Access Notice -->
+        <div id="connect-restricted" style="display:none; text-align:center; padding: 60px 20px; background: #111; border: 1px solid #333; border-radius: 8px;">
+          <span style="font-size: 3rem;">🔒</span>
+          <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Exclusive Directory</h2>
+          <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">The Member Directory is exclusive to Sellebrity, Guild, and Council members.</p>
+          <button onclick="window.location.href='csep.html#apply'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Apply for Sellebrity Status</button>
+        </div>
+
+        <div id="connect-content" style="display: grid; grid-template-columns: 3fr 1fr; gap: 30px;">
+          
+          <!-- Left Column: Directory -->
+          <div>
+            <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+              <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Members Directory</h2>
+              <p style="margin: 0; color: #888;">Search by Industry, Team, League, Company, City, Expertise, or Looking For.</p>
+            </div>
+
+            <!-- Spotlight Banner -->
+            <div id="spotlight-banner" style="margin-bottom: 30px; background: linear-gradient(135deg, #1a150e, #0a0a0a); border: 1px solid #c8a97e; border-radius: 8px; padding: 20px; display: none;">
+              <h3 style="color: #c8a97e; margin-top: 0; margin-bottom: 15px; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;">⭐ Sellebrity Spotlight</h3>
+              <div id="spotlight-members" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <input type="text" id="member-search" placeholder="e.g. 'Sports attorney', 'Sponsorship', 'Investor'..." style="padding: 15px; width: 100%; border-radius: 8px; border: 1px solid #333; background: #111; color: white; margin-bottom: 30px; font-size: 1rem;">
+            
+            <div id="member-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+              <!-- Member cards will be injected here via JS -->
+              <p style="color: #666;">Loading members...</p>
+            </div>
+          </div>
+
+          <!-- Right Column: Community & Groups -->
+          <div>
+            <!-- Member Introductions -->
+            <div style="background: #111; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <h3 style="color: #c8a97e; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Member Updates</h3>
+              <div class="updates-wrapper">
+                <ul id="updates-list" class="updates-scroller" style="list-style: none; padding: 0; margin: 0; color: #aaa; font-size: 0.9rem;">
+                  <!-- Original Set -->
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">NEW MEMBER</span><br>Sarah Jenkins joined.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROMOTION</span><br>Marcus Cole named VP of Ops.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROJECT</span><br>LA Stadium Tech Partnership.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">SPOTLIGHT</span><br>Founder of the Month.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">ANNOUNCEMENT</span><br>Society hub premier.</li>
+                  <!-- Duplicated Set for Seamless Loop -->
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">NEW MEMBER</span><br>Sarah Jenkins joined.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROMOTION</span><br>Marcus Cole named VP of Ops.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROJECT</span><br>LA Stadium Tech Partnership.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">SPOTLIGHT</span><br>Founder of the Month.</li>
+                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">ANNOUNCEMENT</span><br>Society hub premier.</li>
+                </ul>
+              </div>
+              <button id="btn-share-update" style="width:100%; background:transparent; border:1px solid #c8a97e; color:#c8a97e; padding:8px; border-radius:4px; margin-top:10px; cursor:pointer; transition: all 0.3s;">Share an Update</button>
+            </div>
+
+            <!-- Private Groups -->
+            <div style="background: #111; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+              <h3 style="color: #c8a97e; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Private Groups</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Women in Sports</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Athletes</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Entertainment Execs</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Founders</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Investors</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Sports Tech</span>
+                <span class="private-group-tag" style="background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #ccc; cursor: pointer; border: 1px solid #333;">Family Offices</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MY PROFILE -->
+      <section id="profile" class="hub-section">
+        <div style="margin-bottom: 30px;">
+          <h2 style="margin: 0; margin-bottom: 5px;">My Profile Settings</h2>
+          <p style="margin: 0;">Update how you appear in the Member Directory.</p>
+        </div>
+
+        <!-- Restricted Notice -->
+        <div id="profile-restricted" style="display:none; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #fca5a5;">
+          <strong>Notice:</strong> As a General Member, your profile is not publicly listed in the Member Directory. Upgrade to Sellebrity to activate your profile.
+        </div>
+        
+        <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 600px;">
+          <form id="profile-form">
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Full Name</label>
+              <input type="text" id="profile-name" required style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Industry</label>
+              <input type="text" id="profile-industry" placeholder="e.g. Sports Agency, Media, Real Estate" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Company / Organization</label>
+              <input type="text" id="profile-company" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">City / Location</label>
+              <input type="text" id="profile-location" placeholder="e.g. Los Angeles, CA" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Looking For</label>
+              <input type="text" id="profile-lookingfor" placeholder="e.g. Sponsorship, Investors, Non-profit partners" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Bio / Expertise</label>
+              <textarea id="profile-bio" rows="4" placeholder="Briefly describe your experience and what you are looking for..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+
+            <!-- Contact Links (Restricted) -->
+            <div id="profile-contact-links-container" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+              <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.1rem;">Contact & Social Links</h3>
+              <p id="contact-restricted-msg" style="color: #888; font-size: 0.9rem; margin-bottom: 20px; display: none;">Contact links are a premium feature of Sellebrity Guild & Council membership tiers.</p>
+              
+              <div id="contact-fields">
+                <div style="margin-bottom: 20px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">LinkedIn URL</label>
+                  <input type="url" id="profile-linkedin" placeholder="https://linkedin.com/in/..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Website URL</label>
+                  <input type="url" id="profile-website" placeholder="https://..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Professional Email</label>
+                  <input type="email" id="profile-contact-email" placeholder="contact@company.com" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Contact Phone</label>
+                  <input type="tel" id="profile-contact-phone" placeholder="+1..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 20px;">
+              <button type="submit" class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Save Profile</button>
+              <span id="profile-status" style="color:#4ade80; display:none; font-weight: 500;">Profile saved successfully!</span>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 2. LEARN -->
+      <section id="learn" class="hub-section">
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Education Center</h2>
+          <p style="margin: 0; color: #888;">Masterclasses, keynotes, and workshops to move you from foundation to mastery.</p>
+        </div>
+        
+        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Learning Tracks</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 40px;">
+          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Sports Leadership</div>
+          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Executive Presence</div>
+          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Negotiation</div>
+          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Personal Branding</div>
+          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">AI & Networking</div>
+        </div>
+
+        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Recent Sessions</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+          <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden;">
+            <div style="height: 160px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555;">[Video Placeholder]</div>
+            <div style="padding: 20px;">
+              <span style="background: rgba(200,169,126,0.1); color: #c8a97e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">Keynote</span>
+              <h4 style="margin: 10px 0 5px; color: #fff;">The Art of the Sports Deal</h4>
+              <p style="margin: 0; color: #888; font-size: 0.9rem;">Exclusive breakdown of a recent major franchise sale.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. TOOLS & VAULT -->
+      <section id="tools" class="hub-section">
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Society Playbooks & Tools</h2>
+          <p style="margin: 0; color: #888;">Searchable, dynamic playbooks, templates, and prompts.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
+          
+          <div>
+            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">The File Vault</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Sports Partnership Playbook</span> <span style="color: #666; font-size: 0.8rem;">PDF</span>
+              </li>
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Executive Branding Guide</span> <span style="color: #666; font-size: 0.8rem;">PDF</span>
+              </li>
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Board Seat Playbook</span> <span style="color: #666; font-size: 0.8rem;">PDF</span>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">Templates & Checklists</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Pitch Deck Template</li>
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Sponsorship Agreement</li>
+              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">VIP Hosting Checklist</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">AI Prompt Library</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Negotiation Tactics</li>
+              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Sponsor Outreach Email</li>
+              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Media Interview Prep</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 4. OPPORTUNITIES -->
+      <section id="opportunities" class="hub-section">
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Marketplace</h2>
+            <p style="margin: 0; color: #888;">Jobs, board seats, brand partnerships, and investments.</p>
+          </div>
+          <button class="btn" style="background:#c8a97e; color:black; padding:10px 20px; font-weight:bold; border-radius:4px; border:none;">Post Opportunity</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+          <!-- Feed -->
+          <div>
+            <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px;">
+              <span style="color: #c8a97e; font-size: 0.8rem; text-transform: uppercase;">Board Seat</span>
+              <h4 style="margin: 5px 0; font-size: 1.2rem; color: #fff;">Sports Tech Advisory Board</h4>
+              <p style="color: #aaa; margin: 0 0 15px 0; font-size: 0.95rem;">Looking for an executive with strong ties to NBA front offices for a Series A sports analytics startup.</p>
+              <button style="background: transparent; border: 1px solid #555; color: #fff; padding: 6px 15px; border-radius: 4px; cursor: pointer;">View Details</button>
+            </div>
+            <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px;">
+              <span style="color: #c8a97e; font-size: 0.8rem; text-transform: uppercase;">Investment</span>
+              <h4 style="margin: 5px 0; font-size: 1.2rem; color: #fff;">Seed Round: NIL Platform</h4>
+              <p style="color: #aaa; margin: 0 0 15px 0; font-size: 0.95rem;">Allocating $250k specifically for athlete and sports executive angel investors.</p>
+              <button style="background: transparent; border: 1px solid #555; color: #fff; padding: 6px 15px; border-radius: 4px; cursor: pointer;">View Details</button>
+            </div>
+          </div>
+          
+          <!-- Sidebar -->
+          <div>
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+              <h3 style="color: #fff; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Referral Marketplace</h3>
+              <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Have a specific request? Post it to the network.</p>
+              <ul style="list-style: none; padding: 0; margin: 0; color: #aaa; font-size: 0.9rem;">
+                <li style="margin-bottom: 10px;"><strong>"I need..."</strong> a sports attorney in Miami.</li>
+                <li style="margin-bottom: 10px;"><strong>"I know someone..."</strong> hiring a CMO.</li>
+                <li style="margin-bottom: 10px;"><strong>"I'm looking for..."</strong> nonprofit partners.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. PERFORMANCE -->
+      <section id="performance" class="hub-section">
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Performance</h2>
+          <p style="margin: 0; color: #888;">Assessments and performance benchmarking.</p>
+        </div>
+
+        <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
+          <h3 style="color: #c8a97e; margin: 0 0 15px 0;">Inner Beast Super Animal Performance Assessment</h3>
+          <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">Discover your unique executive performance profile. This assessment will help you understand your natural leadership style, networking strengths, and areas for rapid growth.</p>
+          <button class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Take the Assessment</button>
+        </div>
+      </section>
+
+      <!-- 6. INTELLIGENCE -->
+      <section id="intelligence" class="hub-section">
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Intelligence Center</h2>
+          <p style="margin: 0; color: #888;">"Here's what happened this week that could make you smarter, wealthier, or better connected."</p>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #111 0%, #0a0a0a 100%); border: 1px solid #c8a97e; padding: 30px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #fff; font-size: 1.5rem;">Weekly Brief: July 2026</h3>
+            <span style="background: #c8a97e; color: #000; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;">NEW</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; color: #ccc;">
+            <div>
+              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Major Executive Moves</h4>
+              <ul style="padding-left: 20px; margin-bottom: 20px;">
+                <li>Former Nike VP joins emerging sports tech fund.</li>
+                <li>New President of Operations named for LA franchise.</li>
+              </ul>
+              
+              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Sponsorship Deals</h4>
+              <ul style="padding-left: 20px;">
+                <li>Global beverage brand signs 5-year stadium naming rights.</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">AI Tools Worth Using</h4>
+              <ul style="padding-left: 20px; margin-bottom: 20px;">
+                <li>New contract analysis tool saving agents 10hrs/week.</li>
+              </ul>
+              
+              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">High-Value Introductions</h4>
+              <p style="margin: 0; font-size: 0.95rem;">Members looking to connect with media buyers this week can reach out to the Society Concierge for warm intros.</p>
+            </div>
+          </div>
+          
+          <button style="margin-top: 30px; width: 100%; padding: 15px; background: transparent; border: 1px solid #c8a97e; color: #c8a97e; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">View Full Report</button>
+        </div>
+
+        <!-- Peer Insights (Approved Articles) -->
+        <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 30px;">
+          <h3 style="color: #c8a97e; margin-bottom: 20px; font-size: 1.5rem; font-family: var(--font-serif);">Peer Insights</h3>
+          <p style="color: #888; margin-bottom: 20px;">Authority articles written by Guild and Council members.</p>
+          <div id="approved-articles-list" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+            <p style="color: #666;">Loading insights...</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    
+    <!-- WRITE ARTICLE (Guild/Council) -->
+    <section id="write-article" class="hub-section content-area" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; background: #050505;">
+      <div style="margin-bottom: 30px;">
+        <h2 style="margin: 0; margin-bottom: 5px; font-family: var(--font-serif); font-size: 2rem;">Write an Authority Article</h2>
+        <p style="margin: 0; color: #888;">Share your expertise with the Society. Submissions are reviewed by Admins before publishing to the Intelligence Center.</p>
+      </div>
+      
+      <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
+        <form id="article-form">
+          <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; text-transform: uppercase;">Article Title</label>
+            <input type="text" id="article-title" required style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; text-transform: uppercase;">Category</label>
+            <select id="article-category" required style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+              <option value="Sports Leadership">Sports Leadership</option>
+              <option value="Executive Presence">Executive Presence</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Personal Branding">Personal Branding</option>
+              <option value="Market Trends">Market Trends</option>
+              <option value="Sponsorship & Deals">Sponsorship & Deals</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; text-transform: uppercase;">Content</label>
+            <textarea id="article-content" rows="12" required style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;" placeholder="Write your insights here..."></textarea>
+          </div>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <button type="submit" class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none;">Submit for Review</button>
+            <span id="article-status" style="color:#4ade80; display:none; font-weight: 500;">Article submitted successfully!</span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ADMIN PANEL -->
+    <section id="admin-panel" class="hub-section content-area" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; background: #050505;">
+      <div style="margin-bottom: 30px;">
+        <h2 style="margin: 0 0 5px 0; color: #ef4444; font-family: var(--font-serif); font-size: 2rem;">Admin Control Center</h2>
+        <p style="margin: 0; color: #888;">Manage users, membership tiers, and approve articles.</p>
+      </div>
+      
+      <!-- Admin Tabs -->
+      <div style="display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+        <button id="tab-manage-users" style="background: transparent; color: #fff; border: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid #ef4444; padding-bottom: 5px;">Manage Users</button>
+        <button id="tab-approve-articles" style="background: transparent; color: #888; border: none; font-size: 1.1rem; cursor: pointer; padding-bottom: 5px;">Approve Articles</button>
+      </div>
+
+      <div id="admin-users-section">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <input type="text" id="admin-user-search" placeholder="Search users by name or email..." style="padding: 10px; width: 300px; border-radius: 4px; border: 1px solid #333; background: #111; color: white;">
+          <span id="admin-users-count" style="color: #888;">Loading users...</span>
+        </div>
+        <div style="overflow-x: auto; background: #111; border: 1px solid #333; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid #333; background: #0a0a0a;">
+                <th style="padding: 15px; color: #c8a97e;">Name</th>
+                <th style="padding: 15px; color: #c8a97e;">Email</th>
+                <th style="padding: 15px; color: #c8a97e;">Membership Tier</th>
+                <th style="padding: 15px; color: #c8a97e;">Is Admin?</th>
+                <th style="padding: 15px; color: #c8a97e;">CSEP?</th>
+                <th style="padding: 15px; color: #c8a97e;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="admin-articles-section" style="display: none;">
+        <div id="admin-articles-list" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+          <!-- Populated by JS -->
+          <p style="color: #888;">Loading articles...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Group Join Modal -->
+  <div id="group-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1000; justify-content:center; align-items:center;">
+    <div style="background:#111; padding:30px; border-radius:8px; border:1px solid #333; width:100%; max-width:400px; text-align: center;">
+      <h3 style="color:#c8a97e; margin-top:0; margin-bottom: 10px;">Private Group Request</h3>
+      <p style="color: #ccc; margin-bottom: 25px;" id="group-modal-text">Would you like to send a request to join this group?</p>
+      <div style="display:flex; justify-content:center; gap:15px;">
+        <button id="btn-close-group" style="background:transparent; border:1px solid #555; color:white; padding:8px 20px; border-radius:4px; cursor:pointer; transition: all 0.3s;">Cancel</button>
+        <button id="btn-submit-group" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:8px 20px; border-radius:4px; cursor:pointer; transition: all 0.3s;">Send Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal -->
+  <div id="update-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1000; justify-content:center; align-items:center;">
+    <div style="background:#111; padding:30px; border-radius:8px; border:1px solid #333; width:100%; max-width:400px;">
+      <h3 style="color:#c8a97e; margin-top:0; margin-bottom: 20px;">Share an Update</h3>
+      <select id="update-type" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; margin-bottom:15px;">
+        <option value="NEW MEMBER">New Member Intro</option>
+        <option value="PROMOTION">Promotion</option>
+        <option value="PROJECT">New Project</option>
+        <option value="SPOTLIGHT">Spotlight</option>
+        <option value="ANNOUNCEMENT">Business Announcement</option>
+      </select>
+      <textarea id="update-text" rows="4" placeholder="What's your update?" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; margin-bottom:15px; font-family:inherit;"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button id="btn-close-update" style="background:transparent; border:1px solid #555; color:white; padding:8px 15px; border-radius:4px; cursor:pointer;">Cancel</button>
+        <button id="btn-submit-update" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:8px 15px; border-radius:4px; cursor:pointer;">Post Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="hub.js?v=2"></script>
+</body>
+</html>

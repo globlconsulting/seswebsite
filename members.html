@@ -60,12 +60,12 @@
         <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: left; min-width: 600px;">
           <thead>
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-              <th style="padding: 1rem; color: var(--text-muted); font-weight: 500; width: 35%;">Benefit</th>
-              <th style="padding: 1rem; color: var(--text-light); text-align: center; font-weight: 500;">General</th>
-              <th style="padding: 1rem; color: var(--color-blue); text-align: center; font-weight: 500;">Sellebrity</th>
-              <th style="padding: 1rem; color: var(--color-gold); text-align: center; font-weight: 500;">Guild</th>
-              <th style="padding: 1rem; color: var(--color-orange); text-align: center; font-weight: 500;">Council</th>
-            </tr>
+                <th style="padding: 1rem; color: #fff; text-align: left; font-weight: 500;">Benefit</th>
+                <th style="padding: 1rem; color: var(--text-muted); text-align: center; font-weight: 500;">General</th>
+                <th style="padding: 1rem; color: #60a5fa; text-align: center; font-weight: 500;">Sellebrity</th>
+                <th style="padding: 1rem; color: var(--color-gold); text-align: center; font-weight: 500;">Guild</th>
+                <th style="padding: 1rem; color: var(--color-orange); text-align: center; font-weight: 500;">Council</th>
+              </tr>
           </thead>
           <tbody>
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -122,31 +122,31 @@
         <div class="application-container" style="margin-bottom: 2rem; padding: 2.5rem;">
           <h3 style="color: var(--text-white); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">Membership Selection</h3>
           
-          <div class="form-group" style="margin-bottom: 0;">
-            <label style="margin-bottom: 1rem;">Which membership are you applying for? <span style="color: var(--color-gold);">*</span></label>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-                <input type="radio" name="tier" value="general" style="margin-top: 4px; accent-color: var(--color-gold);">
+          <div class="form-group">
+            <label style="margin-bottom: 1.5rem;">Which membership are you applying for? <span style="color: var(--color-gold);">*</span></label>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; background: rgba(5, 8, 17, 0.4); padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; user-select: none;">
+                <input type="radio" name="tier" value="general" style="margin-top: 4px; accent-color: var(--color-gold);" checked>
                 <div>
                   <span style="color: var(--text-light); font-weight: 500;">General Membership</span>
                   <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Email list access</span>
                 </div>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; user-select: none;">
                 <input type="radio" name="tier" value="sellebrity" style="margin-top: 4px; accent-color: var(--color-gold);">
                 <div>
                   <span style="color: var(--text-light); font-weight: 500;">Sellebrity <span style="font-size: 0.75rem; background: rgba(44, 111, 173, 0.2); color: var(--color-blue); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CSEP Required</span></span>
                   <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">CSEP required (6-month window upon approval)</span>
                 </div>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; user-select: none;">
                 <input type="radio" name="tier" value="guild" style="margin-top: 4px; accent-color: var(--color-gold);">
                 <div>
                   <span style="color: var(--text-light); font-weight: 500;">Sellebrity Guild <span style="font-size: 0.75rem; background: rgba(181, 142, 49, 0.2); color: var(--color-gold); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CSEP + Experience</span></span>
                   <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">CSEP + 3 or more years of S&E experience</span>
                 </div>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+              <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; user-select: none;">
                 <input type="radio" name="tier" value="council" style="margin-top: 4px; accent-color: var(--color-gold);">
                 <div>
                   <span style="color: var(--text-light); font-weight: 500;">Sellebrity Council <span style="font-size: 0.75rem; background: rgba(220, 95, 30, 0.2); color: var(--color-orange); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">Appointment Only</span></span>
@@ -215,18 +215,19 @@
           <div class="form-group">
             <label style="margin-bottom: 1rem;">Industry / profession <span style="color: var(--color-gold);">*</span></label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Wealth Management</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Business Management</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Law</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Accounting</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Real Estate</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Health & Wellness</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Travel & Hospitality</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Technology</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Retail Goods & Services</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Philanthropy</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Venture Capital</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Other</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Professional Sports (Player, Coach, Executive, Staff)</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Wealth Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Business Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Law</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Accounting</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Real Estate</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Health & Wellness</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Travel & Hospitality</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Technology</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Retail Goods & Services</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Philanthropy</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Venture Capital</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Other</label>
             </div>
           </div>
           
@@ -297,13 +298,17 @@
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label>Headshot</label>
-            <div style="border: 1px dashed rgba(255,255,255,0.2); border-radius: 4px; padding: 2rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; background: rgba(5, 8, 17, 0.4); transition: border-color 0.2s ease;">
-              <span style="font-size: 1.5rem; color: var(--color-gold);">📷</span>
-              <div>
-                <strong style="color: var(--text-light); display: block;">Upload a professional photo</strong>
-                <span style="color: var(--text-muted); font-size: 0.85rem;">JPG or PNG, minimum 400×400px recommended</span>
+            <label for="headshot-upload" id="headshot-dropzone" style="border: 1px dashed rgba(255,255,255,0.2); border-radius: 4px; padding: 2rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; background: rgba(5, 8, 17, 0.4); transition: border-color 0.2s ease; user-select: none;">
+              <div id="headshot-placeholder" style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 1.5rem; color: var(--color-gold);">📷</span>
+                <div>
+                  <strong style="color: var(--text-light); display: block;">Upload a professional photo</strong>
+                  <span style="color: var(--text-muted); font-size: 0.85rem;">JPG or PNG, minimum 400×400px recommended</span>
+                </div>
               </div>
-            </div>
+              <img id="headshot-preview" style="display: none; width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-gold);" />
+              <input type="file" id="headshot-upload" accept="image/png, image/jpeg" style="display: none;">
+            </label>
           </div>
         </div>
 
@@ -456,5 +461,27 @@
   </footer>
 
   <script src="main.js"></script>
+  <script>
+    const headshotInput = document.getElementById('headshot-upload');
+    const headshotPreview = document.getElementById('headshot-preview');
+    const headshotPlaceholder = document.getElementById('headshot-placeholder');
+    const headshotDropzone = document.getElementById('headshot-dropzone');
+
+    if (headshotInput) {
+      headshotInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            headshotPreview.src = e.target.result;
+            headshotPreview.style.display = 'block';
+            headshotPlaceholder.style.display = 'none';
+            headshotDropzone.style.padding = '1rem';
+            headshotDropzone.style.justifyContent = 'center';
+          }
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
