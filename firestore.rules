@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        ) ||
+        (request.auth.token.email == "sheena.l@rhiveconstruction.com" && request.auth.token.email_verified == true));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidInterview(data) {
+      return data.timestamp is timestamp &&
+             data.userEmail is string &&
+             data.transcripts is list &&
+             data.report is map;
+    }
+
+    match /interviews/{interviewId} {
+      allow create: if isAuthenticated() && isValidInterview(request.resource.data);
+      allow read, list: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && 
+                    (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isOwner(userId) && 
+                    (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /applications/{appId} {
+      // Anyone can submit an application (authenticated or unauthenticated)
+      allow create: if true;
+      // Only admins can read/write (list/update/delete) applications
+      allow read, write: if isAdmin();
+    }
+
+    match /approved_emails/{email} {
+      // Anyone can check if their specific email is approved
+      allow get: if true;
+      // Only admins can write (create/update/delete) or list approved emails
+      allow write, list: if isAdmin();
+    }
+  }
+}
