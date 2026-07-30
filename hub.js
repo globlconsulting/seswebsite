@@ -42,6 +42,18 @@ onAuthStateChanged(auth, async (user) => {
               registered: true,
               registeredAt: serverTimestamp()
             }, { merge: true });
+
+            // Also update the application status to 'registered'
+            try {
+              const appsRef = collection(db, "applications");
+              const appQ = query(appsRef, where("email", "==", userEmail));
+              const appQSnap = await getDocs(appQ);
+              appQSnap.forEach(async (appDoc) => {
+                await setDoc(appDoc.ref, { status: 'registered' }, { merge: true });
+              });
+            } catch(appUpdateErr) {
+              console.error("Error updating application status on signup:", appUpdateErr);
+            }
           }
         } catch(approvedErr) {
           console.error("Error reading approved email tier:", approvedErr);
@@ -638,46 +650,52 @@ async function loadAdminUsers() {
 window.loadAdminUsers = loadAdminUsers; // Export for global usage if needed
 
 async function loadAdminApplications() {
-  const tbody = document.getElementById('admin-applications-tbody');
+  const tbodyPending = document.getElementById('admin-applications-tbody');
+  const tbodyApproved = document.getElementById('admin-approved-applications-tbody');
   const badge = document.getElementById('admin-apps-badge');
-  if(!tbody) return;
+  const pendingCountSpan = document.getElementById('admin-pending-apps-count');
+  const approvedCountSpan = document.getElementById('admin-approved-apps-count');
+
+  if(!tbodyPending || !tbodyApproved) return;
 
   try {
     const qSnap = await getDocs(collection(db, "applications"));
     let pendingCount = 0;
-    let html = '';
+    let approvedCount = 0;
+    let pendingHtml = '';
+    let approvedHtml = '';
 
     qSnap.forEach(docSnap => {
       const app = docSnap.data();
       const appId = docSnap.id;
+
+      const name = escapeHTML(app.fullName || 'No Name');
+      const email = escapeHTML(app.email || 'No Email');
+      const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
+      
+      let companyTitleHtml = '';
+      if (app.applicationType === 'csep') {
+        companyTitleHtml = `<span style="font-size:0.9rem; color:#60a5fa; font-weight:500;">CSEP Candidate</span>`;
+      } else {
+        const company = escapeHTML(app.company || '');
+        const title = escapeHTML(app.title || '');
+        companyTitleHtml = `${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span>`;
+      }
+
+      let tierHtml = '';
+      if (app.applicationType === 'csep') {
+        tierHtml = `<span style="color:#60a5fa; font-weight:bold;">CSEP (Sellebrity)</span>`;
+      } else {
+        const tier = escapeHTML(app.tier || 'general');
+        tierHtml = `<span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span>`;
+      }
+
+      const tier = escapeHTML(app.tier || 'sellebrity');
+      const exp = escapeHTML(app.experience || 'No experience provided');
+
       if (app.status === 'pending') {
         pendingCount++;
-        
-        const name = escapeHTML(app.fullName || 'No Name');
-        const email = escapeHTML(app.email || 'No Email');
-        const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
-        
-        let companyTitleHtml = '';
-        if (app.applicationType === 'csep') {
-          companyTitleHtml = `<span style="font-size:0.9rem; color:#60a5fa; font-weight:500;">CSEP Candidate</span>`;
-        } else {
-          const company = escapeHTML(app.company || '');
-          const title = escapeHTML(app.title || '');
-          companyTitleHtml = `${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span>`;
-        }
-
-        let tierHtml = '';
-        if (app.applicationType === 'csep') {
-          tierHtml = `<span style="color:#60a5fa; font-weight:bold;">CSEP (Sellebrity)</span>`;
-        } else {
-          const tier = escapeHTML(app.tier || 'general');
-          tierHtml = `<span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span>`;
-        }
-
-        const tier = escapeHTML(app.tier || 'sellebrity');
-        const exp = escapeHTML(app.experience || 'No experience provided');
-        
-        html += `
+        pendingHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
             <td style="padding: 15px;"><strong>${name}</strong></td>
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
@@ -690,87 +708,139 @@ async function loadAdminApplications() {
             </td>
           </tr>
         `;
+      } else if (app.status === 'approved') {
+        approvedCount++;
+        approvedHtml += `
+          <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
+            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px; color: #888;">${email}${phone}</td>
+            <td style="padding: 15px;">${companyTitleHtml}</td>
+            <td style="padding: 15px;">${tierHtml}</td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
+              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" data-tier="${tier}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
+              <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Revoke</button>
+            </td>
+          </tr>
+        `;
       }
     });
 
+    // 1. Render Pending List
     if (pendingCount === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No pending applications.</td></tr>`;
-      if(badge) badge.style.display = 'none';
+      tbodyPending.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No pending applications.</td></tr>`;
+      if (pendingCountSpan) pendingCountSpan.style.display = 'none';
+      if (badge) badge.style.display = 'none';
     } else {
-      tbody.innerHTML = html;
-      if(badge) {
+      tbodyPending.innerHTML = pendingHtml;
+      if (pendingCountSpan) {
+        pendingCountSpan.innerText = pendingCount;
+        pendingCountSpan.style.display = 'inline-block';
+      }
+      if (badge) {
         badge.innerText = pendingCount;
         badge.style.display = 'inline-block';
       }
-
-      // Attach Approval and Decline Handlers
-      document.querySelectorAll('.admin-app-approve-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const appId = e.target.getAttribute('data-id');
-          const appEmail = e.target.getAttribute('data-email');
-          const appName = e.target.getAttribute('data-name');
-          const appTier = e.target.getAttribute('data-tier');
-
-          e.target.innerText = 'Approving...';
-          e.target.disabled = true;
-
-          try {
-            // 1. Update application status in Firestore
-            await setDoc(doc(db, "applications", appId), { status: 'approved' }, { merge: true });
-
-            // 2. Add email to approved_emails registry (permanently store record of approval)
-            await setDoc(doc(db, "approved_emails", appEmail), {
-              email: appEmail,
-              membershipTier: appTier,
-              approvedAt: serverTimestamp(),
-              registered: false
-            });
-
-            e.target.innerText = 'Approved!';
-            
-            // 3. Open mailto link and copy template to clipboard
-            const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your application for the ${appTier.charAt(0).toUpperCase() + appTier.slice(1)} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
-
-            navigator.clipboard.writeText(emailBody)
-              .then(() => alert(`Approval email template copied to clipboard! Opening your email client to notify ${appName}...`))
-              .catch(err => console.log('Clipboard write failed', err));
-              
-            window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Application is Approved!&body=${encodeURIComponent(emailBody)}`);
-
-            // Refresh applications list
-            loadAdminApplications();
-          } catch(err) {
-            console.error("Failed to approve application:", err);
-            e.target.innerText = 'Error';
-            e.target.disabled = false;
-          }
-        });
-      });
-
-      document.querySelectorAll('.admin-app-decline-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          if (!confirm("Are you sure you want to decline and delete this application?")) return;
-
-          const appId = e.target.getAttribute('data-id');
-          e.target.innerText = 'Declining...';
-          e.target.disabled = true;
-
-          try {
-            // Delete the application doc from applications collection
-            await deleteDoc(doc(db, "applications", appId));
-            loadAdminApplications();
-          } catch(err) {
-            console.error("Failed to decline application:", err);
-            e.target.innerText = 'Error';
-            e.target.disabled = false;
-          }
-        });
-      });
     }
+
+    // 2. Render Approved (Awaiting Signup) List
+    if (approvedCount === 0) {
+      tbodyApproved.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No approved applications awaiting registration.</td></tr>`;
+      if (approvedCountSpan) approvedCountSpan.style.display = 'none';
+    } else {
+      tbodyApproved.innerHTML = approvedHtml;
+      if (approvedCountSpan) {
+        approvedCountSpan.innerText = approvedCount;
+        approvedCountSpan.style.display = 'inline-block';
+      }
+    }
+
+    // Attach Event Handlers to both tables
+    
+    // Approval Handler (just moves applicant to approved state without automatic email popup)
+    document.querySelectorAll('.admin-app-approve-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const appId = e.target.getAttribute('data-id');
+        const appEmail = e.target.getAttribute('data-email');
+        const appTier = e.target.getAttribute('data-tier');
+
+        e.target.innerText = 'Approving...';
+        e.target.disabled = true;
+
+        try {
+          // 1. Update application status in Firestore to 'approved'
+          await setDoc(doc(db, "applications", appId), { status: 'approved' }, { merge: true });
+
+          // 2. Add email to approved_emails registry (permanently store record of approval)
+          await setDoc(doc(db, "approved_emails", appEmail), {
+            email: appEmail,
+            membershipTier: appTier,
+            approvedAt: serverTimestamp(),
+            registered: false
+          });
+
+          // Refresh list to move the applicant down
+          loadAdminApplications();
+        } catch(err) {
+          console.error("Failed to approve application:", err);
+          e.target.innerText = 'Error';
+          e.target.disabled = false;
+        }
+      });
+    });
+
+    // Email Invite Sender (Copies template and opens mail client on button click)
+    document.querySelectorAll('.admin-app-send-invite-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetBtn = e.currentTarget;
+        const appEmail = targetBtn.getAttribute('data-email');
+        const appName = targetBtn.getAttribute('data-name');
+        const appTier = targetBtn.getAttribute('data-tier');
+
+        const originalText = targetBtn.innerHTML;
+        targetBtn.innerText = 'Copying...';
+
+        const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your application for the ${appTier.charAt(0).toUpperCase() + appTier.slice(1)} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
+
+        navigator.clipboard.writeText(emailBody)
+          .then(() => {
+            alert(`Approval email template copied to clipboard! Opening your email client to notify ${appName}...`);
+            targetBtn.innerHTML = '✉ Invite Sent!';
+            setTimeout(() => { targetBtn.innerHTML = originalText; }, 2000);
+          })
+          .catch(err => {
+            console.error('Clipboard write failed', err);
+            targetBtn.innerHTML = originalText;
+          });
+          
+        window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Application is Approved!&body=${encodeURIComponent(emailBody)}`);
+      });
+    });
+
+    // Decline / Revoke Handler
+    document.querySelectorAll('.admin-app-decline-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if (!confirm("Are you sure you want to decline / revoke this application?")) return;
+
+        const appId = e.target.getAttribute('data-id');
+        e.target.innerText = 'Removing...';
+        e.target.disabled = true;
+
+        try {
+          // Delete the application doc from applications collection
+          await deleteDoc(doc(db, "applications", appId));
+          loadAdminApplications();
+        } catch(err) {
+          console.error("Failed to decline application:", err);
+          e.target.innerText = 'Error';
+          e.target.disabled = false;
+        }
+      });
+    });
 
   } catch (err) {
     console.error("Admin applications load error", err);
-    tbody.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading applications</td></tr>`;
+    tbodyPending.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading applications</td></tr>`;
   }
 }
 
