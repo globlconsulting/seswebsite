@@ -138,55 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- CSEP FORM VALIDATION & SUBMISSION HANDLING ---
-  const csepForm = document.getElementById('csep-application');
-  const csepNotification = document.getElementById('form-notification');
+  // (Moved to csep.js to support Firestore database applications integration)
 
-  if (csepForm) {
-    csepForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (csepNotification) csepNotification.style.display = 'none';
-
-      const firstName = document.getElementById('first-name').value.trim();
-      const lastName = document.getElementById('last-name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const industry = document.getElementById('industry').value;
-      const experience = document.getElementById('experience').value;
-      const consent = document.getElementById('consent').checked;
-
-      if (!firstName || !lastName || !email || !industry || !experience || !consent) {
-        showNotification('Please fill in all required fields and consent to the rules.', 'error', csepNotification);
-        return;
-      }
-      if (!validateEmail(email)) {
-        showNotification('Please enter a valid email address.', 'error', csepNotification);
-        return;
-      }
-
-      const tags = ["CSEP_Applicant", `Industry: ${industry}`];
-      const newsletterCheckbox = document.getElementById('csep-newsletter');
-      if (newsletterCheckbox && newsletterCheckbox.checked) {
-        tags.push("SES_Newsletter_Subscriber");
-      }
-
-      const payload = {
-        person: {
-          firstName,
-          lastName,
-          emails: [{ value: email }],
-          tags: tags
-        },
-        source: "SES Website - CSEP",
-        system: "Custom",
-        type: "Inquiry",
-        message: `Years of experience: ${experience}`
-      };
-
-      const submitBtn = csepForm.querySelector('button[type="submit"]');
-      const successMsg = `Congratulations, ${firstName}! Your application for the CSEP designation has been submitted successfully. A Sellebrity Council member will contact you within 48 hours.`;
-      
-      sendToFUB(payload, submitBtn, submitBtn.textContent, successMsg, csepForm, csepNotification);
-    });
-  }
 
   // --- MEMBERSHIP FORM VALIDATION & SUBMISSION HANDLING ---
   // (Moved to members.js to support Firestore database applications integration)

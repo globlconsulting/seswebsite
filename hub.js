@@ -655,18 +655,34 @@ async function loadAdminApplications() {
         
         const name = escapeHTML(app.fullName || 'No Name');
         const email = escapeHTML(app.email || 'No Email');
-        const phone = escapeHTML(app.phone || 'No Phone');
-        const company = escapeHTML(app.company || '');
-        const title = escapeHTML(app.title || '');
-        const tier = escapeHTML(app.tier || 'general');
+        const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
+        
+        let companyTitleHtml = '';
+        if (app.applicationType === 'csep') {
+          companyTitleHtml = `<span style="font-size:0.9rem; color:#60a5fa; font-weight:500;">CSEP Candidate</span>`;
+        } else {
+          const company = escapeHTML(app.company || '');
+          const title = escapeHTML(app.title || '');
+          companyTitleHtml = `${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span>`;
+        }
+
+        let tierHtml = '';
+        if (app.applicationType === 'csep') {
+          tierHtml = `<span style="color:#60a5fa; font-weight:bold;">CSEP (Sellebrity)</span>`;
+        } else {
+          const tier = escapeHTML(app.tier || 'general');
+          tierHtml = `<span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span>`;
+        }
+
+        const tier = escapeHTML(app.tier || 'sellebrity');
         const exp = escapeHTML(app.experience || 'No experience provided');
         
         html += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
             <td style="padding: 15px;"><strong>${name}</strong></td>
-            <td style="padding: 15px; color: #888;">${email}<br>${phone}</td>
-            <td style="padding: 15px;">${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span></td>
-            <td style="padding: 15px;"><span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span></td>
+            <td style="padding: 15px; color: #888;">${email}${phone}</td>
+            <td style="padding: 15px;">${companyTitleHtml}</td>
+            <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
               <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" data-tier="${tier}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
