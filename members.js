@@ -1,0 +1,146 @@
+import { db } from './firebase.js';
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+document.addEventListener('DOMContentLoaded', () => {
+  const membershipForm = document.getElementById('membership-application');
+  if (membershipForm) {
+    // Create a notification element for the membership form if it doesn't exist
+    let memNotification = document.getElementById('mem-form-notification');
+    if (!memNotification) {
+      memNotification = document.createElement('div');
+      memNotification.id = 'mem-form-notification';
+      memNotification.className = 'form-notification';
+      memNotification.style.display = 'none';
+      membershipForm.parentNode.insertBefore(memNotification, membershipForm);
+    }
+
+    membershipForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      memNotification.style.display = 'none';
+
+      const formData = new FormData(membershipForm);
+      const email = (formData.get('email') || '').trim();
+      const phone = (formData.get('phone') || '').trim();
+      const fullName = (formData.get('fullName') || '').trim();
+      const company = (formData.get('company') || '').trim();
+      const title = (formData.get('title') || '').trim();
+      const referrer = (formData.get('referrer') || '').trim();
+      const tier = formData.get('tier') || 'general';
+      
+      const textarea = membershipForm.querySelector('textarea');
+      const experience = textarea ? textarea.value.trim() : '';
+
+      const clienteleInput = membershipForm.querySelector('input[name="clientele"]:checked');
+      const clientele = clienteleInput ? clienteleInput.parentNode.textContent.trim() : 'Not Selected';
+
+      if (!validateEmail(email)) {
+        showNotification('Please enter a valid email address.', 'error', memNotification);
+        return;
+      }
+
+      // Collect selected industries
+      const industries = [];
+      membershipForm.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        // Exclude the newsletter checkbox from industries
+        if (cb.id !== 'mem-newsletter') {
+          industries.push(cb.parentNode.textContent.trim());
+        }
+      });
+
+      const submitBtn = membershipForm.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.textContent : 'Submit Application';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'SUBMITTING...';
+      }
+
+      try {
+        // 1. Save application doc to Firestore collection "applications"
+        const appData = {
+          email: email.toLowerCase(),
+          fullName: fullName,
+          phone: phone,
+          company: company,
+          title: title,
+          referrer: referrer,
+          tier: tier,
+          industries: industries,
+          clientele: clientele,
+          experience: experience,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        };
+        await addDoc(collection(db, "applications"), appData);
+
+        // 2. Submit to CRM /api/fub in background
+        const nameParts = fullName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const tags = [
+          "Membership_Applicant", 
+          `Tier: ${tier}`, 
+          ...industries.map(ind => `Industry: ${ind}`),
+          `Clientele: ${clientele}`
+        ];
+        const newsletterCheckbox = document.getElementById('mem-newsletter');
+        if (newsletterCheckbox && newsletterCheckbox.checked) {
+          tags.push("SES_Newsletter_Subscriber");
+        }
+
+        const payload = {
+          person: {
+            firstName: firstName,
+            lastName: lastName,
+            emails: [{ value: email }],
+            phones: [{ value: phone }],
+            tags: tags
+          },
+          source: "SES Website - Membership",
+          system: "Custom",
+          type: "Inquiry",
+          message: `Company: ${company}\nTitle: ${title}\nReferrer: ${referrer}`
+        };
+
+        try {
+          await fetch('/api/fub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (fubErr) {
+          console.error("CRM submission failed:", fubErr);
+        }
+
+        // Show Success notification
+        showNotification(`Thank you, ${firstName}! Your application for membership has been submitted securely and is pending review.`, 'success', memNotification);
+        membershipForm.reset();
+
+      } catch (err) {
+        console.error("Application submission failed:", err);
+        showNotification('An error occurred. Please try again later or contact support.', 'error', memNotification);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+      }
+    });
+  }
+
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  function showNotification(message, type, notificationEl) {
+    if (notificationEl) {
+      notificationEl.textContent = message;
+      notificationEl.className = 'form-notification';
+      notificationEl.classList.add(type);
+      notificationEl.style.display = 'block';
+      notificationEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      alert(message);
+    }
+  }
+});

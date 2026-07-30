@@ -1,4 +1,5 @@
-import { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from './firebase.js';
+import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from './firebase.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // DOM Elements
 const msg = document.getElementById('message');
@@ -27,19 +28,52 @@ document.getElementById('btn-login').addEventListener('click', () => {
 });
 
 // 2. Register New User
-document.getElementById('btn-register').addEventListener('click', () => {
-  const email = emailInput.value;
+document.getElementById('btn-register').addEventListener('click', async () => {
+  const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value;
-  createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      msg.style.color = "green";
-      msg.innerText = `Account created for ${userCredential.user.email}!`;
-      window.location.replace('hub.html');
-    })
-    .catch((error) => {
+
+  if (!email || !password) {
+    msg.style.color = "red";
+    msg.innerText = "Please fill in both email and password fields.";
+    return;
+  }
+
+  const btnRegister = document.getElementById('btn-register');
+  btnRegister.disabled = true;
+  btnRegister.innerText = "Registering...";
+
+  try {
+    // Check if the email exists in approved_emails
+    const approvedDocRef = doc(db, "approved_emails", email);
+    const approvedDocSnap = await getDoc(approvedDocRef);
+
+    if (!approvedDocSnap.exists()) {
       msg.style.color = "red";
-      msg.innerText = `Error: ${error.message}`;
-    });
+      msg.innerText = "Error: This email has not been approved for registration yet. Please submit a membership application first.";
+      btnRegister.disabled = false;
+      btnRegister.innerText = "Register";
+      return;
+    }
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        msg.style.color = "green";
+        msg.innerText = `Account created for ${userCredential.user.email}!`;
+        window.location.replace('hub.html');
+      })
+      .catch((error) => {
+        msg.style.color = "red";
+        msg.innerText = `Error: ${error.message}`;
+        btnRegister.disabled = false;
+        btnRegister.innerText = "Register";
+      });
+  } catch (error) {
+    console.error("Firestore approved_emails lookup failed:", error);
+    msg.style.color = "red";
+    msg.innerText = `Error checking email status: ${error.message}`;
+    btnRegister.disabled = false;
+    btnRegister.innerText = "Register";
+  }
 });
 
 // 3. Forgot Password / Send Reset Email
@@ -134,14 +168,31 @@ const emailForm = document.getElementById('email-form-container');
 const phoneForm = document.getElementById('phone-form-container');
 const title = document.getElementById('form-title');
 
-document.getElementById('toggle-register').addEventListener('click', () => {
+function switchToRegister() {
   document.getElementById('btn-login').style.display = 'none';
   document.getElementById('btn-register').style.display = 'block';
   document.getElementById('btn-reset').style.display = 'none';
   document.getElementById('password').parentElement.style.display = 'block';
   title.innerText = "Society Hub Registration";
   msg.innerText = "";
-});
+}
+
+// Auto-switch to register mode if URL has ?register=true
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('register') === 'true') {
+  switchToRegister();
+  const emailParam = urlParams.get('email');
+  if (emailParam) {
+    emailInput.value = emailParam;
+  }
+}
+
+const toggleRegisterEl = document.getElementById('toggle-register');
+if (toggleRegisterEl) {
+  toggleRegisterEl.addEventListener('click', () => {
+    switchToRegister();
+  });
+}
 
 document.getElementById('toggle-reset').addEventListener('click', () => {
   document.getElementById('btn-login').style.display = 'none';

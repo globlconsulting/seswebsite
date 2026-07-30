@@ -1,6 +1,8 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, collection, getDocs, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { learningTracks } from './learnData.js';
+import { weeklyIntelligence } from './intelData.js';
 
 // --- AUTHENTICATION CHECK --- //
 const loader = document.getElementById('auth-loader');
@@ -10,6 +12,12 @@ let currentUserUid = null;
 let currentUserName = "Anonymous";
 let userTier = 'general';
 let isAdmin = false;
+
+// Global article state lists
+let userReadArticles = [];
+let userFavoriteArticles = [];
+let userReadLaterArticles = [];
+let userBookmarkedIntel = [];
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -21,13 +29,31 @@ onAuthStateChanged(auth, async (user) => {
       const userRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(userRef);
       if (!docSnap.exists()) {
+        const userEmail = (user.email || '').trim().toLowerCase();
+        let tier = 'general';
+        
+        try {
+          const approvedRef = doc(db, "approved_emails", userEmail);
+          const approvedSnap = await getDoc(approvedRef);
+          if (approvedSnap.exists()) {
+            tier = approvedSnap.data().membershipTier || 'general';
+            // Mark email as registered
+            await setDoc(approvedRef, {
+              registered: true,
+              registeredAt: serverTimestamp()
+            }, { merge: true });
+          }
+        } catch(approvedErr) {
+          console.error("Error reading approved email tier:", approvedErr);
+        }
+
         const isDefaultAdmin = (user.email === 'admin@ses.com');
         await setDoc(userRef, {
           email: user.email,
-          membershipTier: 'general',
+          membershipTier: tier,
           isAdmin: isDefaultAdmin
         });
-        userTier = 'general';
+        userTier = tier;
         isAdmin = isDefaultAdmin;
       } else {
         const data = docSnap.data();
@@ -69,6 +95,7 @@ onAuthStateChanged(auth, async (user) => {
     // Preload admin stuff if admin
     if (isAdmin) {
       if(typeof loadAdminUsers === 'function') loadAdminUsers();
+      if(typeof loadAdminApplications === 'function') loadAdminApplications();
       if(typeof loadAdminArticles === 'function') loadAdminArticles();
     }
     
@@ -172,9 +199,35 @@ async function loadUserProfile(uid) {
       if(em) em.value = data.contactEmail || '';
       const ph = document.getElementById('profile-contact-phone');
       if(ph) ph.value = data.contactPhone || '';
+
+      // Load article progress list states
+      userReadArticles = data.readArticles || [];
+      userFavoriteArticles = data.favoriteArticles || [];
+      userReadLaterArticles = data.readLaterArticles || [];
+      userBookmarkedIntel = data.bookmarkedIntel || [];
+
+      // Save to cache
+      localStorage.setItem(`ses_${uid}_read`, JSON.stringify(userReadArticles));
+      localStorage.setItem(`ses_${uid}_favorite`, JSON.stringify(userFavoriteArticles));
+      localStorage.setItem(`ses_${uid}_later`, JSON.stringify(userReadLaterArticles));
+      localStorage.setItem(`ses_${uid}_bookmarked_intel`, JSON.stringify(userBookmarkedIntel));
     }
+    // Update folder count indicators and UI badges
+    if (typeof updateFolderCounts === 'function') updateFolderCounts();
+    if (typeof refreshActiveArticlesView === 'function') refreshActiveArticlesView();
+    if (typeof updateIntelBookmarkCount === 'function') updateIntelBookmarkCount();
+    if (typeof refreshActiveIntelView === 'function') refreshActiveIntelView();
   } catch (error) {
-    console.error("Error loading profile:", error);
+    console.error("Error loading profile, loading from cache:", error);
+    userReadArticles = JSON.parse(localStorage.getItem(`ses_${uid}_read`)) || [];
+    userFavoriteArticles = JSON.parse(localStorage.getItem(`ses_${uid}_favorite`)) || [];
+    userReadLaterArticles = JSON.parse(localStorage.getItem(`ses_${uid}_later`)) || [];
+    userBookmarkedIntel = JSON.parse(localStorage.getItem(`ses_${uid}_bookmarked_intel`)) || [];
+    
+    if (typeof updateFolderCounts === 'function') updateFolderCounts();
+    if (typeof refreshActiveArticlesView === 'function') refreshActiveArticlesView();
+    if (typeof updateIntelBookmarkCount === 'function') updateIntelBookmarkCount();
+    if (typeof refreshActiveIntelView === 'function') refreshActiveIntelView();
   }
 }
 
@@ -453,28 +506,35 @@ if (articleForm) {
 
 // --- ADMIN PANEL LOGIC --- //
 const tabUsers = document.getElementById('tab-manage-users');
+const tabApps = document.getElementById('tab-pending-applications');
 const tabArticles = document.getElementById('tab-approve-articles');
 const secUsers = document.getElementById('admin-users-section');
+const secApps = document.getElementById('admin-applications-section');
 const secArticles = document.getElementById('admin-articles-section');
 
-if (tabUsers && tabArticles) {
-  tabUsers.addEventListener('click', () => {
-    tabUsers.style.borderBottom = '2px solid #ef4444';
-    tabUsers.style.color = '#fff';
-    tabArticles.style.borderBottom = 'none';
-    tabArticles.style.color = '#888';
-    secUsers.style.display = 'block';
-    secArticles.style.display = 'none';
+function selectAdminTab(selectedTab, selectedSection) {
+  [tabUsers, tabApps, tabArticles].forEach(tab => {
+    if (tab) {
+      tab.style.borderBottom = 'none';
+      tab.style.color = '#888';
+    }
   });
-  tabArticles.addEventListener('click', () => {
-    tabArticles.style.borderBottom = '2px solid #ef4444';
-    tabArticles.style.color = '#fff';
-    tabUsers.style.borderBottom = 'none';
-    tabUsers.style.color = '#888';
-    secArticles.style.display = 'block';
-    secUsers.style.display = 'none';
+  [secUsers, secApps, secArticles].forEach(sec => {
+    if (sec) sec.style.display = 'none';
   });
+
+  if (selectedTab) {
+    selectedTab.style.borderBottom = '2px solid #ef4444';
+    selectedTab.style.color = '#fff';
+  }
+  if (selectedSection) {
+    selectedSection.style.display = 'block';
+  }
 }
+
+if (tabUsers) tabUsers.addEventListener('click', () => { selectAdminTab(tabUsers, secUsers); if(typeof loadAdminUsers === 'function') loadAdminUsers(); });
+if (tabApps) tabApps.addEventListener('click', () => { selectAdminTab(tabApps, secApps); if(typeof loadAdminApplications === 'function') loadAdminApplications(); });
+if (tabArticles) tabArticles.addEventListener('click', () => { selectAdminTab(tabArticles, secArticles); if(typeof loadAdminArticles === 'function') loadAdminArticles(); });
 
 async function loadAdminUsers() {
   const tbody = document.getElementById('admin-users-tbody');
@@ -551,7 +611,24 @@ async function loadAdminUsers() {
         }
       });
     });
-    
+    // Add search functionality
+    const searchInput = document.getElementById('admin-user-search');
+    if (searchInput && !searchInput.dataset.listenerAttached) {
+      searchInput.dataset.listenerAttached = 'true';
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+          const nameCell = row.cells[0]?.textContent.toLowerCase() || '';
+          const emailCell = row.cells[1]?.textContent.toLowerCase() || '';
+          if (nameCell.includes(query) || emailCell.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
   } catch (err) {
     console.error("Admin user load error", err);
     tbody.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading users</td></tr>`;
@@ -559,6 +636,129 @@ async function loadAdminUsers() {
 }
 
 window.loadAdminUsers = loadAdminUsers; // Export for global usage if needed
+
+async function loadAdminApplications() {
+  const tbody = document.getElementById('admin-applications-tbody');
+  const badge = document.getElementById('admin-apps-badge');
+  if(!tbody) return;
+
+  try {
+    const qSnap = await getDocs(collection(db, "applications"));
+    let pendingCount = 0;
+    let html = '';
+
+    qSnap.forEach(docSnap => {
+      const app = docSnap.data();
+      const appId = docSnap.id;
+      if (app.status === 'pending') {
+        pendingCount++;
+        
+        const name = escapeHTML(app.fullName || 'No Name');
+        const email = escapeHTML(app.email || 'No Email');
+        const phone = escapeHTML(app.phone || 'No Phone');
+        const company = escapeHTML(app.company || '');
+        const title = escapeHTML(app.title || '');
+        const tier = escapeHTML(app.tier || 'general');
+        const exp = escapeHTML(app.experience || 'No experience provided');
+        
+        html += `
+          <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
+            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px; color: #888;">${email}<br>${phone}</td>
+            <td style="padding: 15px;">${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span></td>
+            <td style="padding: 15px;"><span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span></td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
+              <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" data-tier="${tier}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
+              <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
+            </td>
+          </tr>
+        `;
+      }
+    });
+
+    if (pendingCount === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No pending applications.</td></tr>`;
+      if(badge) badge.style.display = 'none';
+    } else {
+      tbody.innerHTML = html;
+      if(badge) {
+        badge.innerText = pendingCount;
+        badge.style.display = 'inline-block';
+      }
+
+      // Attach Approval and Decline Handlers
+      document.querySelectorAll('.admin-app-approve-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const appId = e.target.getAttribute('data-id');
+          const appEmail = e.target.getAttribute('data-email');
+          const appName = e.target.getAttribute('data-name');
+          const appTier = e.target.getAttribute('data-tier');
+
+          e.target.innerText = 'Approving...';
+          e.target.disabled = true;
+
+          try {
+            // 1. Update application status in Firestore
+            await setDoc(doc(db, "applications", appId), { status: 'approved' }, { merge: true });
+
+            // 2. Add email to approved_emails registry (permanently store record of approval)
+            await setDoc(doc(db, "approved_emails", appEmail), {
+              email: appEmail,
+              membershipTier: appTier,
+              approvedAt: serverTimestamp(),
+              registered: false
+            });
+
+            e.target.innerText = 'Approved!';
+            
+            // 3. Open mailto link and copy template to clipboard
+            const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your application for the ${appTier.charAt(0).toUpperCase() + appTier.slice(1)} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
+
+            navigator.clipboard.writeText(emailBody)
+              .then(() => alert(`Approval email template copied to clipboard! Opening your email client to notify ${appName}...`))
+              .catch(err => console.log('Clipboard write failed', err));
+              
+            window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Application is Approved!&body=${encodeURIComponent(emailBody)}`);
+
+            // Refresh applications list
+            loadAdminApplications();
+          } catch(err) {
+            console.error("Failed to approve application:", err);
+            e.target.innerText = 'Error';
+            e.target.disabled = false;
+          }
+        });
+      });
+
+      document.querySelectorAll('.admin-app-decline-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if (!confirm("Are you sure you want to decline and delete this application?")) return;
+
+          const appId = e.target.getAttribute('data-id');
+          e.target.innerText = 'Declining...';
+          e.target.disabled = true;
+
+          try {
+            // Delete the application doc from applications collection
+            await deleteDoc(doc(db, "applications", appId));
+            loadAdminApplications();
+          } catch(err) {
+            console.error("Failed to decline application:", err);
+            e.target.innerText = 'Error';
+            e.target.disabled = false;
+          }
+        });
+      });
+    }
+
+  } catch (err) {
+    console.error("Admin applications load error", err);
+    tbody.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading applications</td></tr>`;
+  }
+}
+
+window.loadAdminApplications = loadAdminApplications;
 
 async function loadAdminArticles() {
   const container = document.getElementById('admin-articles-list');
@@ -656,3 +856,853 @@ async function loadApprovedArticles() {
   }
 }
 window.loadApprovedArticles = loadApprovedArticles;
+
+// --- EDUCATION CENTER (LEARNING TRACKS & ARTICLES) LOGIC --- //
+let activeTrackKey = null;
+let activeFolderKey = null;
+let currentOpenArticleId = null;
+
+function getAllArticles() {
+  const list = [];
+  Object.keys(learningTracks).forEach(trackKey => {
+    const track = learningTracks[trackKey];
+    track.articles.forEach(art => {
+      list.push({
+        ...art,
+        trackTitle: track.title,
+        trackKey: trackKey
+      });
+    });
+  });
+  return list;
+}
+
+function updateFolderCounts() {
+  const favBadge = document.getElementById('count-favorites');
+  const laterBadge = document.getElementById('count-read-later');
+  const readBadge = document.getElementById('count-read');
+  
+  if (favBadge) favBadge.innerText = userFavoriteArticles.length;
+  if (laterBadge) laterBadge.innerText = userReadLaterArticles.length;
+  if (readBadge) readBadge.innerText = userReadArticles.length;
+}
+window.updateFolderCounts = updateFolderCounts;
+
+async function toggleArticleState(articleId, stateType) {
+  if (!currentUserUid) return;
+  
+  let targetArray;
+  if (stateType === 'read') {
+    targetArray = userReadArticles;
+  } else if (stateType === 'favorite') {
+    targetArray = userFavoriteArticles;
+  } else if (stateType === 'later') {
+    targetArray = userReadLaterArticles;
+  }
+  
+  if (!targetArray) return;
+  
+  const index = targetArray.indexOf(articleId);
+  if (index > -1) {
+    targetArray.splice(index, 1);
+  } else {
+    targetArray.push(articleId);
+  }
+  
+  // Update counts and UI immediately
+  updateFolderCounts();
+  refreshActiveArticlesView();
+  updateModalActionButtons(articleId);
+  
+  // Cache to local storage
+  localStorage.setItem(`ses_${currentUserUid}_read`, JSON.stringify(userReadArticles));
+  localStorage.setItem(`ses_${currentUserUid}_favorite`, JSON.stringify(userFavoriteArticles));
+  localStorage.setItem(`ses_${currentUserUid}_later`, JSON.stringify(userReadLaterArticles));
+  
+  // Sync to Firestore
+  try {
+    const userRef = doc(db, "users", currentUserUid);
+    await setDoc(userRef, {
+      readArticles: userReadArticles,
+      favoriteArticles: userFavoriteArticles,
+      readLaterArticles: userReadLaterArticles
+    }, { merge: true });
+  } catch (err) {
+    console.error("Firestore progress sync failed, relying on cache:", err);
+  }
+}
+window.toggleArticleState = toggleArticleState;
+
+function updateModalActionButtons(articleId) {
+  if (currentOpenArticleId !== articleId) return;
+  
+  const btnFav = document.getElementById('btn-toggle-favorite');
+  const btnLater = document.getElementById('btn-toggle-read-later');
+  const btnRead = document.getElementById('btn-toggle-read');
+  
+  if (!btnFav || !btnLater || !btnRead) return;
+  
+  const isFav = userFavoriteArticles.includes(articleId);
+  const isLater = userReadLaterArticles.includes(articleId);
+  const isRead = userReadArticles.includes(articleId);
+  
+  if (isFav) {
+    btnFav.classList.add('active');
+    btnFav.querySelector('.label').innerText = 'Favorited';
+  } else {
+    btnFav.classList.remove('active');
+    btnFav.querySelector('.label').innerText = 'Add to Favorites';
+  }
+  
+  if (isLater) {
+    btnLater.classList.add('active');
+    btnLater.querySelector('.label').innerText = 'Saved in Read Later';
+  } else {
+    btnLater.classList.remove('active');
+    btnLater.querySelector('.label').innerText = 'Read Later';
+  }
+  
+  if (isRead) {
+    btnRead.classList.add('active');
+    btnRead.querySelector('.label').innerText = 'Completed';
+  } else {
+    btnRead.classList.remove('active');
+    btnRead.querySelector('.label').innerText = 'Mark as Completed';
+  }
+}
+
+function refreshActiveArticlesView() {
+  if (activeTrackKey) {
+    const trackData = learningTracks[activeTrackKey];
+    if (trackData) {
+      const trackCards = document.querySelectorAll('.track-card');
+      let activeCard = null;
+      trackCards.forEach(c => {
+        if (c.getAttribute('data-track') === activeTrackKey) activeCard = c;
+      });
+      selectTrack(activeTrackKey, activeCard);
+    }
+  } else if (activeFolderKey) {
+    selectFolder(activeFolderKey);
+  } else {
+    clearSelection();
+  }
+}
+window.refreshActiveArticlesView = refreshActiveArticlesView;
+
+let trackCardsGlobal = [];
+let libraryFoldersGlobal = [];
+let learnDefaultContentGlobal = null;
+let learnTrackContentGlobal = null;
+let learnTrackTitleGlobal = null;
+let trackArticlesGridGlobal = null;
+
+function selectTrack(trackKey, cardEl) {
+  activeTrackKey = trackKey;
+  activeFolderKey = null; // reset folders
+
+  // Clear search input
+  const searchInput = document.getElementById('learn-search');
+  if (searchInput) searchInput.value = '';
+  const btnClear = document.getElementById('btn-clear-learn-search');
+  if (btnClear) btnClear.style.display = 'none';
+  
+  const trackData = learningTracks[trackKey];
+  if (!trackData) return;
+
+  // Reset active styles on all cards and folders
+  trackCardsGlobal.forEach(c => {
+    c.style.background = '#111';
+    c.style.borderColor = '#333';
+    c.style.boxShadow = 'none';
+  });
+  libraryFoldersGlobal.forEach(f => f.classList.remove('active'));
+
+  // Highlight active card
+  if (cardEl) {
+    cardEl.style.background = 'rgba(200, 169, 126, 0.1)';
+    cardEl.style.borderColor = '#c8a97e';
+    cardEl.style.boxShadow = '0 0 15px rgba(200, 169, 126, 0.2)';
+  }
+
+  // Update Title
+  learnTrackTitleGlobal.innerText = `${trackData.title} Lessons`;
+
+  // Render list
+  renderArticlesList(trackData.articles, trackData.title);
+
+  // Swap sections
+  learnDefaultContentGlobal.style.display = 'none';
+  learnTrackContentGlobal.style.display = 'block';
+}
+
+function selectFolder(folderKey) {
+  activeFolderKey = folderKey;
+  activeTrackKey = null; // reset tracks
+
+  // Clear search input
+  const searchInput = document.getElementById('learn-search');
+  if (searchInput) searchInput.value = '';
+  const btnClear = document.getElementById('btn-clear-learn-search');
+  if (btnClear) btnClear.style.display = 'none';
+
+  // Reset active styles on all cards and folders
+  trackCardsGlobal.forEach(c => {
+    c.style.background = '#111';
+    c.style.borderColor = '#333';
+    c.style.boxShadow = 'none';
+  });
+  libraryFoldersGlobal.forEach(f => {
+    if (f.getAttribute('data-folder') === folderKey) {
+      f.classList.add('active');
+    } else {
+      f.classList.remove('active');
+    }
+  });
+
+  let filteredArticles = [];
+  let folderTitle = '';
+  const allArts = getAllArticles();
+  
+  if (folderKey === 'favorites') {
+    filteredArticles = allArts.filter(art => userFavoriteArticles.includes(art.id));
+    folderTitle = 'My Favorites';
+  } else if (folderKey === 'read-later') {
+    filteredArticles = allArts.filter(art => userReadLaterArticles.includes(art.id));
+    folderTitle = 'Read Later';
+  } else if (folderKey === 'read') {
+    filteredArticles = allArts.filter(art => userReadArticles.includes(art.id));
+    folderTitle = 'Completed Lessons';
+  }
+
+  // Update Title
+  learnTrackTitleGlobal.innerText = `${folderTitle} (${filteredArticles.length})`;
+
+  // Render list
+  renderArticlesList(filteredArticles, folderTitle, true);
+
+  // Swap sections
+  learnDefaultContentGlobal.style.display = 'none';
+  learnTrackContentGlobal.style.display = 'block';
+}
+
+function clearSelection() {
+  activeTrackKey = null;
+  activeFolderKey = null;
+
+  // Clear search input
+  const searchInput = document.getElementById('learn-search');
+  if (searchInput) searchInput.value = '';
+  const btnClear = document.getElementById('btn-clear-learn-search');
+  if (btnClear) btnClear.style.display = 'none';
+  trackCardsGlobal.forEach(c => {
+    c.style.background = '#111';
+    c.style.borderColor = '#333';
+    c.style.boxShadow = 'none';
+  });
+  libraryFoldersGlobal.forEach(f => f.classList.remove('active'));
+  learnTrackContentGlobal.style.display = 'none';
+  learnDefaultContentGlobal.style.display = 'block';
+}
+
+function renderArticlesList(articles, trackTitle, showCategoryLabel = false) {
+  trackArticlesGridGlobal.innerHTML = '';
+  
+  if (articles.length === 0) {
+    trackArticlesGridGlobal.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666; background: #0a0a0a; border: 1px solid #222; border-radius: 8px;">
+        <p style="margin: 0; font-size: 1rem;">No articles found in this list.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  articles.forEach((art, index) => {
+    const card = document.createElement('div');
+    card.style.background = '#0a0a0a';
+    card.style.border = '1px solid #222';
+    card.style.borderRadius = '8px';
+    card.style.padding = '20px';
+    card.style.cursor = 'pointer';
+    card.style.transition = 'all 0.3s ease';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.justifyContent = 'space-between';
+    card.style.position = 'relative';
+
+    const isRead = userReadArticles.includes(art.id);
+    const isFav = userFavoriteArticles.includes(art.id);
+    const isLater = userReadLaterArticles.includes(art.id);
+
+    // Excerpt (first line of the content)
+    const excerpt = art.content.split('\n')[0];
+    
+    // Status Badges HTML
+    let badgesHTML = '';
+    if (isRead) badgesHTML += `<span style="font-size:0.9rem;" title="Completed">✅</span>`;
+    if (isFav) badgesHTML += `<span style="font-size:0.9rem;" title="Favorite">⭐</span>`;
+    if (isLater) badgesHTML += `<span style="font-size:0.9rem;" title="Read Later">🔖</span>`;
+    
+    const badgesContainer = badgesHTML 
+      ? `<div style="display:flex; gap:6px; background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:12px; border:1px solid #333; position:absolute; top:12px; right:12px; align-items:center;">${badgesHTML}</div>` 
+      : '';
+
+    const catLabel = showCategoryLabel && art.trackTitle 
+      ? `<span style="color:#888; font-size:0.75rem; text-transform:uppercase; display:block; margin-bottom:5px; font-weight:600; letter-spacing:0.5px;">${escapeHTML(art.trackTitle)}</span>` 
+      : '';
+
+    card.innerHTML = `
+      <div>
+        ${badgesContainer}
+        ${catLabel}
+        <h4 style="margin: 0 0 8px; color: #fff; font-size: 1.1rem; line-height: 1.3; max-width: 80%;">${escapeHTML(art.title)}</h4>
+        <p style="margin: 0 0 15px; color: #888; font-size: 0.85rem; line-height: 1.4;">${escapeHTML(excerpt)}</p>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <span style="color: #c8a97e; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 5px;">Read Lesson →</span>
+        
+        <!-- Quick action toggle panel -->
+        <div class="card-quick-actions" style="display: flex; gap: 6px;" onclick="event.stopPropagation();">
+          <button class="quick-action-btn" onclick="toggleArticleState('${art.id}', 'favorite')" style="background: transparent; border: 1px solid ${isFav ? '#c8a97e' : '#333'}; color: ${isFav ? '#c8a97e' : '#888'}; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s;" title="Favorite">⭐</button>
+          <button class="quick-action-btn" onclick="toggleArticleState('${art.id}', 'later')" style="background: transparent; border: 1px solid ${isLater ? '#c8a97e' : '#333'}; color: ${isLater ? '#c8a97e' : '#888'}; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s;" title="Read Later">🔖</button>
+          <button class="quick-action-btn" onclick="toggleArticleState('${art.id}', 'read')" style="background: transparent; border: 1px solid ${isRead ? '#c8a97e' : '#333'}; color: ${isRead ? '#c8a97e' : '#888'}; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s;" title="Mark Completed">✅</button>
+        </div>
+      </div>
+    `;
+
+    // Hover styling
+    card.addEventListener('mouseenter', () => {
+      card.style.borderColor = '#c8a97e';
+      card.style.transform = 'translateY(-2px)';
+      card.style.boxShadow = '0 5px 15px rgba(200, 169, 126, 0.05)';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.borderColor = '#222';
+      card.style.transform = 'translateY(0)';
+      card.style.boxShadow = 'none';
+    });
+
+    // Reader trigger
+    card.addEventListener('click', () => {
+      openArticleReader(art, art.trackTitle || trackTitle);
+    });
+
+    trackArticlesGridGlobal.appendChild(card);
+  });
+}
+
+function openArticleReader(article, trackTitle) {
+  currentOpenArticleId = article.id;
+  const readerModal = document.getElementById('article-reader-modal');
+  const readerCategory = document.getElementById('reader-category');
+  const readerTitle = document.getElementById('reader-title');
+  const readerContent = document.getElementById('reader-content');
+  
+  if (!readerModal || !readerCategory || !readerTitle || !readerContent) return;
+
+  readerCategory.innerText = trackTitle;
+  readerTitle.innerText = article.title;
+  
+  // Format body text: Markdown bold formatting
+  let formattedContent = article.content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Apply list item double-newlines spacing
+  formattedContent = formattedContent.replace(/(?<!\n)\n(\d+\.)/g, '\n\n$1');
+  
+  readerContent.innerHTML = formattedContent;
+  
+  // Sync buttons status
+  updateModalActionButtons(article.id);
+
+  // Modal open transitions
+  readerModal.style.display = 'flex';
+  readerModal.offsetHeight;
+  readerModal.style.opacity = '1';
+  document.body.style.overflow = 'hidden';
+}
+
+function filterArticlesBySearch() {
+  const searchInput = document.getElementById('learn-search');
+  const btnClear = document.getElementById('btn-clear-learn-search');
+  if (!searchInput) return;
+
+  const query = searchInput.value.trim().toLowerCase();
+  
+  if (btnClear) {
+    btnClear.style.display = query ? 'block' : 'none';
+  }
+
+  // Determine the pool based on activeTrackKey or activeFolderKey
+  let pool = [];
+  let sourceTitle = '';
+
+  if (activeTrackKey) {
+    const track = learningTracks[activeTrackKey];
+    pool = track.articles.map(art => ({ ...art, trackTitle: track.title, trackKey: activeTrackKey }));
+    sourceTitle = `${track.title} Lessons`;
+  } else if (activeFolderKey) {
+    const allArts = getAllArticles();
+    if (activeFolderKey === 'favorites') {
+      pool = allArts.filter(art => userFavoriteArticles.includes(art.id));
+      sourceTitle = 'My Favorites';
+    } else if (activeFolderKey === 'read-later') {
+      pool = allArts.filter(art => userReadLaterArticles.includes(art.id));
+      sourceTitle = 'Read Later';
+    } else if (activeFolderKey === 'read') {
+      pool = allArts.filter(art => userReadArticles.includes(art.id));
+      sourceTitle = 'Completed Lessons';
+    }
+  } else {
+    // Global search
+    pool = getAllArticles();
+    sourceTitle = 'All Lessons';
+  }
+
+  const learnDefaultContent = document.getElementById('learn-default-content');
+  const learnTrackContent = document.getElementById('learn-track-content');
+  const learnTrackTitle = document.getElementById('learn-track-title');
+
+  if (query) {
+    // Filter the pool
+    const filtered = pool.filter(art => 
+      art.title.toLowerCase().includes(query) || 
+      art.content.toLowerCase().includes(query) ||
+      (art.trackTitle && art.trackTitle.toLowerCase().includes(query))
+    );
+
+    if (learnDefaultContent && learnTrackContent && learnTrackTitle) {
+      learnTrackTitle.innerText = `Search Results for "${searchInput.value}" (${filtered.length})`;
+      renderArticlesList(filtered, 'Search Results', true);
+      
+      learnDefaultContent.style.display = 'none';
+      learnTrackContent.style.display = 'block';
+    }
+  } else {
+    // If query is cleared, restore the original selection layout
+    if (activeTrackKey) {
+      const track = learningTracks[activeTrackKey];
+      if (learnDefaultContent && learnTrackContent && learnTrackTitle) {
+        learnTrackTitle.innerText = `${track.title} Lessons`;
+        renderArticlesList(track.articles, track.title);
+        learnDefaultContent.style.display = 'none';
+        learnTrackContent.style.display = 'block';
+      }
+    } else if (activeFolderKey) {
+      let filteredArticles = [];
+      let folderTitle = '';
+      const allArts = getAllArticles();
+      if (activeFolderKey === 'favorites') {
+        filteredArticles = allArts.filter(art => userFavoriteArticles.includes(art.id));
+        folderTitle = 'My Favorites';
+      } else if (activeFolderKey === 'read-later') {
+        filteredArticles = allArts.filter(art => userReadLaterArticles.includes(art.id));
+        folderTitle = 'Read Later';
+      } else if (activeFolderKey === 'read') {
+        filteredArticles = allArts.filter(art => userReadArticles.includes(art.id));
+        folderTitle = 'Completed Lessons';
+      }
+      if (learnDefaultContent && learnTrackContent && learnTrackTitle) {
+        learnTrackTitle.innerText = `${folderTitle} (${filteredArticles.length})`;
+        renderArticlesList(filteredArticles, folderTitle, true);
+        learnDefaultContent.style.display = 'none';
+        learnTrackContent.style.display = 'block';
+      }
+    } else {
+      if (learnDefaultContent && learnTrackContent) {
+        learnTrackContent.style.display = 'none';
+        learnDefaultContent.style.display = 'block';
+      }
+    }
+  }
+}
+window.filterArticlesBySearch = filterArticlesBySearch;
+
+function initLearningTracks() {
+  const trackCards = document.querySelectorAll('.track-card');
+  const libraryFolders = document.querySelectorAll('.library-folder');
+  const learnDefaultContent = document.getElementById('learn-default-content');
+  const learnTrackContent = document.getElementById('learn-track-content');
+  const learnTrackTitle = document.getElementById('learn-track-title');
+  const trackArticlesGrid = document.getElementById('track-articles-grid');
+  const btnClearTrack = document.getElementById('btn-clear-track');
+  
+  // Search elements
+  const learnSearch = document.getElementById('learn-search');
+  const btnClearSearch = document.getElementById('btn-clear-learn-search');
+  
+  // Modal elements
+  const readerModal = document.getElementById('article-reader-modal');
+  const btnCloseReader = document.getElementById('btn-close-reader');
+  const btnCloseReaderBottom = document.getElementById('btn-close-reader-bottom');
+
+  if (!trackCards.length || !learnDefaultContent || !learnTrackContent || !trackArticlesGrid) {
+    console.error("Learning tracks UI elements not found.");
+    return;
+  }
+
+  // Bind search listeners
+  if (learnSearch) {
+    learnSearch.addEventListener('input', filterArticlesBySearch);
+  }
+  if (btnClearSearch) {
+    btnClearSearch.addEventListener('click', () => {
+      learnSearch.value = '';
+      filterArticlesBySearch();
+    });
+  }
+
+  // Bind to globals
+  trackCardsGlobal = Array.from(trackCards);
+  libraryFoldersGlobal = Array.from(libraryFolders);
+  learnDefaultContentGlobal = learnDefaultContent;
+  learnTrackContentGlobal = learnTrackContent;
+  learnTrackTitleGlobal = learnTrackTitle;
+  trackArticlesGridGlobal = trackArticlesGrid;
+
+  // Track Card clicks
+  trackCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const trackKey = card.getAttribute('data-track');
+      if (activeTrackKey === trackKey) {
+        clearSelection();
+      } else {
+        selectTrack(trackKey, card);
+      }
+    });
+  });
+
+  // Library Folder clicks
+  libraryFolders.forEach(folder => {
+    folder.addEventListener('click', () => {
+      const folderKey = folder.getAttribute('data-folder');
+      if (activeFolderKey === folderKey) {
+        clearSelection();
+      } else {
+        selectFolder(folderKey);
+      }
+    });
+  });
+
+  // Reset filter clicks
+  if (btnClearTrack) {
+    btnClearTrack.addEventListener('click', clearSelection);
+  }
+
+  // Reader Modal close actions
+  function closeArticleReader() {
+    if (!readerModal) return;
+    readerModal.style.opacity = '0';
+    setTimeout(() => {
+      readerModal.style.display = 'none';
+      document.body.style.overflow = '';
+      currentOpenArticleId = null;
+    }, 300);
+  }
+
+  if (btnCloseReader) btnCloseReader.addEventListener('click', closeArticleReader);
+  if (btnCloseReaderBottom) btnCloseReaderBottom.addEventListener('click', closeArticleReader);
+  
+  if (readerModal) {
+    readerModal.addEventListener('click', (e) => {
+      if (e.target === readerModal) {
+        closeArticleReader();
+      }
+    });
+  }
+
+  // Setup modal button action listeners
+  const btnFav = document.getElementById('btn-toggle-favorite');
+  const btnLater = document.getElementById('btn-toggle-read-later');
+  const btnRead = document.getElementById('btn-toggle-read');
+  
+  if (btnFav) {
+    btnFav.addEventListener('click', () => {
+      if (currentOpenArticleId) {
+        toggleArticleState(currentOpenArticleId, 'favorite');
+      }
+    });
+  }
+  if (btnLater) {
+    btnLater.addEventListener('click', () => {
+      if (currentOpenArticleId) {
+        toggleArticleState(currentOpenArticleId, 'later');
+      }
+    });
+  }
+  if (btnRead) {
+    btnRead.addEventListener('click', () => {
+      if (currentOpenArticleId) {
+        toggleArticleState(currentOpenArticleId, 'read');
+      }
+    });
+  }
+
+  // Trigger counts load
+  updateFolderCounts();
+}
+
+
+// --- DYNAMIC INTELLIGENCE CENTER LOGIC --- //
+let activeIntelWeekKey = 'current';
+
+function updateIntelBookmarkCount() {
+  const badge = document.getElementById('intel-bookmark-count');
+  if (badge) {
+    badge.innerText = userBookmarkedIntel.length;
+  }
+}
+window.updateIntelBookmarkCount = updateIntelBookmarkCount;
+
+async function toggleIntelBookmark(intelId) {
+  if (!currentUserUid) return;
+
+  const index = userBookmarkedIntel.indexOf(intelId);
+  if (index > -1) {
+    userBookmarkedIntel.splice(index, 1);
+  } else {
+    userBookmarkedIntel.push(intelId);
+  }
+
+  // Update badge immediately
+  updateIntelBookmarkCount();
+
+  // Rerender current view
+  refreshActiveIntelView();
+
+  // Cache locally
+  localStorage.setItem(`ses_${currentUserUid}_bookmarked_intel`, JSON.stringify(userBookmarkedIntel));
+
+  // Sync to Firestore
+  try {
+    const userRef = doc(db, "users", currentUserUid);
+    await setDoc(userRef, {
+      bookmarkedIntel: userBookmarkedIntel
+    }, { merge: true });
+  } catch (err) {
+    console.error("Firestore bookmark sync failed, utilizing cache:", err);
+  }
+}
+window.toggleIntelBookmark = toggleIntelBookmark;
+
+function refreshActiveIntelView() {
+  renderIntelligenceBrief(activeIntelWeekKey);
+}
+window.refreshActiveIntelView = refreshActiveIntelView;
+
+let sectorDisplayMap = {};
+
+function renderSectorCards(catName, gridEl) {
+  const displayKey = activeIntelWeekKey + '_' + catName;
+  const itemIds = sectorDisplayMap[displayKey] || [];
+  const items = weeklyIntelligence.filter(item => itemIds.includes(item.id));
+
+  if (items.length === 0) {
+    gridEl.innerHTML = `<p style="color: #666; font-size: 0.9rem; padding: 10px; text-align: center;">No items found.</p>`;
+    return;
+  }
+
+  // Sort them so they match the order in display map
+  items.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
+
+  gridEl.innerHTML = items.map(item => {
+    const isBookmarked = userBookmarkedIntel.includes(item.id);
+    const pubDate = new Date();
+    pubDate.setDate(pubDate.getDate() - item.daysAgo);
+    const dateString = pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    return `
+      <div class="intel-item-card" style="border-left: 3px solid #c8a97e; padding-left: 15px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+        <div style="flex: 1;">
+          <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.05rem; line-height: 1.4;">${escapeHTML(item.title)}</h4>
+          <span style="color: #666; font-size: 0.75rem; font-weight: 500; display: block; margin-bottom: 6px;">Published: ${dateString}</span>
+          <p style="margin: 0 0 10px 0; color: #aaa; font-size: 0.9rem; line-height: 1.5;">${escapeHTML(item.description)}</p>
+          <a href="${escapeHTML(item.url)}" target="_blank" style="color: #c8a97e; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">Read Source Article ↗</a>
+        </div>
+        
+        <button onclick="toggleIntelBookmark('${item.id}')" style="background: transparent; border: 1px solid ${isBookmarked ? '#c8a97e' : '#444'}; color: ${isBookmarked ? '#c8a97e' : '#888'}; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; white-space: nowrap;">
+          ${isBookmarked ? '🔖 Saved' : '🔖 Save Intel'}
+        </button>
+      </div>
+    `;
+  }).join('<hr style="border: 0; border-top: 1px dashed #222; margin: 15px 0;">');
+}
+window.renderSectorCards = renderSectorCards;
+
+function refreshSector(catName) {
+  const gridId = `sector-grid-${catName.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-')}`;
+  const gridEl = document.getElementById(gridId);
+  if (!gridEl) return;
+
+  // Show scraping simulator
+  gridEl.style.opacity = '0.4';
+  gridEl.innerHTML = `
+    <div style="text-align: center; padding: 40px 10px; color: #c8a97e; font-size: 0.9rem; font-weight: bold; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+      <span class="refresh-spinner" style="display: inline-block; width: 16px; height: 16px; border: 2px solid #c8a97e; border-radius: 50%; border-top-color: transparent; animation: spin-loader 0.8s linear infinite;"></span>
+      <span>Scraping latest intelligence feeds...</span>
+    </div>
+  `;
+
+  // Define spin animation dynamically if it doesn't exist
+  if (!document.getElementById('spin-loader-keyframes')) {
+    const style = document.createElement('style');
+    style.id = 'spin-loader-keyframes';
+    style.innerHTML = `
+      @keyframes spin-loader {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  setTimeout(() => {
+    // Select 5 different articles from the pool
+    const pool = weeklyIntelligence.filter(item => {
+      if (activeIntelWeekKey === 'current') {
+        return item.category === catName && item.daysAgo >= 0 && item.daysAgo < 7;
+      } else if (activeIntelWeekKey === 'previous') {
+        return item.category === catName && item.daysAgo >= 7 && item.daysAgo < 14;
+      }
+      return false;
+    });
+
+    if (pool.length > 0) {
+      // Pick 5 random items (or all if pool is <= 5)
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, Math.min(5, pool.length));
+      
+      sectorDisplayMap[activeIntelWeekKey + '_' + catName] = selected.map(item => item.id);
+    }
+
+    gridEl.style.opacity = '1';
+    renderSectorCards(catName, gridEl);
+  }, 650);
+}
+window.refreshSector = refreshSector;
+
+function renderIntelligenceBrief(weekKey) {
+  activeIntelWeekKey = weekKey;
+  const feedContainer = document.getElementById('intel-feed-container');
+  if (!feedContainer) return;
+
+  // Filter articles based on active week / bookmarks
+  let filteredItems = [];
+  if (weekKey === 'bookmarks') {
+    filteredItems = weeklyIntelligence.filter(item => userBookmarkedIntel.includes(item.id));
+  } else {
+    filteredItems = weeklyIntelligence.filter(item => {
+      if (weekKey === 'current') {
+        return item.daysAgo >= 0 && item.daysAgo < 7;
+      } else if (weekKey === 'previous') {
+        return item.daysAgo >= 7 && item.daysAgo < 14;
+      }
+      return false;
+    });
+  }
+
+  if (filteredItems.length === 0) {
+    feedContainer.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #666; background: #111; border: 1px solid #333; border-radius: 8px;">
+        <p style="margin: 0; font-size: 1rem;">No intelligence items found in this section.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Group items by category
+  const categories = {};
+  filteredItems.forEach(item => {
+    if (!categories[item.category]) {
+      categories[item.category] = [];
+    }
+    categories[item.category].push(item);
+  });
+
+  // Build HTML
+  let html = '';
+  Object.keys(categories).forEach(catName => {
+    const items = categories[catName];
+    
+    // Category header icon helper
+    let icon = '👔';
+    if (catName.includes('Sponsorship')) icon = '🤝';
+    if (catName.includes('AI') || catName.includes('Tech')) icon = '🤖';
+
+    // Set up display map for this week and category if it doesn't exist
+    const displayKey = weekKey + '_' + catName;
+    if (weekKey === 'bookmarks') {
+      // For bookmarks, we always display all of them
+      sectorDisplayMap[displayKey] = items.map(item => item.id);
+    } else if (!sectorDisplayMap[displayKey]) {
+      // Pick first 5 items by default
+      sectorDisplayMap[displayKey] = items.slice(0, 5).map(item => item.id);
+    }
+
+    const gridId = `sector-grid-${catName.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-')}`;
+
+    // Header has a "Refresh" button only for weekly lists
+    const refreshButton = weekKey !== 'bookmarks'
+      ? `<button class="sector-refresh-btn" onclick="refreshSector('${escapeHTML(catName)}')" style="background: transparent; border: 1px solid #444; color: #aaa; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;" title="Scrape latest updates">
+           <span>↻</span> <span>Refresh Sector</span>
+         </button>`
+      : '';
+
+    html += `
+      <div style="background: linear-gradient(135deg, #111 0%, #0a0a0a 100%); border: 1px solid #333; border-radius: 8px; padding: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 8px;">
+          <h3 style="color: #c8a97e; margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
+            <span>${icon}</span> <span>${escapeHTML(catName)}</span>
+          </h3>
+          ${refreshButton}
+        </div>
+        <div id="${gridId}" style="display: grid; grid-template-columns: 1fr; gap: 20px; transition: opacity 0.3s ease;">
+          <!-- Populated by renderSectorCards -->
+        </div>
+      </div>
+    `;
+  });
+
+  feedContainer.innerHTML = html;
+
+  // Render cards for each category
+  Object.keys(categories).forEach(catName => {
+    const gridId = `sector-grid-${catName.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-')}`;
+    const gridEl = document.getElementById(gridId);
+    if (gridEl) {
+      renderSectorCards(catName, gridEl);
+    }
+  });
+}
+
+function initIntelligenceCenter() {
+  const tabs = document.querySelectorAll('.intel-tab');
+  if (!tabs.length) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active classes
+      tabs.forEach(t => t.classList.remove('active'));
+      // Add active to current
+      tab.classList.add('active');
+
+      const weekKey = tab.getAttribute('data-week');
+      renderIntelligenceBrief(weekKey);
+    });
+  });
+
+  // Initial render
+  renderIntelligenceBrief('current');
+}
+
+// Run initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initLearningTracks();
+    initIntelligenceCenter();
+  });
+} else {
+  initLearningTracks();
+  initIntelligenceCenter();
+}

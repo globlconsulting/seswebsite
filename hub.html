@@ -43,6 +43,84 @@
       0% { transform: translateY(0); }
       100% { transform: translateY(-50%); }
     }
+    
+    /* Legend and Library Folder Styles */
+    .legend-info-wrapper { transition: all 0.2s; }
+    .legend-info-wrapper:hover { color: #c8a97e; border-color: #c8a97e; }
+    .legend-info-wrapper:hover .legend-tooltip { visibility: visible !important; opacity: 1 !important; }
+    
+    .library-folder {
+      background: #111;
+      padding: 15px 25px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      min-width: 150px;
+    }
+    .library-folder:hover {
+      border-color: #c8a97e;
+      background: rgba(200, 169, 126, 0.05);
+    }
+    .library-folder.active {
+      background: rgba(200, 169, 126, 0.1);
+      border-color: #c8a97e;
+      box-shadow: 0 0 15px rgba(200, 169, 126, 0.2);
+    }
+    .folder-count {
+      background: rgba(200, 169, 126, 0.2);
+      color: #c8a97e;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .reader-action-btn {
+      transition: all 0.3s ease;
+    }
+    .reader-action-btn:hover {
+      background: rgba(200, 169, 126, 0.1) !important;
+      box-shadow: 0 0 8px rgba(200, 169, 126, 0.2);
+    }
+    .reader-action-btn.active {
+      background: #c8a97e !important;
+      color: #000 !important;
+      border-color: #c8a97e !important;
+      box-shadow: 0 0 12px rgba(200, 169, 126, 0.4);
+    }
+    .intel-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #888;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .intel-tab:hover {
+      color: #fff;
+    }
+    .intel-tab.active {
+      color: #c8a97e;
+      border-color: #c8a97e;
+    }
+    #learn-search:focus {
+      border-color: #c8a97e !important;
+      box-shadow: 0 0 10px rgba(200, 169, 126, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -235,23 +313,63 @@
           <p style="margin: 0; color: #888;">Masterclasses, keynotes, and workshops to move you from foundation to mastery.</p>
         </div>
         
-        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Learning Tracks</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 40px;">
-          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Sports Leadership</div>
-          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Executive Presence</div>
-          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Negotiation</div>
-          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">Personal Branding</div>
-          <div class="track-card" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer;">AI & Networking</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+          <h3 style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Learning Tracks</h3>
+          <div class="legend-info-wrapper" style="position: relative; display: inline-block; cursor: pointer; color: #888; font-size: 0.9rem; border: 1px solid #444; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace;">i
+            <div class="legend-tooltip" style="visibility: hidden; width: 220px; background-color: #111; border: 1px solid #c8a97e; color: #fff; text-align: left; padding: 12px; border-radius: 6px; position: absolute; z-index: 100; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-family: var(--font-sans); font-size: 0.8rem; font-weight: normal; line-height: 1.4;">
+              <strong style="display:block; margin-bottom:6px; color:#c8a97e;">Article Legend:</strong>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>✅</span> <span>Completed Lesson</span></div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>⭐</span> <span>Favorited Lesson</span></div>
+              <div style="display:flex; align-items:center; gap:8px;"><span>🔖</span> <span>Read Later (Bookmark)</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+          <div class="track-card" data-track="sports-leadership" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Sports Leadership</div>
+          <div class="track-card" data-track="executive-presence" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Executive Presence</div>
+          <div class="track-card" data-track="negotiation" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Negotiation</div>
+          <div class="track-card" data-track="personal-branding" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Personal Branding</div>
+          <div class="track-card" data-track="technology-networking" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Technology & Networking</div>
         </div>
 
-        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Recent Sessions</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-          <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden;">
-            <div style="height: 160px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555;">[Video Placeholder]</div>
-            <div style="padding: 20px;">
-              <span style="background: rgba(200,169,126,0.1); color: #c8a97e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">Keynote</span>
-              <h4 style="margin: 10px 0 5px; color: #fff;">The Art of the Sports Deal</h4>
-              <p style="margin: 0; color: #888; font-size: 0.9rem;">Exclusive breakdown of a recent major franchise sale.</p>
+        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">My Library</h3>
+        <div style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+          <div class="library-folder" data-folder="favorites">⭐ Favorites <span id="count-favorites" class="folder-count">0</span></div>
+          <div class="library-folder" data-folder="read-later">🔖 Read Later <span id="count-read-later" class="folder-count">0</span></div>
+          <div class="library-folder" data-folder="read">✅ Completed <span id="count-read" class="folder-count">0</span></div>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="margin-bottom: 35px; max-width: 500px;">
+          <div style="position: relative;">
+            <input type="text" id="learn-search" placeholder="Search lessons, tracks, or topics..." style="width: 100%; padding: 12px 20px 12px 40px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.3s; box-sizing: border-box;">
+            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 1rem; pointer-events: none;">🔍</span>
+            <button id="btn-clear-learn-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #888; cursor: pointer; display: none; font-size: 1rem; padding: 0;">✕</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Track Articles Section (Hidden by default) -->
+        <div id="learn-track-content" style="display: none; margin-bottom: 40px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">
+            <h3 id="learn-track-title" style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Track Lessons</h3>
+            <button id="btn-clear-track" style="background: transparent; border: 1px solid #444; color: #aaa; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">Show All / Recent</button>
+          </div>
+          <div id="track-articles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Rendered dynamically from JS -->
+          </div>
+        </div>
+
+        <!-- Default Recent Sessions Section -->
+        <div id="learn-default-content">
+          <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Recent Sessions</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden;">
+              <div style="height: 160px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555;">[Video Placeholder]</div>
+              <div style="padding: 20px;">
+                <span style="background: rgba(200,169,126,0.1); color: #c8a97e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">Keynote</span>
+                <h4 style="margin: 10px 0 5px; color: #fff;">The Art of the Sports Deal</h4>
+                <p style="margin: 0; color: #888; font-size: 0.9rem;">Exclusive breakdown of a recent major franchise sale.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -354,7 +472,9 @@
         <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
           <h3 style="color: #c8a97e; margin: 0 0 15px 0;">Inner Beast Super Animal Performance Assessment</h3>
           <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">Discover your unique executive performance profile. This assessment will help you understand your natural leadership style, networking strengths, and areas for rapid growth.</p>
-          <button class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Take the Assessment</button>
+          <a href="https://grey-cup-d8f.notion.site/Inner-Beast-Super-Animal-23bab16e0297802d996bc9a23c40ec0b" target="_blank" style="text-decoration: none;">
+            <button class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Take the Assessment</button>
+          </a>
         </div>
       </section>
 
@@ -365,38 +485,17 @@
           <p style="margin: 0; color: #888;">"Here's what happened this week that could make you smarter, wealthier, or better connected."</p>
         </div>
 
-        <div style="background: linear-gradient(135deg, #111 0%, #0a0a0a 100%); border: 1px solid #c8a97e; padding: 30px; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #fff; font-size: 1.5rem;">Weekly Brief: July 2026</h3>
-            <span style="background: #c8a97e; color: #000; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;">NEW</span>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; color: #ccc;">
-            <div>
-              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Major Executive Moves</h4>
-              <ul style="padding-left: 20px; margin-bottom: 20px;">
-                <li>Former Nike VP joins emerging sports tech fund.</li>
-                <li>New President of Operations named for LA franchise.</li>
-              </ul>
-              
-              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Sponsorship Deals</h4>
-              <ul style="padding-left: 20px;">
-                <li>Global beverage brand signs 5-year stadium naming rights.</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">AI Tools Worth Using</h4>
-              <ul style="padding-left: 20px; margin-bottom: 20px;">
-                <li>New contract analysis tool saving agents 10hrs/week.</li>
-              </ul>
-              
-              <h4 style="color: #c8a97e; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">High-Value Introductions</h4>
-              <p style="margin: 0; font-size: 0.95rem;">Members looking to connect with media buyers this week can reach out to the Society Concierge for warm intros.</p>
-            </div>
-          </div>
-          
-          <button style="margin-top: 30px; width: 100%; padding: 15px; background: transparent; border: 1px solid #c8a97e; color: #c8a97e; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">View Full Report</button>
+        <!-- Intelligence Tabs -->
+        <div style="display: flex; gap: 10px; border-bottom: 1px solid #333; margin-bottom: 25px; padding-bottom: 0;">
+          <button class="intel-tab active" data-week="current">Current Week Brief</button>
+          <button class="intel-tab" data-week="previous">Previous Week Brief</button>
+          <button class="intel-tab" data-week="bookmarks">🔖 Bookmarked Intel <span id="intel-bookmark-count" style="background:#c8a97e; color:#000; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-left:5px;">0</span></button>
+        </div>
+
+        <!-- Dynamic Feed Container -->
+        <div id="intel-feed-container" style="display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 40px;">
+          <!-- Populated dynamically by JS -->
+          <p style="color: #888;">Loading intelligence feed...</p>
         </div>
 
         <!-- Peer Insights (Approved Articles) -->
@@ -457,6 +556,10 @@
       <!-- Admin Tabs -->
       <div style="display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px;">
         <button id="tab-manage-users" style="background: transparent; color: #fff; border: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid #ef4444; padding-bottom: 5px;">Manage Users</button>
+        <button id="tab-pending-applications" style="background: transparent; color: #888; border: none; font-size: 1.1rem; cursor: pointer; padding-bottom: 5px;">
+          Pending Applications 
+          <span id="admin-apps-badge" style="background:#ef4444; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-left:5px; display:none;">0</span>
+        </button>
         <button id="tab-approve-articles" style="background: transparent; color: #888; border: none; font-size: 1.1rem; cursor: pointer; padding-bottom: 5px;">Approve Articles</button>
       </div>
 
@@ -478,6 +581,26 @@
               </tr>
             </thead>
             <tbody id="admin-users-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="admin-applications-section" style="display: none;">
+        <div style="overflow-x: auto; background: #111; border: 1px solid #333; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid #333; background: #0a0a0a;">
+                <th style="padding: 15px; color: #c8a97e;">Name</th>
+                <th style="padding: 15px; color: #c8a97e;">Email & Phone</th>
+                <th style="padding: 15px; color: #c8a97e;">Company & Title</th>
+                <th style="padding: 15px; color: #c8a97e;">Applied Tier</th>
+                <th style="padding: 15px; color: #c8a97e;">Experience</th>
+                <th style="padding: 15px; color: #c8a97e;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-applications-tbody">
               <!-- Populated by JS -->
             </tbody>
           </table>
@@ -521,6 +644,43 @@
       <div style="display:flex; justify-content:flex-end; gap:10px;">
         <button id="btn-close-update" style="background:transparent; border:1px solid #555; color:white; padding:8px 15px; border-radius:4px; cursor:pointer;">Cancel</button>
         <button id="btn-submit-update" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:8px 15px; border-radius:4px; cursor:pointer;">Post Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Reader Modal -->
+  <div id="article-reader-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 1100; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
+    <div style="background:#0d0d0d; border:1px solid #c8a97e; border-radius:8px; width:90%; max-width:800px; max-height:85vh; overflow-y:auto; padding:40px; box-shadow:0 10px 30px rgba(200, 169, 126, 0.15); position:relative;">
+      <!-- Close Button -->
+      <button id="btn-close-reader" style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#c8a97e; font-size:1.5rem; cursor:pointer; padding:5px; transition:color 0.2s;">✕</button>
+      
+      <!-- Modal Header -->
+      <div style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
+        <span id="reader-category" style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Track Lesson</span>
+        <h2 id="reader-title" style="margin:5px 0 0; color:#fff; font-family:var(--font-serif); font-size:2rem; line-height:1.2;">Article Title</h2>
+      </div>
+
+      <!-- Modal Action Buttons Bar -->
+      <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+        <button id="btn-toggle-favorite" class="reader-action-btn" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.85rem;">
+          <span class="icon">⭐</span> <span class="label">Add to Favorites</span>
+        </button>
+        <button id="btn-toggle-read-later" class="reader-action-btn" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.85rem;">
+          <span class="icon">🔖</span> <span class="label">Read Later</span>
+        </button>
+        <button id="btn-toggle-read" class="reader-action-btn" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.85rem;">
+          <span class="icon">✅</span> <span class="label">Mark as Completed</span>
+        </button>
+      </div>
+
+      <!-- Modal Body Content -->
+      <div id="reader-content" style="color:#ccc; font-size:1.05rem; line-height:1.75; font-family:var(--font-sans); white-space:pre-wrap;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="margin-top:35px; border-top:1px solid #222; padding-top:20px; display:flex; justify-content:flex-end;">
+        <button id="btn-close-reader-bottom" style="background:transparent; border:1px solid #c8a97e; color:#c8a97e; padding:10px 24px; font-weight:bold; cursor:pointer; border-radius:4px; transition: all 0.3s;">Close Lesson</button>
       </div>
     </div>
   </div>

@@ -189,74 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- MEMBERSHIP FORM VALIDATION & SUBMISSION HANDLING ---
-  const membershipForm = document.getElementById('membership-application');
-  if (membershipForm) {
-    // Create a notification element for the membership form if it doesn't exist
-    let memNotification = document.getElementById('mem-form-notification');
-    if (!memNotification) {
-      memNotification = document.createElement('div');
-      memNotification.id = 'mem-form-notification';
-      memNotification.className = 'form-notification';
-      memNotification.style.display = 'none';
-      membershipForm.parentNode.insertBefore(memNotification, membershipForm);
-    }
+  // (Moved to members.js to support Firestore database applications integration)
 
-    membershipForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      memNotification.style.display = 'none';
-
-      const formData = new FormData(membershipForm);
-      const email = formData.get('email');
-      
-      if (!validateEmail(email)) {
-        showNotification('Please enter a valid email address.', 'error', memNotification);
-        return;
-      }
-
-      // Collect multiple checkboxes for industry
-      const industries = [];
-      membershipForm.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-        industries.push(cb.parentNode.textContent.trim());
-      });
-
-      const tier = formData.get('tier') || 'Not Selected';
-      const fullName = formData.get('fullName') || '';
-      const nameParts = fullName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      const tags = [
-        "Membership_Applicant", 
-        `Tier: ${tier}`, 
-        ...industries.map(ind => `Industry: ${ind}`),
-        `Clientele: ${formData.get('clientele') || 'Not Selected'}`
-      ];
-
-      const newsletterCheckbox = document.getElementById('mem-newsletter');
-      if (newsletterCheckbox && newsletterCheckbox.checked) {
-        tags.push("SES_Newsletter_Subscriber");
-      }
-
-      const payload = {
-        person: {
-          firstName: firstName,
-          lastName: lastName,
-          emails: [{ value: email }],
-          phones: [{ value: formData.get('phone') || '' }],
-          tags: tags
-        },
-        source: "SES Website - Membership",
-        system: "Custom",
-        type: "Inquiry",
-        message: `Company: ${formData.get('company') || ''}\nTitle: ${formData.get('title') || ''}\nReferrer: ${formData.get('referrer') || ''}`
-      };
-
-      const submitBtn = membershipForm.querySelector('button[type="submit"]');
-      const successMsg = `Thank you, ${firstName}! Your application for membership has been submitted securely.`;
-      
-      sendToFUB(payload, submitBtn, submitBtn.textContent, successMsg, membershipForm, memNotification);
-    });
-  }
 
   // --- NEWSLETTER FORM SUBMISSION HANDLING ---
   const newsletterForms = document.querySelectorAll('.newsletter-form');
