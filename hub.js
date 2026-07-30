@@ -1782,13 +1782,94 @@ function initIntelligenceCenter() {
   renderIntelligenceBrief('current');
 }
 
+function initManualInvite() {
+  const addInviteBtn = document.getElementById('admin-add-invite-btn');
+  const inviteModal = document.getElementById('invite-user-modal');
+  const closeModalBtn = document.getElementById('close-invite-modal-btn');
+  const inviteForm = document.getElementById('invite-user-form');
+
+  if (!addInviteBtn || !inviteModal || !closeModalBtn || !inviteForm) return;
+
+  // Open Modal
+  addInviteBtn.addEventListener('click', () => {
+    inviteForm.reset();
+    inviteModal.style.display = 'flex';
+  });
+
+  // Close Modal
+  closeModalBtn.addEventListener('click', () => {
+    inviteModal.style.display = 'none';
+  });
+
+  // Handle Form Submission
+  inviteForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('invite-name').value.trim();
+    const email = document.getElementById('invite-email').value.trim().toLowerCase();
+    const tier = document.getElementById('invite-tier').value;
+    const company = document.getElementById('invite-company').value.trim();
+    const title = document.getElementById('invite-title').value.trim();
+
+    const submitBtn = inviteForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Creating...';
+    }
+
+    try {
+      // 1. Create an application record with status: 'approved'
+      const appRef = doc(collection(db, "applications"));
+      await setDoc(appRef, {
+        email: email,
+        fullName: name,
+        phone: '',
+        company: company,
+        title: title,
+        referrer: 'Admin Panel Invite',
+        tier: tier,
+        industries: [],
+        clientele: '',
+        experience: 'Manually invited by Admin',
+        status: 'approved',
+        applicationType: 'manual',
+        createdAt: serverTimestamp()
+      });
+
+      // 2. Add to approved_emails registry so they can register
+      await setDoc(doc(db, "approved_emails", email), {
+        email: email,
+        membershipTier: tier,
+        approvedAt: serverTimestamp(),
+        registered: false
+      });
+
+      // 3. Hide Modal and Refresh List
+      inviteModal.style.display = 'none';
+      alert(`Invitation successfully created for ${name}!`);
+      loadAdminApplications();
+      
+    } catch (err) {
+      console.error("Error creating manual invite:", err);
+      alert("Failed to create invitation. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Create Invite';
+      }
+    }
+  });
+}
+
 // Run initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initLearningTracks();
     initIntelligenceCenter();
+    initManualInvite();
   });
 } else {
   initLearningTracks();
   initIntelligenceCenter();
+  initManualInvite();
 }

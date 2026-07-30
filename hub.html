@@ -588,6 +588,14 @@
       </div>
 
       <div id="admin-applications-section" style="display: none;">
+        <!-- Action Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 15px;">
+          <h2 style="color: #fff; margin: 0; font-family: var(--font-serif); font-size: 1.5rem;">Applications & Invites</h2>
+          <button id="admin-add-invite-btn" style="background: #c8a97e; color: black; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+            + Invite Member
+          </button>
+        </div>
+
         <!-- PENDING APPLICATIONS -->
         <h3 style="color: #fff; margin-top: 0; margin-bottom: 15px; font-family: var(--font-serif); font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
           Pending Review 
@@ -710,6 +718,44 @@
       <div style="margin-top:35px; border-top:1px solid #222; padding-top:20px; display:flex; justify-content:flex-end;">
         <button id="btn-close-reader-bottom" style="background:transparent; border:1px solid #c8a97e; color:#c8a97e; padding:10px 24px; font-weight:bold; cursor:pointer; border-radius:4px; transition: all 0.3s;">Close Lesson</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Invite Member Modal -->
+  <div id="invite-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1200; align-items: center; justify-content: center;">
+    <div style="background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; width: 100%; max-width: 500px; padding: 30px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <h3 style="color: #fff; margin-top: 0; font-family: var(--font-serif); border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.3rem;">Invite New Member</h3>
+      <form id="invite-user-form">
+        <div style="margin-bottom: 15px;">
+          <label for="invite-name" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Full Name *</label>
+          <input type="text" id="invite-name" required placeholder="John Doe" style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="invite-email" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Email Address *</label>
+          <input type="email" id="invite-email" required placeholder="john.doe@example.com" style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="invite-tier" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Membership Tier *</label>
+          <select id="invite-tier" required style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+            <option value="general">General</option>
+            <option value="sellebrity">Sellebrity</option>
+            <option value="guild">Sellebrity Guild</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="invite-company" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Company (Optional)</label>
+          <input type="text" id="invite-company" placeholder="e.g. RHive Construction" style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="invite-title" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Title (Optional)</label>
+          <input type="text" id="invite-title" placeholder="e.g. Managing Partner" style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #222; padding-top: 20px;">
+          <button type="button" id="close-invite-modal-btn" style="background: transparent; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Cancel</button>
+          <button type="submit" style="background: #c8a97e; color: black; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Create Invite</button>
+        </div>
+      </form>
     </div>
   </div>
 
