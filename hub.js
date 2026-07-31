@@ -2341,15 +2341,24 @@ async function loadPlaybookAnnotations() {
       collection(db, "playbook_annotations"),
       where("userId", "==", currentUserUid),
       where("playbookKey", "==", activePlaybookKey),
-      where("fileIndex", "==", activeFileIndex),
-      orderBy("createdAt", "asc")
+      where("fileIndex", "==", activeFileIndex)
     ));
+
+    // Sort documents client-side by createdAt to avoid composite index requirements
+    const docs = [];
+    qSnap.forEach(docSnap => {
+      docs.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    docs.sort((a, b) => {
+      const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt) : 0;
+      const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt) : 0;
+      return timeA - timeB;
+    });
 
     let html = '';
 
-    qSnap.forEach(docSnap => {
-      const ann = docSnap.data();
-      const annId = docSnap.id;
+    docs.forEach(ann => {
+      const annId = ann.id;
       const selectedText = ann.selectedText || '';
       const comment = ann.comment || '';
 
@@ -2359,10 +2368,10 @@ async function loadPlaybookAnnotations() {
         const escaped = selectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         try {
           const regex = new RegExp(`(${escaped})`, 'gi');
-          docHTML = docHTML.replace(regex, `<mark class="pdf-text-highlight" data-id="${annId}" style="background-color: #fef08a; color: #000 !important; cursor: pointer; padding: 2px 0; font-weight: bold;">$1</mark>`);
+          docHTML = docHTML.replace(regex, `<mark class="pdf-text-highlight" data-id="${annId}" style="background: linear-gradient(104deg, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.85) 100%); color: #000 !important; cursor: pointer; padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 1px 1px 3px rgba(0,0,0,0.1);">$1</mark>`);
         } catch(e) {
           // Fallback simple replace
-          docHTML = docHTML.replaceAll(selectedText, `<mark class="pdf-text-highlight" data-id="${annId}" style="background-color: #fef08a; color: #000 !important; cursor: pointer; padding: 2px 0; font-weight: bold;">${selectedText}</mark>`);
+          docHTML = docHTML.replaceAll(selectedText, `<mark class="pdf-text-highlight" data-id="${annId}" style="background: linear-gradient(104deg, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.85) 100%); color: #000 !important; cursor: pointer; padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 1px 1px 3px rgba(0,0,0,0.1);">${selectedText}</mark>`);
         }
       }
 
