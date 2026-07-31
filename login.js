@@ -77,21 +77,52 @@ document.getElementById('btn-register').addEventListener('click', async () => {
 });
 
 // 3. Forgot Password / Send Reset Email
-document.getElementById('btn-reset').addEventListener('click', () => {
-  const email = emailInput.value;
+document.getElementById('btn-reset').addEventListener('click', async () => {
+  const email = emailInput.value.trim().toLowerCase();
   if(!email) {
+    msg.style.color = "red";
     msg.innerText = "Please enter your email to reset password.";
     return;
   }
-  sendPasswordResetEmail(auth, email)
-    .then(() => {
-      msg.style.color = "green";
-      msg.innerText = `Password reset email sent to ${email}.`;
-    })
-    .catch((error) => {
+
+  const btnReset = document.getElementById('btn-reset');
+  btnReset.disabled = true;
+  btnReset.innerText = "Verifying...";
+
+  try {
+    // Enforce check: must exist in approved_emails AND have registered: true
+    const approvedDocRef = doc(db, "approved_emails", email);
+    const approvedDocSnap = await getDoc(approvedDocRef);
+
+    if (!approvedDocSnap.exists() || approvedDocSnap.data().registered !== true) {
       msg.style.color = "red";
-      msg.innerText = `Error: ${error.message}`;
-    });
+      msg.innerText = "Error: This email address is not registered in our system.";
+      btnReset.disabled = false;
+      btnReset.innerText = "Send Reset Link";
+      return;
+    }
+
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        msg.style.color = "green";
+        msg.innerText = `Password reset email sent to ${email}. Check your spam or promotions folder if you do not see it.`;
+      })
+      .catch((error) => {
+        msg.style.color = "red";
+        msg.innerText = `Error: ${error.message}`;
+      })
+      .finally(() => {
+        btnReset.disabled = false;
+        btnReset.innerText = "Send Reset Link";
+      });
+
+  } catch (err) {
+    console.error("Error verifying registration status:", err);
+    msg.style.color = "red";
+    msg.innerText = `Error checking email: ${err.message}`;
+    btnReset.disabled = false;
+    btnReset.innerText = "Send Reset Link";
+  }
 });
 
 // --- SMS OTP (PHONE AUTHENTICATION) --- //
