@@ -801,10 +801,45 @@
         <button id="close-pdf-reader-modal-btn" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; border-radius: 4px; padding: 6px 16px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.background='#c8a97e'; this.style.color='black'" onmouseout="this.style.background='transparent'; this.style.color='#c8a97e'">Close Viewer</button>
       </div>
 
-      <!-- PDF Page Content Wrapper -->
-      <div id="pdf-scroll-area" style="flex: 1; overflow-y: auto; background: #000; display: flex; justify-content: center; align-items: flex-start; padding: 30px 10px; box-sizing: border-box;">
-        <div id="pdf-rendered-document" style="width: 100%; max-width: 800px; background: #fff; color: #000; font-family: 'Georgia', serif; line-height: 1.8; font-size: 1.15rem; padding: 60px 50px; box-sizing: border-box; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-          <!-- Content injected here -->
+      <!-- PDF Page Content Wrapper (Split Layout) -->
+      <div style="flex: 1; display: flex; overflow: hidden; background: #000;">
+        <!-- Left: PDF Scroll Area (Document) -->
+        <div id="pdf-scroll-area" style="flex: 7; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 30px 20px; box-sizing: border-box; border-right: 1px solid #222;">
+          <div id="pdf-rendered-document" style="width: 100%; max-width: 800px; background: #fff; font-family: 'Georgia', serif; line-height: 1.8; font-size: 1.15rem; padding: 60px 50px; box-sizing: border-box; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <!-- Content injected here -->
+          </div>
+        </div>
+        
+        <!-- Right: Notes & Highlights Sidebar -->
+        <div id="pdf-notes-sidebar" style="flex: 3; background: #0d0d0d; display: flex; flex-direction: column; height: 100%; overflow: hidden; box-sizing: border-box; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">
+            <h4 style="color: #c8a97e; margin: 0; font-size: 1rem; font-weight: bold; letter-spacing: 0.5px;">Notes & Highlights</h4>
+            <button id="add-annotation-btn" style="background: #c8a97e; color: black; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">+ Add Note</button>
+          </div>
+          
+          <!-- Add Note Form Container (hidden by default) -->
+          <div id="add-annotation-form-container" style="display: none; background: #111; border: 1px solid #333; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+            <h5 style="color: #fff; margin: 0 0 10px 0; font-size: 0.85rem;">Add Note / Highlight</h5>
+            <form id="add-annotation-form">
+              <div style="margin-bottom: 10px;">
+                <label style="display: block; color: #888; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px;">Selected Text (Highlight)</label>
+                <textarea id="annotation-selected-text" rows="2" placeholder="Highlight text on the left, or type it here to create a matching highlight..." style="width: 100%; padding: 6px; background: #050505; border: 1px solid #222; border-radius: 4px; color: #fff; font-size: 0.8rem; font-family: inherit; resize: vertical;"></textarea>
+              </div>
+              <div style="margin-bottom: 12px;">
+                <label style="display: block; color: #888; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px;">My Note / Comment *</label>
+                <textarea id="annotation-comment" required rows="3" placeholder="Enter your notes or comments here..." style="width: 100%; padding: 6px; background: #050505; border: 1px solid #222; border-radius: 4px; color: #fff; font-size: 0.8rem; font-family: inherit; resize: vertical;"></textarea>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button type="button" id="cancel-annotation-btn" style="background: transparent; color: #fff; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
+                <button type="submit" style="background: #c8a97e; color: black; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">Save</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Annotations List Container -->
+          <div id="pdf-annotations-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+            <p style="color: #666; font-size: 0.85rem; text-align: center; padding-top: 20px;">No notes added yet.</p>
+          </div>
         </div>
       </div>
     </div>

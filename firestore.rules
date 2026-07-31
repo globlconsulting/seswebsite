@@ -64,5 +64,11 @@ service cloud.firestore {
       // Only the author or an administrator can update or delete them
       allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.authorUid || isAdmin());
     }
+
+    match /playbook_annotations/{annId} {
+      // Users can only view or manage their own private notes/highlights
+      allow read, list, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
   }
 }

@@ -2163,6 +2163,93 @@ const playbookVault = {
   }
 };
 
+let activePlaybookKey = '';
+let activeFileIndex = null;
+let originalDocContent = '';
+
+async function loadPlaybookAnnotations() {
+  const annotationsList = document.getElementById('pdf-annotations-list');
+  const documentContainer = document.getElementById('pdf-rendered-document');
+  if (!annotationsList || !documentContainer || !activePlaybookKey || activeFileIndex === null) return;
+
+  let docHTML = originalDocContent;
+
+  try {
+    const qSnap = await getDocs(query(
+      collection(db, "playbook_annotations"),
+      where("userId", "==", currentUserUid),
+      where("playbookKey", "==", activePlaybookKey),
+      where("fileIndex", "==", activeFileIndex),
+      orderBy("createdAt", "asc")
+    ));
+
+    let html = '';
+
+    qSnap.forEach(docSnap => {
+      const ann = docSnap.data();
+      const annId = docSnap.id;
+      const selectedText = ann.selectedText || '';
+      const comment = ann.comment || '';
+
+      // Highlight matching text in document body (case-insensitive replace)
+      if (selectedText) {
+        // Simple escape helper for regex matching
+        const escaped = selectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        try {
+          const regex = new RegExp(`(${escaped})`, 'gi');
+          docHTML = docHTML.replace(regex, `<mark class="pdf-text-highlight" data-id="${annId}" style="background-color: #fef08a; color: #000 !important; cursor: pointer; padding: 2px 0; font-weight: bold;">$1</mark>`);
+        } catch(e) {
+          // Fallback simple replace
+          docHTML = docHTML.replaceAll(selectedText, `<mark class="pdf-text-highlight" data-id="${annId}" style="background-color: #fef08a; color: #000 !important; cursor: pointer; padding: 2px 0; font-weight: bold;">${selectedText}</mark>`);
+        }
+      }
+
+      html += `
+        <div style="background: #151515; border: 1px solid #333; border-radius: 6px; padding: 12px; font-size: 0.85rem; margin-bottom: 10px; box-sizing: border-box;">
+          ${selectedText ? `
+            <div style="border-left: 2px solid #c8a97e; padding-left: 8px; margin-bottom: 8px; color: #888; font-style: italic; font-size: 0.8rem; max-height: 4.2em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+              "${escapeHTML(selectedText)}"
+            </div>
+          ` : ''}
+          <div style="color: #fff; margin-bottom: 8px; line-height: 1.45; white-space: pre-wrap; font-family: inherit;">${escapeHTML(comment)}</div>
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="delete-annotation-btn" data-id="${annId}" style="background: transparent; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 2px 6px; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#ef4444'">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+
+    documentContainer.innerHTML = docHTML;
+
+    if (qSnap.size === 0) {
+      annotationsList.innerHTML = `<p style="color: #666; font-size: 0.85rem; text-align: center; padding-top: 20px;">No notes added yet.</p>`;
+    } else {
+      annotationsList.innerHTML = html;
+
+      // Delete Click Handlers
+      annotationsList.querySelectorAll('.delete-annotation-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const annId = e.currentTarget.getAttribute('data-id');
+          if (!confirm("Are you sure you want to delete this note?")) return;
+
+          try {
+            await deleteDoc(doc(db, "playbook_annotations", annId));
+            loadPlaybookAnnotations();
+          } catch (err) {
+            console.error("Error deleting annotation:", err);
+            alert("Failed to delete note. Try again.");
+          }
+        });
+      });
+    }
+
+  } catch (err) {
+    console.error("Error loading annotations:", err);
+    annotationsList.innerHTML = `<p style="color: red; font-size: 0.85rem;">Error loading annotations.</p>`;
+  }
+}
+
 function initPlaybookVault() {
   const vaultItems = document.querySelectorAll('.vault-playbook-item');
   const selectorModal = document.getElementById('pdf-selector-modal');
@@ -2174,6 +2261,14 @@ function initPlaybookVault() {
   const closeReaderBtn = document.getElementById('close-pdf-reader-modal-btn');
   const readerTitle = document.getElementById('pdf-reader-title');
   const documentContainer = document.getElementById('pdf-rendered-document');
+
+  // Annotation form controls
+  const addAnnotationBtn = document.getElementById('add-annotation-btn');
+  const formContainer = document.getElementById('add-annotation-form-container');
+  const annotationForm = document.getElementById('add-annotation-form');
+  const cancelAnnotationBtn = document.getElementById('cancel-annotation-btn');
+  const inputSelectedText = document.getElementById('annotation-selected-text');
+  const inputComment = document.getElementById('annotation-comment');
 
   if (!selectorModal || !closeSelectorBtn || !filesListContainer || !selectorTitle || !readerModal || !closeReaderBtn || !readerTitle || !documentContainer) return;
 
@@ -2211,8 +2306,18 @@ function initPlaybookVault() {
         fileRow.addEventListener('click', () => {
           selectorModal.style.display = 'none'; // Close selector
           
+          activePlaybookKey = vaultKey;
+          activeFileIndex = idx;
+          originalDocContent = file.content;
+
           readerTitle.innerText = file.title;
-          documentContainer.innerHTML = file.content;
+          
+          if (formContainer) formContainer.style.display = 'none';
+          if (annotationForm) annotationForm.reset();
+
+          // Load original content and fetch annotations!
+          documentContainer.innerHTML = originalDocContent;
+          loadPlaybookAnnotations();
           
           readerModal.style.display = 'flex'; // Open viewer
         });
@@ -2224,12 +2329,86 @@ function initPlaybookVault() {
     });
   });
 
+  // Sidebar Annotation triggers
+  if (addAnnotationBtn && formContainer) {
+    addAnnotationBtn.addEventListener('click', () => {
+      // Clear form
+      annotationForm.reset();
+      
+      // Auto-prefill if the user has selected any text in the document
+      let selText = '';
+      if (window.getSelection) {
+        selText = window.getSelection().toString().trim();
+      } else if (document.selection && document.selection.type !== "Control") {
+        selText = document.selection.createRange().text.trim();
+      }
+
+      if (inputSelectedText) {
+        inputSelectedText.value = selText;
+      }
+
+      formContainer.style.display = 'block';
+      if (inputComment) inputComment.focus();
+    });
+  }
+
+  if (cancelAnnotationBtn && formContainer) {
+    cancelAnnotationBtn.addEventListener('click', () => {
+      formContainer.style.display = 'none';
+      annotationForm.reset();
+    });
+  }
+
+  if (annotationForm) {
+    annotationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const selectedText = inputSelectedText.value.trim();
+      const comment = inputComment.value.trim();
+
+      const submitBtn = annotationForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Saving...';
+      }
+
+      try {
+        await addDoc(collection(db, "playbook_annotations"), {
+          userId: currentUserUid,
+          playbookKey: activePlaybookKey,
+          fileIndex: activeFileIndex,
+          selectedText: selectedText,
+          comment: comment,
+          createdAt: serverTimestamp()
+        });
+
+        formContainer.style.display = 'none';
+        annotationForm.reset();
+
+        // Refresh view with new annotations and highlights
+        loadPlaybookAnnotations();
+
+      } catch (err) {
+        console.error("Error creating annotation:", err);
+        alert("Failed to save annotation. Try again.");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Save';
+        }
+      }
+    });
+  }
+
   closeSelectorBtn.addEventListener('click', () => {
     selectorModal.style.display = 'none';
   });
 
   closeReaderBtn.addEventListener('click', () => {
     readerModal.style.display = 'none';
+    activePlaybookKey = '';
+    activeFileIndex = null;
+    originalDocContent = '';
   });
 }
 
