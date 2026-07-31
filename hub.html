@@ -411,9 +411,9 @@
           <div>
             <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">AI Prompt Library</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Negotiation Tactics</li>
-              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Sponsor Outreach Email</li>
-              <li style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #aaa;">Media Interview Prep</li>
+              <li class="prompt-category-item" data-category="negotiation" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Negotiation Tactics</li>
+              <li class="prompt-category-item" data-category="sponsor" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Sponsor Outreach Email</li>
+              <li class="prompt-category-item" data-category="media" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Media Interview Prep</li>
             </ul>
           </div>
 
@@ -777,6 +777,19 @@
           <button type="submit" style="background: #c8a97e; color: black; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Post to Marketplace</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Prompts Viewer Modal -->
+  <div id="prompts-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1200; align-items: center; justify-content: center;">
+    <div style="background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; padding: 30px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <button id="close-prompts-modal-btn" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #c8a97e; font-size: 1.5rem; cursor: pointer; padding: 5px;">✕</button>
+      
+      <h3 id="prompts-modal-title" style="color: #fff; margin-top: 0; font-family: var(--font-serif); border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.4rem;">AI Prompt Category</h3>
+      
+      <div id="prompts-container" style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Dynamic prompts filled by JS -->
+      </div>
     </div>
   </div>
 

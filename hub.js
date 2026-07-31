@@ -2007,6 +2007,121 @@ function initManualInvite() {
   });
 }
 
+const promptLibrary = {
+  negotiation: {
+    title: "Negotiation Tactics Prompts",
+    prompts: [
+      {
+        title: "Prompt 1 (Inner Beast Alignment)",
+        text: "Act as an expert negotiator. I am entering a high-stakes discussion. Help me identify the other party's 'Inner Beast'—are they a fast and fiery Falcon, a quiet and strategic Owl, or an expressive Dolphin? Generate a script that allows me to match their instinctive communication style so I can build trust without losing my leverage."
+      },
+      {
+        title: "Prompt 2 (Ego & Pace Control)",
+        text: "Provide a framework for a luxury real estate negotiation where egos and pride are heavily involved. Give me tactics on how to read the room, control the pace, and know exactly when to push forward and when to pause."
+      },
+      {
+        title: "Prompt 3 (Defending Premium Value)",
+        text: "Draft talking points for a client trying to negotiate my fees down. I refuse to be the low-cost leader. Give me a script that pivots the conversation away from price and reinforces the exclusive, chauffeur-driven experience and unparalleled expertise they will receive by working with me."
+      }
+    ]
+  },
+  sponsor: {
+    title: "Sponsor Outreach Email Prompts",
+    prompts: [
+      {
+        title: "Prompt 1 (The Warm Gatekeeper Intro)",
+        text: "Draft a concise, professional outreach email to a sports agent I was recently introduced to. The email should not ask for business outright. Instead, offer them exclusive, off-market industry information that they can share with their clients to make themselves look like a hero."
+      },
+      {
+        title: "Prompt 2 (The Co-Branding Pitch)",
+        text: "Write an email to a non-competing luxury lifestyle brand (e.g., a high-end car dealership) proposing a strategic co-branding partnership for an upcoming event. Emphasize how sharing our affluent databases will result in mutual exposure and elevated prestige."
+      },
+      {
+        title: "Prompt 3 (The 'Forget Me Not' Follow-Up)",
+        text: "Create a brief 'Forget Me Not' email template to send to a past high-net-worth client. It should be a quarterly touch-base that provides a highly relevant, valuable market update without sounding 'salesy' or intrusive."
+      }
+    ]
+  },
+  media: {
+    title: "Media Interview Prep Prompts",
+    prompts: [
+      {
+        title: "Prompt 1 (Reframing Failure via F.A.I.L.)",
+        text: "I have a media interview where I may be asked about a past business setback or a property that didn't sell. Help me draft a response that reframes this using the F.A.I.L. framework—'Find All Important Lessons'—to show how the experience ultimately elevated my career and expertise."
+      },
+      {
+        title: "Prompt 2 (Selling the Lifestyle Story)",
+        text: "Generate talking points for an upcoming interview about a luxury listing. Instead of listing facts and square footage, craft an emotional story that sells the legacy, exclusivity, and lifestyle of the estate to appeal to the avatar of a billionaire buyer."
+      },
+      {
+        title: "Prompt 3 (Brand Mantra Integration)",
+        text: "Draft three 30-second soundbites that seamlessly integrate my core brand mantra, 'Focus and Finish,' into general business advice. The tone should be inspirational, authoritative, and emphasize the importance of focusing on small steps to achieve massive goals."
+      }
+    ]
+  }
+};
+
+function initPromptLibrary() {
+  const items = document.querySelectorAll('.prompt-category-item');
+  const modal = document.getElementById('prompts-viewer-modal');
+  const btnClose = document.getElementById('close-prompts-modal-btn');
+  const container = document.getElementById('prompts-container');
+  const titleEl = document.getElementById('prompts-modal-title');
+
+  if (!modal || !btnClose || !container || !titleEl) return;
+
+  items.forEach(item => {
+    item.addEventListener('click', (e) => {
+      const catKey = e.currentTarget.getAttribute('data-category');
+      const catData = promptLibrary[catKey];
+      if (!catData) return;
+
+      titleEl.innerText = catData.title;
+      container.innerHTML = '';
+
+      catData.prompts.forEach((prompt, idx) => {
+        const promptId = `prompt-${catKey}-${idx}`;
+        const card = document.createElement('div');
+        card.style.cssText = 'background: #111; border: 1px solid #222; border-radius: 6px; padding: 20px; box-sizing: border-box;';
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 8px;">
+            <h4 style="margin: 0; color: #c8a97e; font-size: 1rem; font-weight: bold;">${prompt.title}</h4>
+            <button class="copy-prompt-btn" data-target="${promptId}" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; font-weight: bold;">Copy Prompt</button>
+          </div>
+          <div id="${promptId}" style="color: #ccc; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; font-family: monospace; background: #070707; padding: 12px; border-radius: 4px; border: 1px solid #1a1a1a;">${prompt.text}</div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // Attach Copy Event Listeners
+      container.querySelectorAll('.copy-prompt-btn').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          const targetId = ev.currentTarget.getAttribute('data-target');
+          const promptTextDiv = document.getElementById(targetId);
+          if (promptTextDiv) {
+            navigator.clipboard.writeText(promptTextDiv.innerText)
+              .then(() => {
+                ev.currentTarget.innerText = 'Copied!';
+                setTimeout(() => { ev.currentTarget.innerText = 'Copy Prompt'; }, 2000);
+              })
+              .catch(err => {
+                console.error("Clipboard copy failed:", err);
+              });
+          }
+        });
+      });
+
+      modal.style.display = 'flex';
+    });
+  });
+
+  btnClose.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+}
+
 // Run initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -2014,10 +2129,12 @@ if (document.readyState === 'loading') {
     initIntelligenceCenter();
     initManualInvite();
     initOpportunities();
+    initPromptLibrary();
   });
 } else {
   initLearningTracks();
   initIntelligenceCenter();
   initManualInvite();
   initOpportunities();
+  initPromptLibrary();
 }
