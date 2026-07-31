@@ -100,6 +100,8 @@ onAuthStateChanged(auth, async (user) => {
     loadUserProfile(user.uid);
     // Load the member directory
     loadMembers();
+    // Load opportunities feed
+    loadOpportunities();
     
     // Load approved articles
     if(typeof loadApprovedArticles === 'function') loadApprovedArticles();
@@ -1782,6 +1784,150 @@ function initIntelligenceCenter() {
   renderIntelligenceBrief('current');
 }
 
+async function loadOpportunities() {
+  const feed = document.getElementById('opportunities-feed');
+  if (!feed) return;
+
+  try {
+    const qSnap = await getDocs(query(collection(db, "opportunities"), orderBy("createdAt", "desc")));
+    let html = '';
+
+    qSnap.forEach(docSnap => {
+      const opp = docSnap.data();
+      const oppId = docSnap.id;
+
+      const title = escapeHTML(opp.title || 'No Title');
+      const category = escapeHTML(opp.category || 'Job');
+      const description = escapeHTML(opp.description || 'No description provided');
+      const authorName = escapeHTML(opp.authorName || 'Anonymous');
+      const authorEmail = escapeHTML(opp.authorEmail || '');
+      const authorUid = opp.authorUid;
+
+      // Show Delete button if current user is the author OR if they are an admin
+      let deleteBtn = '';
+      if (currentUserUid === authorUid || isAdmin) {
+        deleteBtn = `
+          <button class="delete-opportunity-btn" data-id="${oppId}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+            Delete
+          </button>
+        `;
+      }
+
+      html += `
+        <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+            <span style="color: #c8a97e; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">${category}</span>
+            <span style="color: #666; font-size: 0.8rem;">Posted by ${authorName}</span>
+          </div>
+          <h4 style="margin: 5px 0; font-size: 1.2rem; color: #fff;">${title}</h4>
+          <p style="color: #aaa; margin: 0 0 15px 0; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${description}</p>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="view-opp-contact-btn" data-email="${authorEmail}" style="background: transparent; border: 1px solid #555; color: #fff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: border-color 0.2s;" onmouseover="this.style.borderColor='#c8a97e'" onmouseout="this.style.borderColor='#555'">
+              Contact Author
+            </button>
+            ${deleteBtn}
+          </div>
+        </div>
+      `;
+    });
+
+    if (qSnap.size === 0) {
+      feed.innerHTML = `<p style="color: #666; padding: 20px; text-align: center; background: #080808; border-radius: 8px; border: 1px dashed #222;">No opportunities posted yet. Be the first to share one!</p>`;
+    } else {
+      feed.innerHTML = html;
+
+      // Attach Contact Author click handlers
+      document.querySelectorAll('.view-opp-contact-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const email = e.currentTarget.getAttribute('data-email');
+          window.location.href = `mailto:${email}?subject=SES Opportunities Marketplace - Inquiry`;
+        });
+      });
+
+      // Attach Delete click handlers
+      document.querySelectorAll('.delete-opportunity-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if (!confirm("Are you sure you want to delete this opportunity post?")) return;
+
+          const oppId = e.currentTarget.getAttribute('data-id');
+          try {
+            await deleteDoc(doc(db, "opportunities", oppId));
+            loadOpportunities(); // Refresh the feed
+          } catch(err) {
+            console.error("Error deleting opportunity:", err);
+            alert("Failed to delete post. Try again.");
+          }
+        });
+      });
+    }
+
+  } catch (err) {
+    console.error("Error loading opportunities:", err);
+    feed.innerHTML = `<p style="color: red;">Error loading marketplace feed.</p>`;
+  }
+}
+
+function initOpportunities() {
+  const btnPost = document.getElementById('btn-post-opportunity');
+  const modal = document.getElementById('post-opportunity-modal');
+  const btnClose = document.getElementById('close-opportunity-modal-btn');
+  const form = document.getElementById('post-opportunity-form');
+
+  if (!btnPost || !modal || !btnClose || !form) return;
+
+  // Open Modal
+  btnPost.addEventListener('click', () => {
+    form.reset();
+    modal.style.display = 'flex';
+  });
+
+  // Close Modal
+  btnClose.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Handle Form Submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const title = document.getElementById('opportunity-title').value.trim();
+    const category = document.getElementById('opportunity-category').value;
+    const description = document.getElementById('opportunity-description').value.trim();
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Posting...';
+    }
+
+    try {
+      // Create opportunity doc in Firestore
+      await addDoc(collection(db, "opportunities"), {
+        title,
+        category,
+        description,
+        authorUid: currentUserUid,
+        authorEmail: auth.currentUser.email,
+        authorName: currentUserName,
+        createdAt: serverTimestamp()
+      });
+
+      modal.style.display = 'none';
+      form.reset();
+      loadOpportunities(); // Reload the feed!
+
+    } catch (err) {
+      console.error("Error posting opportunity:", err);
+      alert("Failed to post opportunity. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Post to Marketplace';
+      }
+    }
+  });
+}
+
 function initManualInvite() {
   const addInviteBtn = document.getElementById('admin-add-invite-btn');
   const inviteModal = document.getElementById('invite-user-modal');
@@ -1867,9 +2013,11 @@ if (document.readyState === 'loading') {
     initLearningTracks();
     initIntelligenceCenter();
     initManualInvite();
+    initOpportunities();
   });
 } else {
   initLearningTracks();
   initIntelligenceCenter();
   initManualInvite();
+  initOpportunities();
 }

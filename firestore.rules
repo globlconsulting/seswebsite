@@ -57,5 +57,12 @@ service cloud.firestore {
       // Only admins can write (create/update/delete) or list approved emails
       allow write, list: if isAdmin();
     }
+
+    match /opportunities/{oppId} {
+      // Authenticated members can read or create opportunities
+      allow read, list, create: if isAuthenticated();
+      // Only the author or an administrator can update or delete them
+      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.authorUid || isAdmin());
+    }
   }
 }

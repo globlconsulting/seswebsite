@@ -427,24 +427,13 @@
             <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Marketplace</h2>
             <p style="margin: 0; color: #888;">Jobs, board seats, brand partnerships, and investments.</p>
           </div>
-          <button class="btn" style="background:#c8a97e; color:black; padding:10px 20px; font-weight:bold; border-radius:4px; border:none;">Post Opportunity</button>
+          <button id="btn-post-opportunity" class="btn" style="background:#c8a97e; color:black; padding:10px 20px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Post Opportunity</button>
         </div>
 
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
           <!-- Feed -->
-          <div>
-            <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px;">
-              <span style="color: #c8a97e; font-size: 0.8rem; text-transform: uppercase;">Board Seat</span>
-              <h4 style="margin: 5px 0; font-size: 1.2rem; color: #fff;">Sports Tech Advisory Board</h4>
-              <p style="color: #aaa; margin: 0 0 15px 0; font-size: 0.95rem;">Looking for an executive with strong ties to NBA front offices for a Series A sports analytics startup.</p>
-              <button style="background: transparent; border: 1px solid #555; color: #fff; padding: 6px 15px; border-radius: 4px; cursor: pointer;">View Details</button>
-            </div>
-            <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px;">
-              <span style="color: #c8a97e; font-size: 0.8rem; text-transform: uppercase;">Investment</span>
-              <h4 style="margin: 5px 0; font-size: 1.2rem; color: #fff;">Seed Round: NIL Platform</h4>
-              <p style="color: #aaa; margin: 0 0 15px 0; font-size: 0.95rem;">Allocating $250k specifically for athlete and sports executive angel investors.</p>
-              <button style="background: transparent; border: 1px solid #555; color: #fff; padding: 6px 15px; border-radius: 4px; cursor: pointer;">View Details</button>
-            </div>
+          <div id="opportunities-feed">
+            <p style="color: #888;">Loading opportunities...</p>
           </div>
           
           <!-- Sidebar -->
@@ -754,6 +743,38 @@
         <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #222; padding-top: 20px;">
           <button type="button" id="close-invite-modal-btn" style="background: transparent; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Cancel</button>
           <button type="submit" style="background: #c8a97e; color: black; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Create Invite</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Post Opportunity Modal -->
+  <div id="post-opportunity-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1200; align-items: center; justify-content: center;">
+    <div style="background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; width: 100%; max-width: 500px; padding: 30px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <h3 style="color: #fff; margin-top: 0; font-family: var(--font-serif); border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.3rem;">Post an Opportunity</h3>
+      <form id="post-opportunity-form">
+        <div style="margin-bottom: 15px;">
+          <label for="opportunity-title" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Opportunity Title *</label>
+          <input type="text" id="opportunity-title" required placeholder="e.g. Sports Tech Advisory Board" style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="opportunity-category" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Category *</label>
+          <select id="opportunity-category" required style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit;">
+            <option value="Job">Job Opportunity</option>
+            <option value="Board Seat">Board Seat</option>
+            <option value="Brand Partnership">Brand Partnership</option>
+            <option value="Investment">Investment Opportunity</option>
+            <option value="Referral">Referral Request</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="opportunity-description" style="display: block; margin-bottom: 5px; color: #c8a97e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Description *</label>
+          <textarea id="opportunity-description" required rows="5" placeholder="Describe the opportunity, requirements, and contact details..." style="width: 100%; padding: 10px; background: #050505; border: 1px solid #333; border-radius: 4px; color: #fff; box-sizing: border-box; font-family: inherit; resize: vertical;"></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #222; padding-top: 20px;">
+          <button type="button" id="close-opportunity-modal-btn" style="background: transparent; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Cancel</button>
+          <button type="submit" style="background: #c8a97e; color: black; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit;">Post to Marketplace</button>
         </div>
       </form>
     </div>
