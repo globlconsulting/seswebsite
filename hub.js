@@ -2122,6 +2122,117 @@ function initPromptLibrary() {
   });
 }
 
+const playbookVault = {
+  "sports-partnership": {
+    title: "Sports Partnership Playbook",
+    files: [
+      {
+        title: "The \"Chauffeur-Driven\" Service Model",
+        author: "Kofi Nartey",
+        content: `<h3>The "Chauffeur-Driven" Service Model</h3>
+<p style="font-style: italic; color: #666; margin-bottom: 25px;">By Kofi Nartey</p>
+
+<p>When servicing athletes and entertainers, it is essential to understand the intricate psychology and daily reality of the "Chauffeur-Driven" life they lead. High-profile clients do not hire a chauffeur simply because they lack the ability to drive; they do it because they deeply desire a specific, elevated experience, and they recognize that their time is a premium asset better allocated to their craft, their families, or their leisure. In the world of elite performance, time and mental energy are invaluable currencies. Actors and professional athletes are highly accustomed to a pampered lifestyle from the moment they reach the upper echelons of their industries. As Kofi Nartey notes from his own experiences as a professional football player and an actor, high-profile individuals frequently fly around the world in first class, are chauffeured to and from locations in luxury vehicles, stay exclusively in four- and five-star hotels, and frequently dine at the absolute finest establishments.</p>
+
+<p>Because of this constant exposure to top-tier treatment, these individuals develop a baseline expectation for how services should be delivered. <strong>As a service provider, your standard must align flawlessly with this level of luxury.</strong> Affluent individuals are accustomed to personalized, tailored experiences that cater to their unique preferences, and they associate higher price tags with superior levels of expertise, convenience, service, and quality. You cannot expect to win over or retain a celebrity client if your business model reflects mass-market generalizations. Instead, your entire brand must symbolize a promise—a guarantee of unparalleled service, discretion, and exclusivity. When an athlete or entertainer decides to hire you, they are not just buying a product or a basic service; they are buying into an experience that reflects their own sophistication and prestige. Therefore, you must present yourself and your business as the premier expert in your field, proving that you alone possess the distinct mix of benefits capable of meeting their lifestyle needs.</p>
+
+<h4>Removing Stress and Friction</h4>
+<p>The ultimate goal of the chauffeur-driven model is to allow the athlete or entertainer to focus entirely on their craft or game. In the sports world, for instance, professional organizations go to great lengths to ensure their athletes are not distracted by day-to-day inconveniences. They provide chartered planes, meticulously catered meals, and seamless ground transportation so that players never have to worry about logistical details. The entire infrastructure is designed with one singular objective: the athlete must be able to focus solely on winning, while everything else is handled behind the scenes by a team of experts.</p>
+
+<p>Your business process must emulate this by actively anticipating challenges and removing all stress and friction from the transaction. You must allow your clients the exact same peace of mind they receive from their teams or studios—the absolute certainty that the business they transact with you will be handled flawlessly, without a hitch, and with as little active involvement required from them as possible. To achieve this friction-free environment, you must act as a fierce advocate and protector. High-profile athletes and entertainers are frequently targeted by predators or individuals looking to overcharge them simply because they possess significant wealth. You must be tough enough to stand up, negotiate aggressively on their behalf, and protect their best interests and bank accounts from price gouging.</p>
+
+<p>Furthermore, removing friction means ensuring absolute discretion. Athletes and entertainers live highly public work lives, but they deeply value and protect the privacy of their personal lives. Removing stress means implementing strict confidentiality agreements with your team and ensuring that no detail about your client's home, schedule, or personal preferences ever leaks to the public or the paparazzi. By treating your business as a "team sport" and surrounding yourself with a vetted ecosystem of trusted, premium vendors, you can seamlessly handle complex problems behind the scenes before the client ever feels the burden. When you make it your priority to execute your job in a way that shields your client from stress, you give them the freedom to focus entirely on their career and their family.</p>
+
+<h4>Delivering a Concierge-Level Experience</h4>
+<p>To truly stand out in this competitive niche, your service must transcend a standard transaction and become a bespoke, highly curated experience. This is much like the decision to fly first class or choose an airline like Virgin Airlines, where consumers happily pay premium prices because the company has built its entire brand on delivering an extraordinary, unforgettable flying experience. Every interaction your client has with you must be imbued with luxury, personalized service, and a deep understanding of their unspoken needs.</p>
+
+<ul>
+  <li><strong>Anticipation of Needs:</strong> True luxury means staying significantly ahead of your clients' wants by providing conveniences and solutions before it even occurs to them to ask. Anticipation requires meticulous research, constant feedback, creativity, and a willingness to step outside the status quo. You must understand the unique trajectory of their careers and the specific demands of their daily lives. For example, if you know a client is moving to a new city for a short-term contract, true anticipation means proactively advising them on the best short-term living arrangements and having the logistics solved before they even arrive. It means observing their habits and preferences closely so that you can craft "wow" moments—unexpected, delightful surprises that leave a lasting impression.</li>
+  <li><strong>Comprehensive Offerings:</strong> Consider offering full-scale concierge services that extend far beyond your core professional duties. In luxury real estate, for example, this means providing not just the home, but acting as the central hub for their entire transition. A true concierge-level relocation means that when the client arrives, they are greeted by a house that is already fully furnished, the refrigerator is fully stocked with their specific dietary preferences, and their clothes are perfectly color-coordinated in the closets by professional organizers. It means having exclusive car services, personal chefs, private yacht charters, and restaurant concierges readily available on speed dial. By serving as the reliable hub of a finely tuned network, you deliver everything they need seamlessly, making the impossible happen at a moment's notice.</li>
+  <li><strong>Flexibility and Adaptability:</strong> Celebrities have incredibly volatile schedules. In this industry, there is a saying that "time waits for no one... except celebrities". Their availability changes faster than the weather, and you must be highly flexible, ready for last-minute calls, sudden cancellations, and constant rescheduling. You must be willing to adapt to odd hours, late-night requests, and sudden shifts in plans to meet their lifestyle demands without a single complaint. If a business manager calls to inform you that an athlete is flying into town in two hours and wants to immediately preview six properties, your mindset must instantly shift to, "Let the games begin". You must view these rapid, highly demanding requests not as an inconvenience, but as the perfect opportunity to separate yourself from your competition by proving your elite adaptability.</li>
+</ul>
+
+<h4>The Key Takeaway</h4>
+<p>In the rarified air of sports and entertainment, the client experience is becoming more important than ever, to the point that the experience itself is just as important as the product you are selling. The highest-level clients are not just buying a physical asset or a standard service; they are buying into a feeling, a lifestyle, and a promise of excellence.</p>
+
+<p>Service for this niche often reinforces the status of these individuals. Because they are accustomed to the very best the world has to offer, they are looking to you to make them feel important, valued, and completely understood. If you can successfully execute a comprehensive process that shields your client from logistical headaches and emotional friction, while simultaneously reinforcing their elite status and making them feel profoundly important, you will cultivate a full roster of lifelong clients.</p>
+
+<p>In the luxury market, building customer loyalty is not merely about securing repeat business; it is about creating fierce advocacy. When clients experience a level of service that consistently exceeds their expectations, they do not just return—they become vocal ambassadors for your brand among their highly influential peers. Athletes, in particular, spend countless hours with their teammates and frequently seek referrals from within their locker rooms. If you take flawless care of one player, you will often earn direct referrals to their teammates. By remaining a reliable, indispensable resource for every part of their luxury lifestyle, you ensure that you are always their first call, embedding yourself into their world as a trusted advisor. Ultimately, this relentless commitment to delivering an exclusive, chauffeur-driven experience is what transforms a single transaction into a lasting, incredibly lucrative business legacy.</p>`
+      }
+    ]
+  }
+};
+
+function initPlaybookVault() {
+  const vaultItems = document.querySelectorAll('.vault-playbook-item');
+  const selectorModal = document.getElementById('pdf-selector-modal');
+  const closeSelectorBtn = document.getElementById('close-pdf-selector-modal-btn');
+  const filesListContainer = document.getElementById('pdf-files-list');
+  const selectorTitle = document.getElementById('pdf-selector-title');
+
+  const readerModal = document.getElementById('pdf-reader-modal');
+  const closeReaderBtn = document.getElementById('close-pdf-reader-modal-btn');
+  const readerTitle = document.getElementById('pdf-reader-title');
+  const documentContainer = document.getElementById('pdf-rendered-document');
+
+  if (!selectorModal || !closeSelectorBtn || !filesListContainer || !selectorTitle || !readerModal || !closeReaderBtn || !readerTitle || !documentContainer) return;
+
+  vaultItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      const vaultKey = e.currentTarget.getAttribute('data-vault-key');
+      const playbookData = playbookVault[vaultKey];
+      if (!playbookData) return;
+
+      selectorTitle.innerText = playbookData.title;
+      filesListContainer.innerHTML = '';
+
+      playbookData.files.forEach((file, idx) => {
+        const fileRow = document.createElement('div');
+        fileRow.style.cssText = 'padding:12px; background:#111; border:1px solid #222; border-radius:4px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all 0.2s;';
+        fileRow.setAttribute('data-index', idx);
+        
+        fileRow.innerHTML = `
+          <span style="color:#fff; font-weight:500; font-size:0.95rem;">${file.title}</span>
+          <span style="color:#c8a97e; font-size:0.8rem; font-weight:bold; border:1px solid #c8a97e; padding:2px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
+            👁 View
+          </span>
+        `;
+
+        fileRow.addEventListener('mouseover', () => {
+          fileRow.style.borderColor = '#c8a97e';
+          fileRow.style.background = '#161616';
+        });
+        fileRow.addEventListener('mouseout', () => {
+          fileRow.style.borderColor = '#222';
+          fileRow.style.background = '#111';
+        });
+
+        // Click a document to view inside the custom PDF Viewer
+        fileRow.addEventListener('click', () => {
+          selectorModal.style.display = 'none'; // Close selector
+          
+          readerTitle.innerText = file.title;
+          documentContainer.innerHTML = file.content;
+          
+          readerModal.style.display = 'flex'; // Open viewer
+        });
+
+        filesListContainer.appendChild(fileRow);
+      });
+
+      selectorModal.style.display = 'flex';
+    });
+  });
+
+  closeSelectorBtn.addEventListener('click', () => {
+    selectorModal.style.display = 'none';
+  });
+
+  closeReaderBtn.addEventListener('click', () => {
+    readerModal.style.display = 'none';
+  });
+}
+
 // Run initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -2130,6 +2241,7 @@ if (document.readyState === 'loading') {
     initManualInvite();
     initOpportunities();
     initPromptLibrary();
+    initPlaybookVault();
   });
 } else {
   initLearningTracks();
@@ -2137,4 +2249,5 @@ if (document.readyState === 'loading') {
   initManualInvite();
   initOpportunities();
   initPromptLibrary();
+  initPlaybookVault();
 }
