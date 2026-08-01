@@ -11,6 +11,7 @@ const fallbackEvent = {
   cohosts: "Profluence & Playing For Keeps Foundation",
   ticketPrice: "Free",
   imageUrl: "https://www.eventbrite.com/e/_next/image?url=https%3A%2F%2Fimg.evbuc.com%2Fhttps%253A%252F%252Fcdn.evbuc.com%252Fimages%252F1188637605%252F636362833813%252F1%252Foriginal.20260710-202211%3Fcrop%3Dfocalpoint%26fit%3Dcrop%26w%3D1880%26auto%3Dformat%252Ccompress%26q%3D75%26sharp%3D10%26fp-x%3D0.5%26fp-y%3D0.5%26s%3D41ef85234ac8bc4a05be6d9eaf8a4f07&w=1880&q=75",
+  rsvpUrl: "https://www.eventbrite.com/e/the-golden-era-of-la-sports-tickets-1992395365171",
   description: `Los Angeles is experiencing an unprecedented era in sports.
 
 With the Olympics, FIFA World Cup, Super Bowl, NBA All-Star Weekend, and other major sporting events converging on our city, the opportunities for business leaders, entrepreneurs, athletes, creators, and community builders have never been greater.
@@ -136,6 +137,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cohostsText = ev.cohosts ? `<div class="event-meta-item"><span class="icon">👥</span><span>Co-Hosted By: ${ev.cohosts}</span></div>` : '';
       const imageStyle = ev.imageUrl ? `background-image: url('${ev.imageUrl}');` : 'background-color: var(--color-blue);';
 
+      const rsvpBtnHtml = ev.rsvpUrl
+        ? `<a href="${ev.rsvpUrl}" target="_blank" class="btn btn-primary" style="margin-top: 2rem; width: 100%; display: block; text-align: center; text-decoration: none; box-sizing: border-box; line-height: 1.5; padding: 12px 0;">RSVP TODAY</a>`
+        : `<button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>`;
+
       card.innerHTML = `
         <div class="event-image-container" style="${imageStyle}"></div>
         <div class="event-content">
@@ -160,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${parsedDesc}
             </div>
           </div>
-          <button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>
+          ${rsvpBtnHtml}
         </div>
       `;
 

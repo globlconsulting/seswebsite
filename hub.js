@@ -2607,6 +2607,7 @@ const fallbackEvent = {
   cohosts: "Profluence & Playing For Keeps Foundation",
   ticketPrice: "Free",
   imageUrl: "https://www.eventbrite.com/e/_next/image?url=https%3A%2F%2Fimg.evbuc.com%2Fhttps%253A%252F%252Fcdn.evbuc.com%252Fimages%252F1188637605%252F636362833813%252F1%252Foriginal.20260710-202211%3Fcrop%3Dfocalpoint%26fit%3Dcrop%26w%3D1880%26auto%3Dformat%252Ccompress%26q%3D75%26sharp%3D10%26fp-x%3D0.5%26fp-y%3D0.5%26s%3D41ef85234ac8bc4a05be6d9eaf8a4f07&w=1880&q=75",
+  rsvpUrl: "https://www.eventbrite.com/e/the-golden-era-of-la-sports-tickets-1992395365171",
   description: `Los Angeles is experiencing an unprecedented era in sports.
 
 With the Olympics, FIFA World Cup, Super Bowl, NBA All-Star Weekend, and other major sporting events converging on our city, the opportunities for business leaders, entrepreneurs, athletes, creators, and community builders have never been greater.
@@ -2646,6 +2647,7 @@ function initEventsManagement() {
       const cohosts = document.getElementById('admin-event-cohosts').value.trim();
       const price = document.getElementById('admin-event-price').value.trim() || 'Free';
       const imageUrl = document.getElementById('admin-event-image').value.trim();
+      const rsvpUrl = document.getElementById('admin-event-rsvp-url').value.trim();
       const overview = document.getElementById('admin-event-overview').value.trim();
       const description = document.getElementById('admin-event-description').value.trim();
       
@@ -2665,6 +2667,7 @@ function initEventsManagement() {
           cohosts,
           ticketPrice: price,
           imageUrl,
+          rsvpUrl,
           overview,
           description,
           createdAt: serverTimestamp()
@@ -2747,8 +2750,8 @@ async function loadHubEvents() {
     card.style.border = '1px solid #333';
     card.style.padding = '25px';
     card.style.borderRadius = '8px';
-    card.style.display = 'grid';
-    card.style.gridTemplateColumns = ev.imageUrl ? '150px 1fr' : '1fr';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
     card.style.gap = '25px';
     
     // Parse descriptions (newlines/headings/bullets)
@@ -2758,10 +2761,13 @@ async function loadHubEvents() {
       .replace(/- (.*?)(<br>|$)/g, '<li style="margin-left:15px; color:#aaa;">$1</li>')
       : '';
       
-    const imagePart = ev.imageUrl ? `<div style="background-image: url('${ev.imageUrl}'); background-size:cover; background-position:center; border-radius:4px; min-height:150px;"></div>` : '';
+    const imagePart = ev.imageUrl ? `<div style="background-image: url('${ev.imageUrl}'); background-size:cover; background-position:center; border-radius:4px; width:100%; aspect-ratio:2 / 1;"></div>` : '';
     
     const cohostsText = ev.cohosts ? `<div style="font-size:0.85rem; color:#888; margin-top:5px;">Co-Hosted By: ${ev.cohosts}</div>` : '';
     
+    const rsvpLink = ev.rsvpUrl ? ev.rsvpUrl : 'events.html';
+    const rsvpTarget = ev.rsvpUrl ? '_blank' : '_self';
+
     card.innerHTML = `
       ${imagePart}
       <div style="display:flex; flex-direction:column; justify-content:space-between;">
@@ -2788,7 +2794,7 @@ async function loadHubEvents() {
         </div>
         
         <div style="margin-top:20px; display:flex; gap:15px;">
-          <a href="events.html" target="_blank" class="btn" style="background:#c8a97e; color:black; font-weight:bold; padding:10px 20px; border-radius:4px; border:none; text-align:center; font-size:0.9rem; text-decoration:none; cursor:pointer;">RSVP / Get Ticket</a>
+          <a href="${rsvpLink}" target="${rsvpTarget}" class="btn" style="background:#c8a97e; color:black; font-weight:bold; padding:10px 20px; border-radius:4px; border:none; text-align:center; font-size:0.9rem; text-decoration:none; cursor:pointer; width: 100%; box-sizing: border-box;">RSVP TODAY</a>
         </div>
       </div>
     `;
@@ -2842,6 +2848,7 @@ async function loadAdminEvents() {
         cohosts: fallbackEvent.cohosts,
         ticketPrice: fallbackEvent.ticketPrice,
         imageUrl: fallbackEvent.imageUrl,
+        rsvpUrl: fallbackEvent.rsvpUrl,
         description: fallbackEvent.description,
         createdAt: serverTimestamp()
       };
@@ -2886,6 +2893,7 @@ async function loadAdminEvents() {
       document.getElementById('admin-event-cohosts').value = ev.cohosts || '';
       document.getElementById('admin-event-price').value = ev.ticketPrice || 'Free';
       document.getElementById('admin-event-image').value = ev.imageUrl || '';
+      document.getElementById('admin-event-rsvp-url').value = ev.rsvpUrl || '';
       document.getElementById('admin-event-overview').value = ev.overview || '';
       document.getElementById('admin-event-description').value = ev.description || '';
       
