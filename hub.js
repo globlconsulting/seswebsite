@@ -145,8 +145,12 @@ const titles = {
   'learn': 'LEARN: Education Center',
   'tools': 'VAULT: Playbooks & Tools',
   'opportunities': 'OPPORTUNITIES: The Marketplace',
+  'performance': 'PERFORMANCE: Benchmark Performance',
   'intelligence': 'INTELLIGENCE: Weekly Insights',
-  'profile': 'MY PROFILE: Settings'
+  'events': 'EVENTS: Society Happenings',
+  'profile': 'MY PROFILE: Settings',
+  'write-article': 'WRITE AUTHORITY ARTICLE',
+  'admin-panel': 'ADMIN CONTROL CENTER'
 };
 
 navItems.forEach(item => {
@@ -165,7 +169,12 @@ navItems.forEach(item => {
     document.getElementById(targetId).classList.add('active');
 
     // Update the header title
-    sectionTitle.innerText = titles[targetId];
+    sectionTitle.innerText = titles[targetId] || '';
+
+    // Load events if events section is clicked
+    if (targetId === 'events') {
+      if (typeof loadHubEvents === 'function') loadHubEvents();
+    }
   });
 });
 
@@ -522,18 +531,20 @@ if (articleForm) {
 const tabUsers = document.getElementById('tab-manage-users');
 const tabApps = document.getElementById('tab-pending-applications');
 const tabArticles = document.getElementById('tab-approve-articles');
+const tabEvents = document.getElementById('tab-manage-events');
 const secUsers = document.getElementById('admin-users-section');
 const secApps = document.getElementById('admin-applications-section');
 const secArticles = document.getElementById('admin-articles-section');
+const secEvents = document.getElementById('admin-events-section');
 
 function selectAdminTab(selectedTab, selectedSection) {
-  [tabUsers, tabApps, tabArticles].forEach(tab => {
+  [tabUsers, tabApps, tabArticles, tabEvents].forEach(tab => {
     if (tab) {
       tab.style.borderBottom = 'none';
       tab.style.color = '#888';
     }
   });
-  [secUsers, secApps, secArticles].forEach(sec => {
+  [secUsers, secApps, secArticles, secEvents].forEach(sec => {
     if (sec) sec.style.display = 'none';
   });
 
@@ -549,6 +560,7 @@ function selectAdminTab(selectedTab, selectedSection) {
 if (tabUsers) tabUsers.addEventListener('click', () => { selectAdminTab(tabUsers, secUsers); if(typeof loadAdminUsers === 'function') loadAdminUsers(); });
 if (tabApps) tabApps.addEventListener('click', () => { selectAdminTab(tabApps, secApps); if(typeof loadAdminApplications === 'function') loadAdminApplications(); });
 if (tabArticles) tabArticles.addEventListener('click', () => { selectAdminTab(tabArticles, secArticles); if(typeof loadAdminArticles === 'function') loadAdminArticles(); });
+if (tabEvents) tabEvents.addEventListener('click', () => { selectAdminTab(tabEvents, secEvents); if(typeof loadAdminEvents === 'function') loadAdminEvents(); });
 
 async function loadAdminUsers() {
   const tbody = document.getElementById('admin-users-tbody');
@@ -2583,6 +2595,327 @@ function initPlaybookVault() {
   });
 }
 
+// --- EVENTS MANAGEMENT SYSTEM --- //
+
+// Fallback event configuration if Firestore events are empty
+const fallbackEvent = {
+  id: "default-la-sports-event",
+  title: "The Golden Era of LA Sports!",
+  date: "Tuesday, August 4, 2026 • 11:00 AM - 1:00 PM",
+  location: "The LAB Inc., 15916 Crenshaw Blvd, Gardena, CA 90249",
+  overview: "Leveraging the Olympics, Super Bowl, World Cup, and more into Lasting Economic and Social Impact. SOCIETY LA: Leveraging Sports Moments into Lasting Momentum",
+  cohosts: "Profluence & Playing For Keeps Foundation",
+  ticketPrice: "Free",
+  imageUrl: "https://www.eventbrite.com/e/_next/image?url=https%3A%2F%2Fimg.evbuc.com%2Fhttps%253A%252F%252Fcdn.evbuc.com%252Fimages%252F1188637605%252F636362833813%252F1%252Foriginal.20260710-202211%3Fcrop%3Dfocalpoint%26fit%3Dcrop%26w%3D1880%26auto%3Dformat%252Ccompress%26q%3D75%26sharp%3D10%26fp-x%3D0.5%26fp-y%3D0.5%26s%3D41ef85234ac8bc4a05be6d9eaf8a4f07&w=1880&q=75",
+  description: `Los Angeles is experiencing an unprecedented era in sports.
+
+With the Olympics, FIFA World Cup, Super Bowl, NBA All-Star Weekend, and other major sporting events converging on our city, the opportunities for business leaders, entrepreneurs, athletes, creators, and community builders have never been greater.
+
+Join us for an exclusive networking event and live fireside chats featuring some of LA's most impactful leaders in Sports & Entertainment as we explore how to turn today's sports moments into lasting momentum for our businesses, careers, organizations, and communities.
+
+What to Expect:
+- High-impact networking with professionals across sports, entertainment, media, business, and entrepreneurship
+- Live fireside conversations with influential industry leaders
+- Insights on the economic, cultural, and business impact of major sporting events coming to Los Angeles
+- Actionable strategies for leveraging opportunities created by this historic sports era
+- Meaningful connections and collaboration opportunities
+
+Featured Speakers:
+- 1 on 1 Conversation: Erikk Aldridge (VP of Impact & Legacy-LA28) & Kofi Nartey (CEO-GLOBL)
+- Panel Discussion: Steven Graciano (SVP, Sports Strategy - Canvas Worldwide), Dr. Mimi Nartey (Co-Founder Nartey Sports Foundation. President - Playing For Keeps), Josh Boren (Managing Dir. Strategic Initiatives - RCLCO).
+- Moderator: Brandon Leopoldus (Leopoldus Law / Sports Lawyers Association)
+
+Agenda:
+- 11:00 AM - 11:30 AM: Arrival & Networking
+- 11:30 AM - 12:00 PM: 1 on 1 Conversation w/ Erikk Aldridge & Kofi Nartey
+- 12:00 PM - 12:30 PM: Panel Discussion w/ Steven Graciano, Dr. Mimi Nartey, and Josh Boren. Moderated by Brandon Leopoldus.
+- 12:30 PM - 1:00 PM: Networking & Wrap-up`
+};
+
+function initEventsManagement() {
+  const form = document.getElementById('admin-event-form');
+  const cancelBtn = document.getElementById('admin-event-cancel-btn');
+  
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const eventId = document.getElementById('admin-event-id').value;
+      const title = document.getElementById('admin-event-title').value.trim();
+      const date = document.getElementById('admin-event-date').value.trim();
+      const locationVal = document.getElementById('admin-event-location').value.trim();
+      const cohosts = document.getElementById('admin-event-cohosts').value.trim();
+      const price = document.getElementById('admin-event-price').value.trim() || 'Free';
+      const imageUrl = document.getElementById('admin-event-image').value.trim();
+      const overview = document.getElementById('admin-event-overview').value.trim();
+      const description = document.getElementById('admin-event-description').value.trim();
+      
+      const submitBtn = document.getElementById('admin-event-submit-btn');
+      const statusSpan = document.getElementById('admin-event-status');
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'SAVING...';
+      }
+      
+      try {
+        const eventData = {
+          title,
+          date,
+          location: locationVal,
+          cohosts,
+          ticketPrice: price,
+          imageUrl,
+          overview,
+          description,
+          createdAt: serverTimestamp()
+        };
+        
+        if (eventId) {
+          // Update event
+          const eventRef = doc(db, "events", eventId);
+          await setDoc(eventRef, eventData, { merge: true });
+        } else {
+          // Add event
+          await addDoc(collection(db, "events"), eventData);
+        }
+        
+        if (statusSpan) {
+          statusSpan.textContent = 'Event saved successfully!';
+          statusSpan.style.display = 'inline';
+          setTimeout(() => { statusSpan.style.display = 'none'; }, 4000);
+        }
+        
+        form.reset();
+        document.getElementById('admin-event-id').value = '';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        if (submitBtn) submitBtn.textContent = 'Save Event';
+        
+        loadAdminEvents();
+        loadHubEvents();
+        
+      } catch (err) {
+        console.error("Error saving event", err);
+        alert("Error saving event.");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+  
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      if (form) form.reset();
+      document.getElementById('admin-event-id').value = '';
+      cancelBtn.style.display = 'none';
+      const submitBtn = document.getElementById('admin-event-submit-btn');
+      if (submitBtn) submitBtn.textContent = 'Save Event';
+    });
+  }
+}
+
+// Load events list for members hub view
+async function loadHubEvents() {
+  const container = document.getElementById('hub-events-list');
+  if (!container) return;
+  
+  container.innerHTML = '<p style="color: #888;">Loading events...</p>';
+  
+  let events = [];
+  try {
+    const q = query(collection(db, "events"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      events.push({ id: doc.id, ...doc.data() });
+    });
+  } catch (err) {
+    console.error("Error loading hub events", err);
+  }
+  
+  if (events.length === 0) {
+    // Show fallback event
+    events = [fallbackEvent];
+  }
+  
+  container.innerHTML = '';
+  
+  events.forEach(ev => {
+    const card = document.createElement('div');
+    card.className = 'membership-card';
+    card.style.background = '#111';
+    card.style.border = '1px solid #333';
+    card.style.padding = '25px';
+    card.style.borderRadius = '8px';
+    card.style.display = 'grid';
+    card.style.gridTemplateColumns = ev.imageUrl ? '150px 1fr' : '1fr';
+    card.style.gap = '25px';
+    
+    // Parse descriptions (newlines/headings/bullets)
+    const formattedDesc = ev.description ? ev.description
+      .replace(/\n/g, '<br>')
+      .replace(/### (.*?)(<br>|$)/g, '<h4 style="color:#c8a97e; margin-top:15px; margin-bottom:5px;">$1</h4>')
+      .replace(/- (.*?)(<br>|$)/g, '<li style="margin-left:15px; color:#aaa;">$1</li>')
+      : '';
+      
+    const imagePart = ev.imageUrl ? `<div style="background-image: url('${ev.imageUrl}'); background-size:cover; background-position:center; border-radius:4px; min-height:150px;"></div>` : '';
+    
+    const cohostsText = ev.cohosts ? `<div style="font-size:0.85rem; color:#888; margin-top:5px;">Co-Hosted By: ${ev.cohosts}</div>` : '';
+    
+    card.innerHTML = `
+      ${imagePart}
+      <div style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:0.75rem; background:rgba(200, 169, 126, 0.1); color:#c8a97e; padding:3px 8px; border-radius:4px; font-weight:bold; letter-spacing:1px; border:1px solid rgba(200, 169, 126, 0.2);">SOCIETY EVENT</span>
+            <span style="font-size:0.75rem; color:#10b981; font-weight:bold;">${ev.ticketPrice || 'Free'}</span>
+          </div>
+          <h3 style="color:#fff; font-family:var(--font-serif); font-size:1.6rem; margin-top:0; margin-bottom:10px;">${ev.title}</h3>
+          <div style="font-size:0.9rem; color:#888; display:flex; flex-direction:column; gap:4px; margin-bottom:15px;">
+            <div>🕒 ${ev.date}</div>
+            <div>📍 ${ev.location}</div>
+            ${cohostsText}
+          </div>
+          <p style="color:#eee; line-height:1.6; margin-bottom:15px;">${ev.overview}</p>
+          
+          <button class="event-details-toggle" data-id="hub-${ev.id}" style="background:transparent; border:none; color:#c8a97e; font-weight:600; cursor:pointer; padding:0; display:inline-flex; align-items:center; gap:5px; font-size:0.9rem; transition:all 0.3s;">
+            <span>View Full Details & Schedule</span> <span class="arrow-hub-${ev.id}">▼</span>
+          </button>
+          
+          <div id="details-hub-${ev.id}" style="display:none; margin-top:15px; padding-top:15px; border-top:1px solid #333; font-size:0.9rem; color:#ccc; line-height:1.6;">
+            ${formattedDesc}
+          </div>
+        </div>
+        
+        <div style="margin-top:20px; display:flex; gap:15px;">
+          <a href="events.html" target="_blank" class="btn" style="background:#c8a97e; color:black; font-weight:bold; padding:10px 20px; border-radius:4px; border:none; text-align:center; font-size:0.9rem; text-decoration:none; cursor:pointer;">RSVP / Get Ticket</a>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(card);
+    
+    // Toggle expand/collapse listener
+    const toggleBtn = card.querySelector('.event-details-toggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const detailsDiv = document.getElementById(`details-hub-${ev.id}`);
+        const arrow = card.querySelector(`.arrow-hub-${ev.id}`);
+        if (detailsDiv.style.display === 'block') {
+          detailsDiv.style.display = 'none';
+          arrow.textContent = '▼';
+        } else {
+          detailsDiv.style.display = 'block';
+          arrow.textContent = '▲';
+        }
+      });
+    }
+  });
+}
+
+// Load events list for admin panel
+async function loadAdminEvents() {
+  const tbody = document.getElementById('admin-events-tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Loading events...</td></tr>';
+  
+  let events = [];
+  try {
+    const q = query(collection(db, "events"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      events.push({ id: doc.id, ...doc.data() });
+    });
+  } catch (err) {
+    console.error("Error loading admin events", err);
+  }
+  
+  // SEED CHECK: If events collection is empty and user is logged in, seed the default event!
+  if (events.length === 0 && isAdmin) {
+    try {
+      const defaultEvent = {
+        title: fallbackEvent.title,
+        date: fallbackEvent.date,
+        location: fallbackEvent.location,
+        overview: fallbackEvent.overview,
+        cohosts: fallbackEvent.cohosts,
+        ticketPrice: fallbackEvent.ticketPrice,
+        imageUrl: fallbackEvent.imageUrl,
+        description: fallbackEvent.description,
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db, "events"), defaultEvent);
+      // Reload immediately
+      setTimeout(loadAdminEvents, 500);
+      return;
+    } catch (seedErr) {
+      console.error("Database seeding failed", seedErr);
+    }
+  }
+  
+  if (events.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">No events found in database.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  
+  events.forEach(ev => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid #222';
+    
+    tr.innerHTML = `
+      <td style="padding:15px; color:#eee;">${ev.date}</td>
+      <td style="padding:15px; color:#fff; font-weight:bold;">${ev.title}</td>
+      <td style="padding:15px; color:#aaa;">${ev.location}</td>
+      <td style="padding:15px;">
+        <button class="admin-edit-event-btn" data-id="${ev.id}" style="background:#c8a97e; color:black; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:8px;">Edit</button>
+        <button class="admin-delete-event-btn" data-id="${ev.id}" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">Delete</button>
+      </td>
+    `;
+    
+    tbody.appendChild(tr);
+    
+    // Wire up edit button click
+    tr.querySelector('.admin-edit-event-btn').addEventListener('click', () => {
+      document.getElementById('admin-event-id').value = ev.id;
+      document.getElementById('admin-event-title').value = ev.title || '';
+      document.getElementById('admin-event-date').value = ev.date || '';
+      document.getElementById('admin-event-location').value = ev.location || '';
+      document.getElementById('admin-event-cohosts').value = ev.cohosts || '';
+      document.getElementById('admin-event-price').value = ev.ticketPrice || 'Free';
+      document.getElementById('admin-event-image').value = ev.imageUrl || '';
+      document.getElementById('admin-event-overview').value = ev.overview || '';
+      document.getElementById('admin-event-description').value = ev.description || '';
+      
+      const cancelBtn = document.getElementById('admin-event-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      const submitBtn = document.getElementById('admin-event-submit-btn');
+      if (submitBtn) submitBtn.textContent = 'Update Event';
+      
+      document.getElementById('admin-event-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    
+    // Wire up delete button click
+    tr.querySelector('.admin-delete-event-btn').addEventListener('click', async () => {
+      if (confirm(`Are you sure you want to permanently delete the event "${ev.title}"?`)) {
+        try {
+          await deleteDoc(doc(db, "events", ev.id));
+          loadAdminEvents();
+          loadHubEvents();
+        } catch (deleteErr) {
+          console.error("Error deleting event", deleteErr);
+          alert("Error deleting event.");
+        }
+      }
+    });
+  });
+}
+
+window.loadAdminEvents = loadAdminEvents;
+window.loadHubEvents = loadHubEvents;
+
 // Run initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -2592,6 +2925,7 @@ if (document.readyState === 'loading') {
     initOpportunities();
     initPromptLibrary();
     initPlaybookVault();
+    initEventsManagement();
   });
 } else {
   initLearningTracks();
@@ -2600,4 +2934,5 @@ if (document.readyState === 'loading') {
   initOpportunities();
   initPromptLibrary();
   initPlaybookVault();
+  initEventsManagement();
 }

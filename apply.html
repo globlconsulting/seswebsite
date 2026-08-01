@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Apply for Membership and Vetting — The Sports & Entertainment Society. Home of the Certified Sports & Entertainment Professional (CSEP) designation.">
+  <title>Apply for Membership | The Sports & Entertainment Society</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+  <style>
+    .apply-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2.2rem;
+      align-items: stretch;
+    }
+    .apply-card {
+      grid-column: span 2;
+    }
+    /* For centering the last two cards on the second row */
+    .apply-card.bottom-row-1 {
+      grid-column: 2 / span 2;
+    }
+    .apply-card.bottom-row-2 {
+      grid-column: 4 / span 2;
+    }
+
+    @media (max-width: 1024px) {
+      .apply-grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        margin: 0 auto;
+        gap: 3rem;
+      }
+      .apply-card, .apply-card.bottom-row-1, .apply-card.bottom-row-2 {
+        grid-column: span 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AMBIENT PARTICLE BACKGROUND -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- HEADER & NAVIGATION -->
+  <header>
+    <div class="container nav-container">
+      <a href="index.html" class="logo-link" id="nav-logo-link">
+        <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img" style="height:44px;max-height:44px;width:auto;display:block;">
+      </a>
+      
+      <div class="nav-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <nav id="nav-menu">
+        <ul>
+          <li><a href="index.html" id="nav-home">Home</a></li>
+          <li><a href="book.html" id="nav-book">The Book</a></li>
+          <li><a href="csep.html" id="nav-csep">CSEP Certification</a></li>
+          <li><a href="blog.html" id="nav-blog">Blog/Media</a></li>
+          <li><a href="events.html" id="nav-events">Events</a></li>
+          <li><a href="members.html" id="nav-members">Members</a></li>
+          <li><a href="login.html" style="color: var(--color-gold); font-weight: 700; letter-spacing: 0.1em; font-size: 0.75rem;">MEMBER LOGIN</a></li>
+          <li class="header-cta"><a href="apply.html" class="btn btn-outline-gold active" id="nav-apply-btn">Apply Now</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero" style="padding-top: 150px; padding-bottom: 60px; text-align: center;">
+    <div class="container">
+      <span class="hero-tag">SES MEMBERSHIP & CERTIFICATION</span>
+      <h1 class="page-title" style="font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; margin-bottom: 1.5rem; margin-top: 1rem; font-family: var(--font-serif);">Apply Now</h1>
+      <p style="font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.8;">
+        Select the membership option that matches your professional status below, or register as a CSEP Candidate.
+      </p>
+    </div>
+  </section>
+
+  <!-- MEMBERSHIP TIERS SECTION -->
+  <section class="membership-section" id="membership-options" style="padding-bottom: 5rem; position: relative; z-index: 2;">
+    <div class="container">
+      <div class="apply-grid">
+        <!-- Card 1: General Membership -->
+        <div class="membership-card card-general apply-card reveal" id="membership-card-general">
+          <div class="card-badge">GENERAL</div>
+          <h3 class="card-title" style="font-family: var(--font-serif);">General Membership</h3>
+          <div class="card-description" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            <p style="margin-bottom: 1.5rem;">General Membership is designed for anyone who wants to stay connected to the pulse of the sports and entertainment industry.</p>
+            <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem;">
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> Signs up to receive the newsletter
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> Invitations to select Zoom trainings
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> General updates and resources
+              </li>
+            </ul>
+            <span style="display: block; font-size: 1.6rem; font-weight: 800; color: #fff; text-align: center; margin-top: auto;">FREE</span>
+          </div>
+          <a href="members.html?tier=general" class="btn btn-blue" id="membership-btn-general" style="width: 100%; text-align: center;">SIGN UP NOW</a>
+        </div>
+
+        <!-- Card 2: Sellebrity (CSEP) -->
+        <div class="membership-card card-general apply-card reveal" id="membership-card-sellebrity">
+          <div class="card-badge">CSEP CERTIFIED</div>
+          <h3 class="card-title" style="font-family: var(--font-serif);">Sellebrity (CSEP)</h3>
+          <div class="card-description" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            <p style="margin-bottom: 1.5rem;">For specialists who have completed their CSEP Certification and want verified network visibility.</p>
+            <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem;">
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> Completed the CSEP Certification
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> Professional photo on website
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-mid);">✦</span> No external links on profile
+              </li>
+            </ul>
+            <span style="display: block; font-size: 1.4rem; font-weight: 800; color: #fff; text-align: center; margin-top: auto; line-height: 1.2;">
+              $47 / month<br>
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 400;">or $497/yr upfront</span>
+            </span>
+          </div>
+          <a href="members.html?tier=sellebrity" class="btn btn-blue" id="membership-btn-sellebrity" style="width: 100%; text-align: center;">APPLY NOW</a>
+        </div>
+
+        <!-- Card 3: Sellebrity Guild -->
+        <div class="membership-card card-professional apply-card reveal" id="membership-card-guild" style="transform: none;">
+          <div class="card-badge" style="color: var(--color-gold-end); border-color: rgba(191, 161, 95, 0.3); background: rgba(191, 161, 95, 0.08);">CSEP GUILD</div>
+          <h3 class="card-title" style="font-family: var(--font-serif); color: var(--text-dark); border-bottom-color: rgba(15, 23, 42, 0.08);">Sellebrity Guild</h3>
+          <div class="card-description" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; color: #334155;">
+            <p style="margin-bottom: 1.5rem; font-weight: 500;">For experienced specialists holding the CSEP designation with established industry tenure.</p>
+            <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem;">
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-end);">✦</span> Completed the CSEP Certification
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-end);">✦</span> 3+ Years servicing S&E clients
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-end);">✦</span> Contact links on public profile
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-gold-end);">✦</span> 1 annual member spotlight
+              </li>
+            </ul>
+            <span style="display: block; font-size: 1.4rem; font-weight: 800; color: var(--text-dark); text-align: center; margin-top: auto; line-height: 1.2;">
+              $97 / month<br>
+              <span style="font-size: 0.85rem; color: #475569; font-weight: 400;">or $997/year upfront</span>
+            </span>
+          </div>
+          <a href="members.html?tier=guild" class="btn btn-dark-navy" id="membership-btn-guild" style="width: 100%; text-align: center;">APPLY NOW</a>
+        </div>
+
+        <!-- Card 4: Sellebrity Council -->
+        <div class="membership-card card-vendors apply-card bottom-row-1 reveal" id="membership-card-council">
+          <div class="card-badge">COUNCIL</div>
+          <h3 class="card-title" style="font-family: var(--font-serif);">Sellebrity Council</h3>
+          <div class="card-description" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            <p style="margin-bottom: 1.5rem;">For established industry veterans seeking strategic peer collaboration and priority referrals.</p>
+            <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem;">
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> Established S&E Industry Veteran
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> CSEP certification optional
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> Contact links on public profile
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> 1st year free of charge
+              </li>
+            </ul>
+            <span style="display: block; font-size: 1.4rem; font-weight: 800; color: #fff; text-align: center; margin-top: auto; line-height: 1.2;">
+              $97 / month<br>
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 400;">or $997/year upfront</span>
+            </span>
+          </div>
+          <a href="members.html?tier=council" class="btn btn-primary" id="membership-btn-council" style="width: 100%; text-align: center; background: var(--color-orange);">APPLY NOW</a>
+        </div>
+
+        <!-- Card 5: Featured Vendor -->
+        <div class="membership-card card-vendors apply-card bottom-row-2 reveal" id="membership-card-vendor">
+          <div class="card-badge">PARTNER</div>
+          <h3 class="card-title" style="font-family: var(--font-serif);">Featured Vendor</h3>
+          <div class="card-description" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            <p style="margin-bottom: 1.5rem;">For companies looking to offer elite services and achieve premium visibility within our member network.</p>
+            <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem;">
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> Features on Featured Vendor Page w/link
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> 1 General Membership Included
+              </li>
+              <li style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-orange);">✦</span> 1 Newsletter feature
+              </li>
+            </ul>
+            <span style="display: block; font-size: 1.6rem; font-weight: 800; color: #fff; text-align: center; margin-top: auto;">$497 / month</span>
+          </div>
+          <a href="members.html?tier=vendor" class="btn btn-primary" id="membership-btn-vendor" style="width: 100%; text-align: center;">APPLY NOW</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEPARATE SECTION FOR CSEP -->
+  <section class="application-section" id="csep-section" style="padding-top: 4rem; padding-bottom: 8rem; border-top: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 2;">
+    <div class="container">
+      <div class="application-container reveal" style="max-width: 800px; margin: 0 auto; background: var(--bg-panel); border: var(--border-glass); padding: 3.5rem 3rem; border-radius: 4px;">
+        <div class="application-header" style="text-align: center; margin-bottom: 3.5rem;">
+          <span class="section-tag" style="color: var(--color-gold-start); letter-spacing: 0.15em; font-weight: 700; font-size: 0.85rem;">CSEP PROGRAM</span>
+          <h2 style="font-family: var(--font-serif); font-size: 2.2rem; color: #fff; margin-top: 0.5rem; margin-bottom: 1rem;">Candidate Registration Form</h2>
+          <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 1rem;">Submit your details to start the vetting process. Our registrar will review your application.</p>
+        </div>
+
+        <div class="form-notification" id="form-notification" style="display: none;"></div>
+
+        <form class="premium-form" id="csep-application" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div class="form-group" id="group-first-name">
+            <label for="first-name">First Name *</label>
+            <input type="text" id="first-name" required placeholder="John">
+          </div>
+          <div class="form-group" id="group-last-name">
+            <label for="last-name">Last Name *</label>
+            <input type="text" id="last-name" required placeholder="Doe">
+          </div>
+          <div class="form-group" id="group-email">
+            <label for="email">Professional Email *</label>
+            <input type="email" id="email" required placeholder="john.doe@firm.com">
+          </div>
+          <div class="form-group" id="group-industry">
+            <label for="industry">Industry Specialization *</label>
+            <select id="industry" required>
+              <option value="" disabled selected>Select your industry</option>
+              <option value="wealth">Wealth Management / Financial Advisory</option>
+              <option value="law">Law / Intellectual Property / Family Law</option>
+              <option value="realestate">Luxury Real Estate / Property Management</option>
+              <option value="business">Business Management / Corporate Advisory</option>
+              <option value="health">Health & Wellness / Performance Training</option>
+              <option value="representation">Talent Representation / PR / Agency</option>
+              <option value="brands">Luxury Brands / Private Travel / Concierge</option>
+            </select>
+          </div>
+          <div class="form-group" id="group-experience">
+            <label for="experience">Years Servicing High-Profile Clients *</label>
+            <select id="experience" required>
+              <option value="" disabled selected>Select years of experience</option>
+              <option value="1-3">1 to 3 Years</option>
+              <option value="3-5">3 to 5 Years</option>
+              <option value="5-10">5 to 10 Years</option>
+              <option value="10+">10+ Years</option>
+            </select>
+          </div>
+          <div class="form-group" id="group-experience-detail">
+            <label for="experience-detail">Tell us about your background / client focus</label>
+            <textarea id="experience-detail" rows="4" placeholder="Briefly describe your experience advising athletes, entertainers, or luxury market sectors..."></textarea>
+          </div>
+          <div class="form-group full-width form-checkbox" id="group-consent" style="grid-column: span 2; display: flex; align-items: flex-start; gap: 1rem; margin-top: 1rem;">
+            <input type="checkbox" id="consent" required style="width: auto; margin-top: 0.2rem; cursor: pointer;">
+            <label for="consent" style="text-transform: none; font-weight: 400; color: var(--text-muted); font-size: 0.85rem; cursor: pointer;">
+              I certify that I am active in my industry and agree to submit to the background check, credential verification, and Sellebrity Council code of discretion. *
+            </label>
+          </div>
+          <div class="form-group full-width form-checkbox" id="group-newsletter" style="grid-column: span 2; display: flex; align-items: flex-start; gap: 1rem; margin-top: 0.5rem;">
+            <input type="checkbox" id="csep-newsletter" name="subscribe-newsletter" checked style="width: auto; margin-top: 0.2rem; cursor: pointer;">
+            <label for="csep-newsletter" style="text-transform: none; font-weight: 400; color: var(--text-muted); font-size: 0.85rem; cursor: pointer;">
+              Subscribe to the Vetted Insights newsletter for sports and entertainment specialists.
+            </label>
+          </div>
+          <div class="form-submit-container" style="grid-column: span 2; text-align: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary" id="submit-application-btn">SUBMIT CSEP APPLICATION</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-info">
+          <a href="index.html" class="logo-link">
+            <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img logo-img-footer" style="height:60px;max-height:60px;width:auto;display:block;">
+          </a>
+          <p>
+            The benchmark credentialing organization and elite referral network for professionals servicing high-profile public figures.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="footer-social-icon" aria-label="LinkedIn" id="footer-social-li">LN</a>
+            <a href="#" class="footer-social-icon" aria-label="Instagram" id="footer-social-ig">IG</a>
+            <a href="#" class="footer-social-icon" aria-label="Twitter/X" id="footer-social-tw">X</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html" id="footer-nav-home">Home</a></li>
+            <li><a href="book.html" id="footer-nav-book">The Book</a></li>
+            <li><a href="csep.html" id="footer-nav-csep">CSEP Certification</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" id="footer-res-directory">Members Directory</a></li>
+            <li><a href="#" id="footer-res-news">Newsletter Archive</a></li>
+            <li><a href="#" id="footer-res-terms">Terms of Service</a></li>
+            <li><a href="#" id="footer-res-privacy">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-col footer-newsletter">
+          <h4>Vetted Insights</h4>
+          <p>Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
+          <form class="newsletter-form" id="footer-newsletter-form">
+            <input type="email" placeholder="Your professional email" aria-label="Email for newsletter" required id="newsletter-email">
+            <button type="submit" class="newsletter-submit" aria-label="Subscribe" id="newsletter-submit-btn">→</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 The Sports & Entertainment Society. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" id="footer-bottom-link-terms">Terms</a>
+          <a href="#" id="footer-bottom-link-privacy">Privacy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+  <script type="module" src="csep.js"></script>
+</body>
+</html>

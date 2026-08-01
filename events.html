@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Society Events — The Sports & Entertainment Society. Live networking, fireside chats, and legacy-building discussions.">
+  <title>Society Events | The Sports & Entertainment Society</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+  <style>
+    .events-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .event-card {
+      background: var(--bg-panel);
+      border: var(--border-glass);
+      border-radius: 4px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.2fr 2fr;
+      transition: var(--transition-smooth);
+    }
+    @media (max-width: 768px) {
+      .event-card {
+        grid-template-columns: 1fr;
+      }
+    }
+    .event-image-container {
+      position: relative;
+      min-height: 250px;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    .event-content {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .event-tag-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .event-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.6rem;
+      border-radius: 2px;
+    }
+    .badge-date {
+      background: rgba(191, 161, 95, 0.1);
+      color: var(--color-gold-mid);
+      border: 1px solid rgba(191, 161, 95, 0.2);
+    }
+    .badge-price {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .event-title {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .event-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .event-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .event-meta-item span.icon {
+      color: var(--color-gold-mid);
+    }
+    .event-overview {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      color: var(--text-light);
+    }
+    .event-details-toggle {
+      background: transparent;
+      border: none;
+      color: var(--color-gold-mid);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.95rem;
+      transition: var(--transition-smooth);
+    }
+    .event-details-toggle:hover {
+      color: #fff;
+    }
+    .event-full-details {
+      display: none;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .event-full-details h3, .event-full-details h4 {
+      color: #fff;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .event-full-details h3:first-of-type {
+      margin-top: 0;
+    }
+    .event-full-details ul {
+      padding-left: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .event-full-details li {
+      margin-bottom: 0.4rem;
+    }
+    
+    /* Modal styles */
+    .rsvp-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .rsvp-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    .rsvp-modal-content {
+      background: var(--bg-panel);
+      border: var(--border-glass);
+      padding: 3rem;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+    }
+    .rsvp-modal.active .rsvp-modal-content {
+      transform: translateY(0);
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .modal-close-btn:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AMBIENT PARTICLE BACKGROUND -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- HEADER & NAVIGATION -->
+  <header>
+    <div class="container nav-container">
+      <a href="index.html" class="logo-link" id="nav-logo-link">
+        <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img" style="height:44px;max-height:44px;width:auto;display:block;">
+      </a>
+      
+      <div class="nav-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <nav id="nav-menu">
+        <ul>
+          <li><a href="index.html" id="nav-home">Home</a></li>
+          <li><a href="book.html" id="nav-book">The Book</a></li>
+          <li><a href="csep.html" id="nav-csep">CSEP Certification</a></li>
+          <li><a href="blog.html" id="nav-blog">Blog/Media</a></li>
+          <li><a href="events.html" class="active" id="nav-events">Events</a></li>
+          <li><a href="members.html" id="nav-members">Members</a></li>
+          <li><a href="login.html" style="color: var(--color-gold); font-weight: 700; letter-spacing: 0.1em; font-size: 0.75rem;">MEMBER LOGIN</a></li>
+          <li class="header-cta"><a href="apply.html" class="btn btn-outline-gold" id="nav-apply-btn">Apply Now</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero" style="padding-top: 150px; padding-bottom: 60px; text-align: center;">
+    <div class="container">
+      <span class="hero-tag">EXCLUSIVE HAPPENINGS</span>
+      <h1 class="page-title" style="font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; margin-bottom: 1.5rem; margin-top: 1rem; font-family: var(--font-serif);">Society Events</h1>
+      <p style="font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.8;">
+        Live fireside conversations, elite networking, and strategic discussions. Secure your spot at our upcoming events.
+      </p>
+    </div>
+  </section>
+
+  <!-- EVENTS LIST SECTION -->
+  <section class="events-section" style="padding-bottom: 8rem; position: relative; z-index: 2;">
+    <div class="container">
+      <div class="events-grid" id="events-list-container">
+        <p style="text-align: center; color: var(--text-muted);">Loading events...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RSVP MODAL -->
+  <div class="rsvp-modal" id="rsvp-modal-overlay">
+    <div class="rsvp-modal-content">
+      <button class="modal-close-btn" id="rsvp-modal-close" aria-label="Close modal">&times;</button>
+      <h3 style="font-family: var(--font-serif); font-size: 1.8rem; color: #fff; margin-bottom: 0.5rem;" id="modal-event-title">Event RSVP</h3>
+      <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Please submit your details to secure your complimentary ticket.</p>
+      
+      <div class="form-notification" id="rsvp-notification" style="display: none;"></div>
+
+      <form class="premium-form" id="rsvp-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <input type="hidden" id="rsvp-event-id">
+        <input type="hidden" id="rsvp-event-name">
+        <div class="form-group">
+          <label for="rsvp-name">Full Name *</label>
+          <input type="text" id="rsvp-name" required placeholder="John Doe" style="width: 100%;">
+        </div>
+        <div class="form-group">
+          <label for="rsvp-email">Professional Email *</label>
+          <input type="email" id="rsvp-email" required placeholder="john.doe@company.com" style="width: 100%;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">CONFIRM MY RSVP</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-info">
+          <a href="index.html" class="logo-link">
+            <img src="https://firebasestorage.googleapis.com/v0/b/studio-6578078567-d586b.firebasestorage.app/o/ses%20logo%20transparent.png?alt=media&token=a7a9f43f-8313-4940-94d5-614aab6d0703" alt="SES Logo" class="logo-img logo-img-footer" style="height:60px;max-height:60px;width:auto;display:block;">
+          </a>
+          <p>
+            The benchmark credentialing organization and elite referral network for professionals servicing high-profile public figures.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="footer-social-icon" aria-label="LinkedIn" id="footer-social-li">LN</a>
+            <a href="#" class="footer-social-icon" aria-label="Instagram" id="footer-social-ig">IG</a>
+            <a href="#" class="footer-social-icon" aria-label="Twitter/X" id="footer-social-tw">X</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html" id="footer-nav-home">Home</a></li>
+            <li><a href="book.html" id="footer-nav-book">The Book</a></li>
+            <li><a href="csep.html" id="footer-nav-csep">CSEP Certification</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" id="footer-res-directory">Members Directory</a></li>
+            <li><a href="#" id="footer-res-news">Newsletter Archive</a></li>
+            <li><a href="#" id="footer-res-terms">Terms of Service</a></li>
+            <li><a href="#" id="footer-res-privacy">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-col footer-newsletter">
+          <h4>Vetted Insights</h4>
+          <p>Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
+          <form class="newsletter-form" id="footer-newsletter-form">
+            <input type="email" placeholder="Your professional email" aria-label="Email for newsletter" required id="newsletter-email">
+            <button type="submit" class="newsletter-submit" aria-label="Subscribe" id="newsletter-submit-btn">→</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 The Sports & Entertainment Society. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" id="footer-bottom-link-terms">Terms</a>
+          <a href="#" id="footer-bottom-link-privacy">Privacy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+  <script type="module" src="events.js"></script>
+</body>
+</html>

@@ -58,6 +58,20 @@ service cloud.firestore {
       allow write, list: if isAdmin();
     }
 
+    match /events/{eventId} {
+      // Anyone can read events
+      allow read: if true;
+      // Only admins can add, update, or delete events
+      allow write: if isAdmin();
+    }
+
+    match /rsvps/{rsvpId} {
+      // Anyone can submit an RSVP
+      allow create: if true;
+      // Only admins can read or manage RSVPs
+      allow read, write: if isAdmin();
+    }
+
     match /opportunities/{oppId} {
       // Authenticated members can read or create opportunities
       allow read, list, create: if isAuthenticated();

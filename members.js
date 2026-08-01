@@ -1,9 +1,20 @@
-import { db } from './firebase.js';
+import { db, storage } from './firebase.js';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const membershipForm = document.getElementById('membership-application');
   if (membershipForm) {
+    // Auto-select tier from URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const tierParam = urlParams.get('tier');
+    if (tierParam) {
+      const targetRadio = membershipForm.querySelector(`input[name="tier"][value="${tierParam}"]`);
+      if (targetRadio) {
+        targetRadio.checked = true;
+      }
+    }
+
     // Create a notification element for the membership form if it doesn't exist
     let memNotification = document.getElementById('mem-form-notification');
     if (!memNotification) {
@@ -55,7 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        // 1. Save application doc to Firestore collection "applications"
+        // 1. Upload Headshot Image to Firebase Storage if selected
+        let headshotUrl = '';
+        const headshotInput = document.getElementById('headshot-upload');
+        if (headshotInput && headshotInput.files && headshotInput.files[0]) {
+          const file = headshotInput.files[0];
+          const storageRef = ref(storage, `headshots/${Date.now()}_${file.name}`);
+          if (submitBtn) {
+            submitBtn.textContent = 'UPLOADING PHOTO...';
+          }
+          const uploadSnapshot = await uploadBytes(storageRef, file);
+          headshotUrl = await getDownloadURL(uploadSnapshot.ref);
+        }
+
+        // 2. Save application doc to Firestore collection "applications"
         const appData = {
           email: email.toLowerCase(),
           fullName: fullName,
@@ -67,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
           industries: industries,
           clientele: clientele,
           experience: experience,
+          headshotUrl: headshotUrl,
           status: 'pending',
           createdAt: serverTimestamp()
         };
