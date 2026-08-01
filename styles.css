@@ -417,6 +417,10 @@ nav ul li a:hover::after, nav ul li a.active::after {
 
 .header-cta {
   display: inline-block;
+  white-space: nowrap;
+}
+.header-cta a {
+  white-space: nowrap;
 }
 
 /* MOBILE NAV TOGGLE */

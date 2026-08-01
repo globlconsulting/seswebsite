@@ -33,6 +33,9 @@
     /* Section visibility */
     .hub-section { display: none; }
     .hub-section.active { display: block; animation: fadeIn 0.4s ease; }
+    
+    /* Tooltip hover style */
+    .tooltip:hover .tooltiptext { visibility: visible !important; opacity: 1 !important; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
     /* Scrolling Updates */
@@ -135,11 +138,11 @@
     </div>
     <ul class="nav-list">
       <li class="nav-item active" data-target="connect">Connect</li>
-      <li class="nav-item" data-target="learn">Learn</li>
+      <li class="nav-item" data-target="learn">Learning Hub</li>
       <li class="nav-item" data-target="tools">Vault & Tools</li>
       <li class="nav-item" data-target="opportunities">Opportunities</li>
       <li class="nav-item" data-target="performance">Performance</li>
-      <li class="nav-item" data-target="intelligence">Intelligence Center</li>
+      <li class="nav-item" data-target="intelligence">Daily Intelligence</li>
       <li class="nav-item" data-target="events">Events</li>
       <li class="nav-item" data-target="write-article" id="nav-write-article" style="display:none; color: var(--color-gold);">Write Article</li>
       <li class="nav-item" data-target="profile" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">My Profile</li>
@@ -310,7 +313,7 @@
       <!-- 2. LEARN -->
       <section id="learn" class="hub-section">
         <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Education Center</h2>
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Learning Hub</h2>
           <p style="margin: 0; color: #888;">Masterclasses, keynotes, and workshops to move you from foundation to mastery.</p>
         </div>
         
@@ -471,7 +474,7 @@
       <!-- 6. INTELLIGENCE -->
       <section id="intelligence" class="hub-section">
         <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Intelligence Center</h2>
+          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Daily Intelligence</h2>
           <p style="margin: 0; color: #888;">"Here's what happened this week that could make you smarter, wealthier, or better connected."</p>
         </div>
 
@@ -518,7 +521,7 @@
     <section id="write-article" class="hub-section content-area" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; background: #050505;">
       <div style="margin-bottom: 30px;">
         <h2 style="margin: 0; margin-bottom: 5px; font-family: var(--font-serif); font-size: 2rem;">Write an Authority Article</h2>
-        <p style="margin: 0; color: #888;">Share your expertise with the Society. Submissions are reviewed by Admins before publishing to the Intelligence Center.</p>
+        <p style="margin: 0; color: #888;">Share your expertise with the Society. Submissions are reviewed by Admins before publishing to Daily Intelligence.</p>
       </div>
       
       <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
@@ -687,7 +690,18 @@
           </div>
 
           <div class="form-group" style="display:flex; flex-direction:column; gap:8px;">
-            <label style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase;">Image URL (optional)</label>
+            <label style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px;">
+              Image URL (optional)
+              <span class="tooltip" style="position:relative; cursor:help; background:#333; color:#fff; width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold; text-transform:none;">?
+                <span class="tooltiptext" style="visibility:hidden; width:260px; background-color:#16161a; color:#fff; text-align:left; border:1px solid #444; border-radius:4px; padding:12px; position:absolute; z-index:100; bottom:125%; left:50%; margin-left:-130px; opacity:0; transition:opacity 0.3s; font-size:0.75rem; text-transform:none; font-family:sans-serif; line-height:1.4; font-weight:normal; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+                  How to get the image URL:<br>
+                  1. Go to the Eventbrite page for the event.<br>
+                  2. Hover over the main event banner image.<br>
+                  3. Right-click and choose "Copy image address".<br>
+                  4. Paste the URL into this field.
+                </span>
+              </span>
+            </label>
             <input type="url" id="admin-event-image" placeholder="https://..." style="padding:10px; background:#050505; border:1px solid #333; color:#fff; border-radius:4px;">
           </div>
 

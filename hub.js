@@ -142,11 +142,11 @@ const sectionTitle = document.getElementById('section-title');
 
 const titles = {
   'connect': 'CONNECT: Member Directory',
-  'learn': 'LEARN: Education Center',
+  'learn': 'LEARNING HUB: Education Center',
   'tools': 'VAULT: Playbooks & Tools',
   'opportunities': 'OPPORTUNITIES: The Marketplace',
   'performance': 'PERFORMANCE: Benchmark Performance',
-  'intelligence': 'INTELLIGENCE: Weekly Insights',
+  'intelligence': 'DAILY INTELLIGENCE: Weekly Insights',
   'events': 'EVENTS: Society Happenings',
   'profile': 'MY PROFILE: Settings',
   'write-article': 'WRITE AUTHORITY ARTICLE',
