@@ -31,39 +31,65 @@ onAuthStateChanged(auth, async (user) => {
       if (!docSnap.exists()) {
         const userEmail = (user.email || '').trim().toLowerCase();
         let tier = 'general';
+        let name = user.displayName || 'New Member';
+        let company = '';
+        let title = '';
+        let industry = '';
+        let headshotUrl = '';
+        let contactPhone = '';
+        let contactEmail = userEmail;
         
         try {
           const approvedRef = doc(db, "approved_emails", userEmail);
           const approvedSnap = await getDoc(approvedRef);
           if (approvedSnap.exists()) {
             tier = approvedSnap.data().membershipTier || 'general';
-            // Mark email as registered
-            await setDoc(approvedRef, {
-              registered: true,
-              registeredAt: serverTimestamp()
-            }, { merge: true });
-
-            // Also update the application status to 'registered'
-            try {
-              const appsRef = collection(db, "applications");
-              const appQ = query(appsRef, where("email", "==", userEmail));
-              const appQSnap = await getDocs(appQ);
-              appQSnap.forEach(async (appDoc) => {
-                await setDoc(appDoc.ref, { status: 'registered' }, { merge: true });
-              });
-            } catch(appUpdateErr) {
-              console.error("Error updating application status on signup:", appUpdateErr);
-            }
+            name = approvedSnap.data().name || name;
           }
+
+          // Fallback/enrichment from the applications document
+          const appsRef = collection(db, "applications");
+          const appQ = query(appsRef, where("email", "==", userEmail));
+          const appQSnap = await getDocs(appQ);
+          appQSnap.forEach((appDoc) => {
+            const appData = appDoc.data();
+            if (appData.fullName) name = appData.fullName;
+            if (appData.company) company = appData.company;
+            if (appData.title) title = appData.title;
+            if (appData.industries && appData.industries.length > 0) {
+              industry = appData.industries.join(', ');
+            }
+            if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
+            if (appData.phone) contactPhone = appData.phone;
+          });
+
+          // Mark email as registered
+          await setDoc(approvedRef, {
+            registered: true,
+            registeredAt: serverTimestamp()
+          }, { merge: true });
+
+          // Also update the application status to 'registered'
+          appQSnap.forEach(async (appDoc) => {
+            await setDoc(appDoc.ref, { status: 'registered' }, { merge: true });
+          });
+
         } catch(approvedErr) {
           console.error("Error reading approved email tier:", approvedErr);
         }
 
         const isDefaultAdmin = (user.email === 'admin@ses.com');
         await setDoc(userRef, {
+          name: name,
           email: user.email,
           membershipTier: tier,
-          isAdmin: isDefaultAdmin
+          isAdmin: isDefaultAdmin,
+          company: company,
+          title: title,
+          industry: industry,
+          photoUrl: headshotUrl,
+          contactPhone: contactPhone,
+          contactEmail: contactEmail
         });
         userTier = tier;
         isAdmin = isDefaultAdmin;
@@ -121,6 +147,13 @@ onAuthStateChanged(auth, async (user) => {
       if(restrict) restrict.style.display = 'block';
     }
 
+    // Restore last active page tab
+    const activeTabId = localStorage.getItem('ses_active_tab') || 'connect';
+    const targetTab = document.querySelector(`.nav-item[data-target="${activeTabId}"]`);
+    if (targetTab) {
+      targetTab.click();
+    }
+
   } else {
     window.location.replace('login.html');
   }
@@ -162,6 +195,7 @@ navItems.forEach(item => {
 
     // Get the target section ID
     const targetId = item.getAttribute('data-target');
+    localStorage.setItem('ses_active_tab', targetId);
 
     // Hide all sections
     sections.forEach(sec => sec.classList.remove('active'));
@@ -174,6 +208,17 @@ navItems.forEach(item => {
     // Load events if events section is clicked
     if (targetId === 'events') {
       if (typeof loadHubEvents === 'function') loadHubEvents();
+    }
+
+    // Auto-restore active admin sub-tab if admin panel is loaded
+    if (targetId === 'admin-panel') {
+      const activeAdminTabId = localStorage.getItem('ses_active_admin_tab') || 'tab-manage-users';
+      const targetAdminTab = document.getElementById(activeAdminTabId);
+      if (targetAdminTab) {
+        targetAdminTab.click();
+      } else if (tabUsers) {
+        tabUsers.click();
+      }
     }
   });
 });
@@ -345,10 +390,23 @@ function renderMembers(members) {
       }
     }
 
+    const photoImg = m.photoUrl ? `
+      <div style="width: 50px; height: 50px; border-radius: 50%; background-image: url('${escapeHTML(m.photoUrl)}'); background-size: cover; background-position: center; border: 2px solid #c8a97e; flex-shrink: 0;"></div>
+    ` : `
+      <div style="width: 50px; height: 50px; border-radius: 50%; background: #222; border: 2px solid #444; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #888; font-size: 1.1rem; flex-shrink: 0;">
+        ${m.name ? m.name.charAt(0).toUpperCase() : 'M'}
+      </div>
+    `;
+
     return `
       <div class="member-card" style="background:#111; border:1px solid #333; border-radius:8px; padding:20px; transition: transform 0.2s; position: relative;">
-        <div style="margin-bottom: 10px;">${badge}</div>
-        <h3 style="color:#c8a97e; margin:0 0 5px 0;">${escapeHTML(m.name)}</h3>
+        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+          ${photoImg}
+          <div>
+            <div style="margin-bottom: 4px;">${badge}</div>
+            <h3 style="color:#c8a97e; margin:0; font-size: 1.15rem;">${escapeHTML(m.name)}</h3>
+          </div>
+        </div>
         <p style="color:#fff; font-weight:500; margin:0 0 5px 0; font-size:0.9rem;">${escapeHTML(m.company || '')} ${m.location ? '• ' + escapeHTML(m.location) : ''}</p>
         <p style="color:#aaa; font-size:0.8rem; margin:0 0 10px 0; text-transform:uppercase; letter-spacing:1px;">${escapeHTML(m.industry || '')}</p>
         ${m.lookingfor ? `<p style="color:#c8a97e; font-size:0.85rem; margin:0 0 10px 0;"><strong>Looking for:</strong> ${escapeHTML(m.lookingfor)}</p>` : ''}
@@ -551,6 +609,7 @@ function selectAdminTab(selectedTab, selectedSection) {
   if (selectedTab) {
     selectedTab.style.borderBottom = '2px solid #ef4444';
     selectedTab.style.color = '#fff';
+    localStorage.setItem('ses_active_admin_tab', selectedTab.id);
   }
   if (selectedSection) {
     selectedSection.style.display = 'block';
@@ -674,6 +733,14 @@ async function loadAdminApplications() {
   if(!tbodyPending || !tbodyApproved) return;
 
   try {
+    // Fetch registered users to automatically heal application states
+    const usersSnap = await getDocs(collection(db, "users"));
+    const registeredEmails = new Set();
+    usersSnap.forEach(uDoc => {
+      const uData = uDoc.data();
+      if (uData.email) registeredEmails.add(uData.email.toLowerCase().trim());
+    });
+
     const qSnap = await getDocs(collection(db, "applications"));
     let pendingCount = 0;
     let approvedCount = 0;
@@ -686,7 +753,15 @@ async function loadAdminApplications() {
 
       const name = escapeHTML(app.fullName || 'No Name');
       const email = escapeHTML(app.email || 'No Email');
+      const emailClean = (app.email || '').toLowerCase().trim();
       const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
+      
+      // Auto-heal registered status
+      if (registeredEmails.has(emailClean) && app.status !== 'registered') {
+        setDoc(doc(db, "applications", appId), { status: 'registered' }, { merge: true }).catch(console.error);
+        setDoc(doc(db, "approved_emails", emailClean), { registered: true }, { merge: true }).catch(console.error);
+        return; // Skip rendering
+      }
       
       let companyTitleHtml = '';
       if (app.applicationType === 'csep') {
@@ -795,6 +870,8 @@ async function loadAdminApplications() {
         const tr = e.target.closest('tr');
         const appTier = tr.querySelector('.admin-app-tier-select').value;
 
+        const appName = e.target.getAttribute('data-name');
+
         e.target.innerText = 'Approving...';
         e.target.disabled = true;
 
@@ -805,6 +882,7 @@ async function loadAdminApplications() {
           // 2. Add email to approved_emails registry (permanently store record of approval)
           await setDoc(doc(db, "approved_emails", appEmail), {
             email: appEmail,
+            name: appName,
             membershipTier: appTier,
             approvedAt: serverTimestamp(),
             registered: false
@@ -2015,6 +2093,7 @@ function initManualInvite() {
       // 2. Add to approved_emails registry so they can register
       await setDoc(doc(db, "approved_emails", email), {
         email: email,
+        name: name,
         membershipTier: tier,
         approvedAt: serverTimestamp(),
         registered: false
