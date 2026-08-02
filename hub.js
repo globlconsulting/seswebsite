@@ -683,16 +683,63 @@ async function loadAdminUsers() {
     countSpan.innerText = `${qSnap.size} Users`;
     let html = '';
     
+    // Fetch all applications to map email profiles
+    const appsSnap = await getDocs(collection(db, "applications"));
+    const appDataMap = new Map();
+    appsSnap.forEach(aDoc => {
+      const a = aDoc.data();
+      if (a.email) appDataMap.set(a.email.toLowerCase().trim(), a);
+    });
+    
     qSnap.forEach(docSnap => {
       const u = docSnap.data();
       const uid = docSnap.id;
+      const uEmail = (u.email || '').toLowerCase().trim();
+      
+      let name = u.name || '';
+      let company = u.company || '';
+      let title = u.title || '';
+      let industry = u.industry || '';
+      let photoUrl = u.photoUrl || '';
+      let contactPhone = u.contactPhone || '';
+      let contactEmail = u.contactEmail || u.email || '';
+      
+      // Auto-heal empty names
+      if (!name || name === 'New Member' || name === 'Anonymous' || name === 'No Name') {
+        if (uEmail === 'admin@ses.com') {
+          name = 'System Admin';
+          setDoc(doc(db, "users", uid), { name: name }, { merge: true }).catch(console.error);
+        } else if (appDataMap.has(uEmail)) {
+          const appData = appDataMap.get(uEmail);
+          name = appData.fullName || name || 'New Member';
+          company = appData.company || company;
+          title = appData.title || title;
+          if (appData.industries && appData.industries.length > 0) {
+            industry = appData.industries.join(', ');
+          }
+          photoUrl = appData.headshotUrl || photoUrl;
+          contactPhone = appData.phone || contactPhone;
+          
+          setDoc(doc(db, "users", uid), {
+            name: name,
+            company: company,
+            title: title,
+            industry: industry,
+            photoUrl: photoUrl,
+            contactPhone: contactPhone,
+            contactEmail: contactEmail
+          }, { merge: true }).catch(console.error);
+        }
+      }
+      
+      const displayName = name || 'No Name';
       const t = u.membershipTier || 'general';
       const isAdm = !!u.isAdmin;
       const isCsep = !!u.csepCompleted;
       
       html += `
         <tr style="border-bottom: 1px solid #222;">
-          <td style="padding: 10px;">${escapeHTML(u.name || 'No Name')}</td>
+          <td style="padding: 10px;">${escapeHTML(displayName)}</td>
           <td style="padding: 10px; color: #888;">${escapeHTML(u.email || 'No Email')}</td>
           <td style="padding: 10px;">
             <select class="admin-tier-select" data-uid="${uid}" style="background:#050505; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
