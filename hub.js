@@ -747,6 +747,8 @@ async function loadAdminApplications() {
     let pendingHtml = '';
     let approvedHtml = '';
 
+    console.log("Registered Emails Set:", Array.from(registeredEmails));
+
     qSnap.forEach(docSnap => {
       const app = docSnap.data();
       const appId = docSnap.id;
@@ -756,8 +758,11 @@ async function loadAdminApplications() {
       const emailClean = (app.email || '').toLowerCase().trim();
       const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
       
+      console.log(`Checking applicant ${name} (${emailClean}) - Registered? ${registeredEmails.has(emailClean)}`);
+
       // Auto-heal registered status
       if (registeredEmails.has(emailClean) && app.status !== 'registered') {
+        console.log(`Auto-healing triggered for ${name}!`);
         setDoc(doc(db, "applications", appId), { status: 'registered' }, { merge: true }).catch(console.error);
         setDoc(doc(db, "approved_emails", emailClean), { registered: true }, { merge: true }).catch(console.error);
         return; // Skip rendering
