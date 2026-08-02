@@ -97,6 +97,58 @@ onAuthStateChanged(auth, async (user) => {
         const data = docSnap.data();
         userTier = data.membershipTier || 'general';
         currentUserName = data.name || "Anonymous";
+
+        // Auto-heal/Enrich existing user profile if name is missing or default
+        if (!data.name || data.name === 'New Member' || data.name === 'Anonymous') {
+          const userEmail = (user.email || '').trim().toLowerCase();
+          
+          let name = data.name || 'New Member';
+          let company = data.company || '';
+          let title = data.title || '';
+          let industry = data.industry || '';
+          let headshotUrl = data.photoUrl || '';
+          let contactPhone = data.contactPhone || '';
+          let contactEmail = data.contactEmail || userEmail;
+
+          try {
+            const appsRef = collection(db, "applications");
+            const appQ = query(appsRef, where("email", "==", userEmail));
+            const appQSnap = await getDocs(appQ);
+            appQSnap.forEach((appDoc) => {
+              const appData = appDoc.data();
+              if (appData.fullName) name = appData.fullName;
+              if (appData.company) company = appData.company;
+              if (appData.title) title = appData.title;
+              if (appData.industries && appData.industries.length > 0) {
+                industry = appData.industries.join(', ');
+              }
+              if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
+              if (appData.phone) contactPhone = appData.phone;
+            });
+
+            // Update user doc with enriched fields
+            await setDoc(userRef, {
+              name: name,
+              company: company,
+              title: title,
+              industry: industry,
+              photoUrl: headshotUrl,
+              contactPhone: contactPhone,
+              contactEmail: contactEmail
+            }, { merge: true });
+
+            currentUserName = name;
+            
+            // Force refresh profile UI
+            setTimeout(() => {
+              if (typeof loadUserProfile === 'function') loadUserProfile(user.uid);
+              loadMembers();
+            }, 100);
+
+          } catch (enrichErr) {
+            console.error("Auto-enrichment failed:", enrichErr);
+          }
+        }
         
         // Auto-grant admin for testing
         if (user.email === 'admin@ses.com' && !data.isAdmin) {
