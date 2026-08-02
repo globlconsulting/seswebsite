@@ -589,6 +589,7 @@ async function loadAdminUsers() {
               <option value="sellebrity" ${t==='sellebrity'?'selected':''}>Sellebrity</option>
               <option value="guild" ${t==='guild'?'selected':''}>Sellebrity Guild</option>
               <option value="council" ${t==='council'?'selected':''}>Sellebrity Council</option>
+              <option value="vendor" ${t==='vendor'?'selected':''}>Featured Vendor</option>
             </select>
           </td>
           <td style="padding: 10px;">
@@ -696,15 +697,17 @@ async function loadAdminApplications() {
         companyTitleHtml = `${company}<br><span style="font-size:0.85rem; color:#aaa;">${title}</span>`;
       }
 
-      let tierHtml = '';
-      if (app.applicationType === 'csep') {
-        tierHtml = `<span style="color:#60a5fa; font-weight:bold;">CSEP (Sellebrity)</span>`;
-      } else {
-        const tier = escapeHTML(app.tier || 'general');
-        tierHtml = `<span style="color:#c8a97e; font-weight:bold;">${tier.charAt(0).toUpperCase() + tier.slice(1)}</span>`;
-      }
+      const tier = escapeHTML(app.tier || 'general');
+      const tierHtml = `
+        <select class="admin-app-tier-select" data-id="${appId}" style="background:#050505; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+          <option value="general" ${tier==='general'?'selected':''}>General</option>
+          <option value="sellebrity" ${tier==='sellebrity'?'selected':''}>Sellebrity</option>
+          <option value="guild" ${tier==='guild'?'selected':''}>Sellebrity Guild</option>
+          <option value="council" ${tier==='council'?'selected':''}>Sellebrity Council</option>
+          <option value="vendor" ${tier==='vendor'?'selected':''}>Featured Vendor</option>
+        </select>
+      `;
 
-      const tier = escapeHTML(app.tier || 'sellebrity');
       const exp = escapeHTML(app.experience || 'No experience provided');
 
       if (app.status === 'pending') {
@@ -717,7 +720,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
-              <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" data-tier="${tier}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
+              <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
             </td>
           </tr>
@@ -732,7 +735,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
-              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" data-tier="${tier}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
+              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Revoke</button>
             </td>
           </tr>
@@ -771,12 +774,26 @@ async function loadAdminApplications() {
 
     // Attach Event Handlers to both tables
     
-    // Approval Handler (just moves applicant to approved state without automatic email popup)
+    // Auto-update Firestore on select change
+    document.querySelectorAll('.admin-app-tier-select').forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const appId = e.target.getAttribute('data-id');
+        const newTier = e.target.value;
+        try {
+          await setDoc(doc(db, "applications", appId), { tier: newTier }, { merge: true });
+        } catch(err) {
+          console.error("Failed to update application tier in Firestore:", err);
+        }
+      });
+    });
+
+    // Approval Handler
     document.querySelectorAll('.admin-app-approve-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const appId = e.target.getAttribute('data-id');
         const appEmail = e.target.getAttribute('data-email');
-        const appTier = e.target.getAttribute('data-tier');
+        const tr = e.target.closest('tr');
+        const appTier = tr.querySelector('.admin-app-tier-select').value;
 
         e.target.innerText = 'Approving...';
         e.target.disabled = true;
@@ -803,13 +820,14 @@ async function loadAdminApplications() {
       });
     });
 
-    // Email Invite Sender (Copies template and opens mail client on button click)
+    // Email Invite Sender
     document.querySelectorAll('.admin-app-send-invite-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const targetBtn = e.currentTarget;
         const appEmail = targetBtn.getAttribute('data-email');
         const appName = targetBtn.getAttribute('data-name');
-        const appTier = targetBtn.getAttribute('data-tier');
+        const tr = targetBtn.closest('tr');
+        const appTier = tr.querySelector('.admin-app-tier-select').value;
 
         const originalText = targetBtn.innerHTML;
         targetBtn.innerText = 'Copying...';
