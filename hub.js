@@ -1242,6 +1242,7 @@ async function loadAdminApplications() {
           e.target.disabled = false;
         }
       });
+    });
     // Name Click Event Handler (Opens Application Details Modal)
     document.querySelectorAll('.admin-app-name-link').forEach(link => {
       link.addEventListener('click', (e) => {
