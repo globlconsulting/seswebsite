@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetRadio = membershipForm.querySelector(`input[name="tier"][value="${tierParam}"]`);
       if (targetRadio) {
         targetRadio.checked = true;
+      }
     }
 
     // Dynamic Billing Plan logic
