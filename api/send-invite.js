@@ -1,6 +1,6 @@
 const { initializeApp } = require("firebase/app");
 const { getAuth, signInWithEmailAndPassword } = require("firebase/auth");
-const { getFirestore, doc, getDoc } = require("firebase/firestore");
+const { getFirestore, doc, getDoc, updateDoc, serverTimestamp, query, collection, where, limit, getDocs } = require("firebase/firestore");
 const { Resend } = require("resend");
 
 // Firebase client configuration
@@ -84,6 +84,21 @@ module.exports = async (req, res) => {
       subject: "Welcome to the Sports & Entertainment Society - Register Your Account",
       html: emailHtml
     });
+
+    // 4. Update inviteSentAt in approved_emails doc
+    await updateDoc(approvedDocRef, {
+      inviteSentAt: serverTimestamp()
+    });
+
+    // 5. Update inviteSentAt in applications doc
+    const q = query(collection(db, "applications"), where("email", "==", approvedEmail), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const appDoc = querySnapshot.docs[0];
+      await updateDoc(doc(db, "applications", appDoc.id), {
+        inviteSentAt: serverTimestamp()
+      });
+    }
 
     console.log(`Manually sent registration email to: ${approvedEmail}`);
     return res.status(200).json({ success: true });

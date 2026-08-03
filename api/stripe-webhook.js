@@ -94,6 +94,7 @@ module.exports = async (req, res) => {
         name: customerName,
         membershipTier: tier,
         approvedAt: serverTimestamp(),
+        inviteSentAt: serverTimestamp(),
         registered: false
       });
 
@@ -103,7 +104,10 @@ module.exports = async (req, res) => {
 
       if (!querySnapshot.empty) {
         const appDoc = querySnapshot.docs[0];
-        await updateDoc(doc(db, "applications", appDoc.id), { status: "approved" });
+        await updateDoc(doc(db, "applications", appDoc.id), { 
+          status: "approved",
+          inviteSentAt: serverTimestamp()
+        });
         console.log(`Updated application status to approved for: ${approvedEmail}`);
       } else {
         console.log(`No pending application found in database for: ${approvedEmail}`);

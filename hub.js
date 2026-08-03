@@ -952,6 +952,15 @@ async function loadAdminApplications() {
         `;
       } else if (app.status === 'approved') {
         approvedCount++;
+        let inviteDateHtml = '';
+        if (app.inviteSentAt) {
+          const sentDate = app.inviteSentAt.toDate();
+          const dateStr = sentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          inviteDateHtml = `<div style="font-size:0.75rem; color:#888; margin-top:5px;">Last sent: <strong>${dateStr}</strong></div>`;
+        } else {
+          inviteDateHtml = `<div style="font-size:0.75rem; color:#f59e0b; margin-top:5px;">Never sent</div>`;
+        }
+
         approvedHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
             <td style="padding: 15px;"><strong>${name}</strong></td>
@@ -959,9 +968,12 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
-            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
-              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
-              <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Revoke</button>
+            <td style="padding: 15px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
+                <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Revoke</button>
+              </div>
+              ${inviteDateHtml}
             </td>
           </tr>
         `;
@@ -1178,6 +1190,7 @@ async function loadAdminApplications() {
             setTimeout(() => { 
               targetBtn.innerHTML = originalText; 
               targetBtn.disabled = false;
+              loadAdminApplications(); // Reload UI to update the sent date
             }, 3000);
             return;
           }
