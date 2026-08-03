@@ -12,8 +12,54 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetRadio = membershipForm.querySelector(`input[name="tier"][value="${tierParam}"]`);
       if (targetRadio) {
         targetRadio.checked = true;
+    }
+
+    // Dynamic Billing Plan logic
+    const billingGroup = document.getElementById('billing-frequency-group');
+    const monthlyLabel = document.getElementById('billing-monthly-label');
+    const yearlyLabel = document.getElementById('billing-yearly-label');
+    const yearlyContainer = document.getElementById('billing-yearly-container');
+
+    function updateBillingOptions() {
+      const selectedTierInput = membershipForm.querySelector('input[name="tier"]:checked');
+      if (!selectedTierInput) return;
+      const tier = selectedTierInput.value;
+
+      if (tier === 'general') {
+        billingGroup.style.display = 'none';
+      } else {
+        billingGroup.style.display = 'block';
+        
+        if (tier === 'vendor') {
+          monthlyLabel.innerText = 'Monthly ($497 / month)';
+          yearlyContainer.style.display = 'none';
+          // Ensure monthly is checked
+          const monthlyRadio = membershipForm.querySelector('input[name="billing"][value="monthly"]');
+          if (monthlyRadio) monthlyRadio.checked = true;
+        } else {
+          yearlyContainer.style.display = 'inline-flex';
+          
+          if (tier === 'sellebrity') {
+            monthlyLabel.innerText = 'Monthly ($47 / month)';
+            yearlyLabel.innerText = 'Yearly ($497 / year — Save 12%)';
+          } else if (tier === 'guild') {
+            monthlyLabel.innerText = 'Monthly ($97 / month)';
+            yearlyLabel.innerText = 'Yearly ($997 / year — Save 15%)';
+          } else if (tier === 'council') {
+            monthlyLabel.innerText = 'Monthly ($97 / month — 1st Year Free!)';
+            yearlyLabel.innerText = 'Yearly ($997 / year — 1st Year Free!)';
+          }
+        }
       }
     }
+
+    // Attach listeners to tier changes
+    membershipForm.querySelectorAll('input[name="tier"]').forEach(radio => {
+      radio.addEventListener('change', updateBillingOptions);
+    });
+
+    // Run once on load
+    updateBillingOptions();
 
     // Create a notification element for the membership form if it doesn't exist
     let memNotification = document.getElementById('mem-form-notification');
@@ -37,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const title = (formData.get('title') || '').trim();
       const referrer = (formData.get('referrer') || '').trim();
       const tier = formData.get('tier') || 'general';
+      const billingInput = membershipForm.querySelector('input[name="billing"]:checked');
+      const billing = billingInput && tier !== 'general' ? billingInput.value : 'monthly';
       
       const textarea = membershipForm.querySelector('textarea');
       const experience = textarea ? textarea.value.trim() : '';
@@ -88,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: title,
           referrer: referrer,
           tier: tier,
+          billing: billing,
           industries: industries,
           clientele: clientele,
           experience: experience,
@@ -104,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tags = [
           "Membership_Applicant", 
           `Tier: ${tier}`, 
+          `Billing: ${billing}`,
           ...industries.map(ind => `Industry: ${ind}`),
           `Clientele: ${clientele}`
         ];

@@ -848,6 +848,7 @@ async function loadAdminUsers() {
             let headshotUrl = user.photoUrl || '';
             
             // Try to pull fields from application document if map exists
+            let preferredBilling = 'monthly';
             if (window.adminApplicationsMap) {
               const app = Object.values(window.adminApplicationsMap).find(a => (a.email || '').trim().toLowerCase() === userEmail);
               if (app) {
@@ -856,11 +857,13 @@ async function loadAdminUsers() {
                 industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : escapeHTML(user.industry || 'None');
                 referrer = escapeHTML(app.referrer || 'None');
                 headshotUrl = app.headshotUrl || user.photoUrl || '';
+                preferredBilling = app.billing || 'monthly';
               }
             }
             
             const tier = escapeHTML(user.membershipTier || 'general');
             const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            const billingName = preferredBilling === 'yearly' ? 'Yearly Plan' : 'Monthly Plan';
             
             container.innerHTML = `
               <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
@@ -873,7 +876,7 @@ async function loadAdminUsers() {
                 `}
                 <div>
                   <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">${escapeHTML(user.name || 'No Name')}</h4>
-                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (Registered)</p>
+                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (Registered - ${billingName})</p>
                   <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Email: ${escapeHTML(user.email || '')}</p>
                   <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(user.contactPhone || 'N/A')}</p>
                 </div>
@@ -1198,10 +1201,18 @@ async function loadAdminApplications() {
         const tr = targetBtn.closest('tr');
         const appTier = tr.querySelector('.admin-app-tier-select').value;
 
-        // Choose billing frequency if multiple exist
-        let isYearly = false;
+        // Choose billing frequency based on preference or override
+        const app = window.adminApplicationsMap ? window.adminApplicationsMap[appId] : null;
+        const preferredBilling = app ? app.billing : 'monthly';
+        let isYearly = (preferredBilling === 'yearly');
+        
         if (appTier !== 'vendor') {
-          isYearly = !confirm(`Choose Payment Plan for ${appName}:\n\nClick [OK] for MONTHLY billing.\nClick [Cancel] for YEARLY billing.`);
+          const prefLabel = isYearly ? 'YEARLY' : 'MONTHLY';
+          const otherLabel = isYearly ? 'MONTHLY' : 'YEARLY';
+          const keepPreferred = confirm(`This applicant preferred ${prefLabel} billing.\n\nClick [OK] to send the ${prefLabel} payment link.\nClick [Cancel] to switch to the ${otherLabel} payment link instead.`);
+          if (!keepPreferred) {
+            isYearly = !isYearly;
+          }
         }
 
         const planType = isYearly ? 'yearly' : 'monthly';
@@ -1377,6 +1388,8 @@ async function loadAdminApplications() {
             const headshotUrl = app.headshotUrl ? escapeHTML(app.headshotUrl) : '';
             const tier = escapeHTML(app.tier || 'general');
             const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            const billing = escapeHTML(app.billing || 'monthly');
+            const billingName = billing === 'yearly' ? 'Yearly Plan' : 'Monthly Plan';
             
             container.innerHTML = `
               <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
@@ -1389,7 +1402,7 @@ async function loadAdminApplications() {
                 `}
                 <div>
                   <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">${escapeHTML(app.fullName || 'No Name')}</h4>
-                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Membership Applicant</p>
+                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Membership Applicant (${billingName})</p>
                   <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Email: ${escapeHTML(app.email || '')}</p>
                   <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(app.phone || 'N/A')}</p>
                 </div>
