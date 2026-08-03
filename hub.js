@@ -732,8 +732,18 @@ async function loadAdminUsers() {
             contactPhone: contactPhone,
             contactEmail: contactEmail
           }, { merge: true }).catch(console.error);
-        }
       }
+
+      window.adminUsersMap[uid] = {
+        ...u,
+        name: name,
+        company: company,
+        title: title,
+        industry: industry,
+        photoUrl: photoUrl,
+        contactPhone: contactPhone,
+        contactEmail: contactEmail
+      };
       
       const displayName = name || 'No Name';
       const t = u.membershipTier || 'general';
