@@ -905,6 +905,20 @@ async function loadAdminApplications() {
       `;
 
       const exp = escapeHTML(app.experience || 'No experience provided');
+      const clientele = escapeHTML(app.clientele || 'Not Selected');
+      const industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : 'None';
+      const referrer = escapeHTML(app.referrer || 'None');
+      const headshotUrl = app.headshotUrl ? escapeHTML(app.headshotUrl) : '';
+
+      const appDetailsHtml = `
+        <div style="font-size:0.85rem; line-height: 1.4; max-width: 280px; white-space: normal; word-break: break-word;">
+          <strong>Exp:</strong> ${exp}<br/>
+          <strong>Clientele:</strong> ${clientele}<br/>
+          <strong>Industries:</strong> ${industries}<br/>
+          <strong>Referrer:</strong> ${referrer}
+          ${headshotUrl ? `<br/><a href="${headshotUrl}" target="_blank" style="color:#c8a97e; font-weight:bold; display:inline-flex; align-items:center; gap:3px; margin-top:5px;">🖼 View Photo</a>` : ''}
+        </div>
+      `;
 
       if (app.status === 'pending') {
         pendingCount++;
@@ -927,7 +941,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px;">${appDetailsHtml}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
               ${actionButtons}
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
@@ -942,7 +956,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px;">${appDetailsHtml}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
               <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
               <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #4ade80; color:#4ade80; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Confirm payment has been received and approve account">Confirm Paid</button>
@@ -967,7 +981,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px;">${appDetailsHtml}</td>
             <td style="padding: 15px;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
