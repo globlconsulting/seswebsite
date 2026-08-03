@@ -1150,7 +1150,7 @@ async function loadAdminApplications() {
 
     // Send Invite Email (For approved/paid accounts)
     document.querySelectorAll('.admin-app-send-invite-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const targetBtn = e.currentTarget;
         const appEmail = targetBtn.getAttribute('data-email');
         const appName = targetBtn.getAttribute('data-name');
@@ -1158,23 +1158,53 @@ async function loadAdminApplications() {
         const appTier = tr.querySelector('.admin-app-tier-select').value;
 
         const originalText = targetBtn.innerHTML;
-        targetBtn.innerText = 'Copying...';
+        targetBtn.innerText = 'Sending...';
+        targetBtn.disabled = true;
 
         const tierName = appTier === 'vendor' ? 'Featured Vendor' : appTier === 'sellebrity' ? 'Sellebrity' : appTier === 'guild' ? 'Sellebrity Guild' : 'Sellebrity Council';
         const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your membership for the ${tierName} tier at the Sports & Entertainment Society is now fully active.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
 
+        try {
+          const res = await fetch('/api/send-invite', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: appEmail })
+          });
+
+          if (res.ok) {
+            targetBtn.innerHTML = '✉ Sent!';
+            setTimeout(() => { 
+              targetBtn.innerHTML = originalText; 
+              targetBtn.disabled = false;
+            }, 3000);
+            return;
+          }
+          
+          const errText = await res.text();
+          console.error("Automated send failed:", errText);
+        } catch (err) {
+          console.error("Error calling send-invite API:", err);
+        }
+
+        // Fallback to manual copy + mailto if API fails
         navigator.clipboard.writeText(emailBody)
           .then(() => {
-            alert(`Invite email template copied to clipboard! Opening your email client to notify ${appName}...`);
-            targetBtn.innerHTML = '✉ Invite Sent!';
-            setTimeout(() => { targetBtn.innerHTML = originalText; }, 2000);
+            alert(`Unable to send email automatically. Falling back: email template copied to clipboard! Opening your email client to notify ${appName}...`);
+            targetBtn.innerHTML = '✉ Invite Staged!';
+            setTimeout(() => { 
+              targetBtn.innerHTML = originalText; 
+              targetBtn.disabled = false;
+            }, 2000);
+            window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Membership is Active!&body=${encodeURIComponent(emailBody)}`);
           })
           .catch(err => {
             console.error('Clipboard write failed', err);
             targetBtn.innerHTML = originalText;
+            targetBtn.disabled = false;
+            window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Membership is Active!&body=${encodeURIComponent(emailBody)}`);
           });
-          
-        window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Membership is Active!&body=${encodeURIComponent(emailBody)}`);
       });
     });
 
