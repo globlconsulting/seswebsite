@@ -1051,7 +1051,6 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
               ${actionButtons}
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
@@ -1075,7 +1074,6 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px;">
               <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
@@ -1103,7 +1101,6 @@ async function loadAdminApplications() {
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
