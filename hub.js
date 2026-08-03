@@ -1323,8 +1323,6 @@ async function loadAdminApplications() {
         }
       });
     }
-  }
-
   } catch (err) {
     console.error("Admin applications load error", err);
     tbodyPending.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading applications</td></tr>`;
