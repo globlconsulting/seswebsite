@@ -822,14 +822,34 @@ async function loadAdminUsers() {
 
 window.loadAdminUsers = loadAdminUsers; // Export for global usage if needed
 
+const STRIPE_LINKS = {
+  sellebrity: {
+    monthly: 'https://buy.stripe.com/dRm28s4lB5oB4Oo7kpak000',
+    yearly: 'https://buy.stripe.com/9B6fZi3hx3gt80AfQVak001'
+  },
+  guild: {
+    monthly: 'https://buy.stripe.com/4gM00k3hxg3feoY5chak002',
+    yearly: 'https://buy.stripe.com/5kQ3cw5pFaIV1CcbAFak003'
+  },
+  council: {
+    monthly: 'https://buy.stripe.com/8x2aEY05leZb1Cc6glak005',
+    yearly: 'https://buy.stripe.com/fZudRaaJZ9ER0y85chak004'
+  },
+  vendor: {
+    monthly: 'https://buy.stripe.com/9B6aEYbO32cpeoYdINak006'
+  }
+};
+
 async function loadAdminApplications() {
   const tbodyPending = document.getElementById('admin-applications-tbody');
   const tbodyApproved = document.getElementById('admin-approved-applications-tbody');
+  const tbodyAwaitingPayment = document.getElementById('admin-awaiting-payment-applications-tbody');
   const badge = document.getElementById('admin-apps-badge');
   const pendingCountSpan = document.getElementById('admin-pending-apps-count');
   const approvedCountSpan = document.getElementById('admin-approved-apps-count');
+  const awaitingCountSpan = document.getElementById('admin-awaiting-payment-apps-count');
 
-  if(!tbodyPending || !tbodyApproved) return;
+  if(!tbodyPending || !tbodyApproved || !tbodyAwaitingPayment) return;
 
   try {
     // Fetch registered users to automatically heal application states
@@ -843,10 +863,10 @@ async function loadAdminApplications() {
     const qSnap = await getDocs(collection(db, "applications"));
     let pendingCount = 0;
     let approvedCount = 0;
+    let awaitingCount = 0;
     let pendingHtml = '';
     let approvedHtml = '';
-
-    console.log("Registered Emails Set:", Array.from(registeredEmails));
+    let awaitingHtml = '';
 
     qSnap.forEach(docSnap => {
       const app = docSnap.data();
@@ -857,11 +877,8 @@ async function loadAdminApplications() {
       const emailClean = (app.email || '').toLowerCase().trim();
       const phone = app.phone ? `<br>${escapeHTML(app.phone)}` : '';
       
-      console.log(`Checking applicant ${name} (${emailClean}) - Registered? ${registeredEmails.has(emailClean)}`);
-
       // Auto-heal registered status
       if (registeredEmails.has(emailClean) && app.status !== 'registered') {
-        console.log(`Auto-healing triggered for ${name}!`);
         setDoc(doc(db, "applications", appId), { status: 'registered' }, { merge: true }).catch(console.error);
         setDoc(doc(db, "approved_emails", emailClean), { registered: true }, { merge: true }).catch(console.error);
         return; // Skip rendering
@@ -891,6 +908,19 @@ async function loadAdminApplications() {
 
       if (app.status === 'pending') {
         pendingCount++;
+        const isFree = (tier === 'general');
+        let actionButtons = '';
+        if (isFree) {
+          actionButtons = `
+            <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
+          `;
+        } else {
+          actionButtons = `
+            <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Send Payment Link</button>
+            <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #c8a97e; color:#c8a97e; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Approve for free (comped/test)">Comp Member</button>
+          `;
+        }
+
         pendingHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
             <td style="padding: 15px;"><strong>${name}</strong></td>
@@ -898,8 +928,24 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
-            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
-              <button class="admin-app-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Approve</button>
+            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
+              ${actionButtons}
+              <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
+            </td>
+          </tr>
+        `;
+      } else if (app.status === 'awaiting_payment') {
+        awaitingCount++;
+        awaitingHtml += `
+          <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
+            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px; color: #888;">${email}${phone}</td>
+            <td style="padding: 15px;">${companyTitleHtml}</td>
+            <td style="padding: 15px;">${tierHtml}</td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
+            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
+              <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
+              <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #4ade80; color:#4ade80; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Confirm payment has been received and approve account">Confirm Paid</button>
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
             </td>
           </tr>
@@ -914,7 +960,7 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px;">
-              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
+              <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Revoke</button>
             </td>
           </tr>
@@ -939,7 +985,19 @@ async function loadAdminApplications() {
       }
     }
 
-    // 2. Render Approved (Awaiting Signup) List
+    // 2. Render Awaiting Payment List
+    if (awaitingCount === 0) {
+      tbodyAwaitingPayment.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No applications awaiting payment.</td></tr>`;
+      if (awaitingCountSpan) awaitingCountSpan.style.display = 'none';
+    } else {
+      tbodyAwaitingPayment.innerHTML = awaitingHtml;
+      if (awaitingCountSpan) {
+        awaitingCountSpan.innerText = awaitingCount;
+        awaitingCountSpan.style.display = 'inline-block';
+      }
+    }
+
+    // 3. Render Approved List
     if (approvedCount === 0) {
       tbodyApproved.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#888;">No approved applications awaiting registration.</td></tr>`;
       if (approvedCountSpan) approvedCountSpan.style.display = 'none';
@@ -951,7 +1009,7 @@ async function loadAdminApplications() {
       }
     }
 
-    // Attach Event Handlers to both tables
+    // Attach Event Handlers
     
     // Auto-update Firestore on select change
     document.querySelectorAll('.admin-app-tier-select').forEach(select => {
@@ -960,30 +1018,27 @@ async function loadAdminApplications() {
         const newTier = e.target.value;
         try {
           await setDoc(doc(db, "applications", appId), { tier: newTier }, { merge: true });
+          loadAdminApplications();
         } catch(err) {
           console.error("Failed to update application tier in Firestore:", err);
         }
       });
     });
 
-    // Approval Handler
+    // General Approve Handler (for Free Tiers)
     document.querySelectorAll('.admin-app-approve-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const appId = e.target.getAttribute('data-id');
         const appEmail = e.target.getAttribute('data-email');
+        const appName = e.target.getAttribute('data-name');
         const tr = e.target.closest('tr');
         const appTier = tr.querySelector('.admin-app-tier-select').value;
-
-        const appName = e.target.getAttribute('data-name');
 
         e.target.innerText = 'Approving...';
         e.target.disabled = true;
 
         try {
-          // 1. Update application status in Firestore to 'approved'
           await setDoc(doc(db, "applications", appId), { status: 'approved' }, { merge: true });
-
-          // 2. Add email to approved_emails registry (permanently store record of approval)
           await setDoc(doc(db, "approved_emails", appEmail), {
             email: appEmail,
             name: appName,
@@ -991,8 +1046,6 @@ async function loadAdminApplications() {
             approvedAt: serverTimestamp(),
             registered: false
           });
-
-          // Refresh list to move the applicant down
           loadAdminApplications();
         } catch(err) {
           console.error("Failed to approve application:", err);
@@ -1002,7 +1055,100 @@ async function loadAdminApplications() {
       });
     });
 
-    // Email Invite Sender
+    // Send Stripe Payment Link Invite
+    document.querySelectorAll('.admin-app-payment-invite-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const targetBtn = e.currentTarget;
+        const appId = targetBtn.getAttribute('data-id');
+        const appEmail = targetBtn.getAttribute('data-email');
+        const appName = targetBtn.getAttribute('data-name');
+        const tr = targetBtn.closest('tr');
+        const appTier = tr.querySelector('.admin-app-tier-select').value;
+
+        // Choose billing frequency if multiple exist
+        let isYearly = false;
+        if (appTier !== 'vendor') {
+          isYearly = !confirm(`Choose Payment Plan for ${appName}:\n\nClick [OK] for MONTHLY billing.\nClick [Cancel] for YEARLY billing.`);
+        }
+
+        const planType = isYearly ? 'yearly' : 'monthly';
+        const stripeLink = STRIPE_LINKS[appTier][planType];
+        
+        if (!stripeLink) {
+          alert("Error: Stripe Link for this tier is not configured correctly.");
+          return;
+        }
+
+        const prefilledLink = `${stripeLink}?prefilled_email=${encodeURIComponent(appEmail)}`;
+        const tierName = appTier === 'vendor' ? 'Featured Vendor' : appTier === 'sellebrity' ? 'Sellebrity' : appTier === 'guild' ? 'Sellebrity Guild' : 'Sellebrity Council';
+        const billingTerm = isYearly ? 'Yearly' : 'Monthly';
+
+        const originalText = targetBtn.innerHTML;
+        targetBtn.innerText = 'Preparing...';
+        targetBtn.disabled = true;
+
+        const emailBody = `Hello ${appName},\n\nCongratulations! Your application for the ${tierName} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nTo activate your membership, please complete the secure payment of your ${billingTerm} subscription plan here:\n${prefilledLink}\n\nOnce paid, you will receive an automated email containing your official registration link to create your account and access the Society Hub.\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
+
+        try {
+          // Set status to awaiting_payment in Firestore
+          await setDoc(doc(db, "applications", appId), { status: 'awaiting_payment' }, { merge: true });
+
+          navigator.clipboard.writeText(emailBody)
+            .then(() => {
+              alert(`Payment invite template copied to clipboard! Opening your email client to notify ${appName}...`);
+            })
+            .catch(err => {
+              console.error('Clipboard write failed', err);
+            });
+            
+          window.open(`mailto:${appEmail}?subject=Your SES Application is Approved - Complete Registration&body=${encodeURIComponent(emailBody)}`);
+          loadAdminApplications();
+        } catch (err) {
+          console.error("Payment invite trigger failed:", err);
+          targetBtn.innerText = 'Error';
+          targetBtn.disabled = false;
+        }
+      });
+    });
+
+    // Comp / Direct Approve Handler (Bypasses Stripe payment)
+    document.querySelectorAll('.admin-app-direct-approve-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const isComp = (e.target.textContent.trim() === 'Comp Member');
+        const confirmMsg = isComp
+          ? "Are you sure you want to approve this applicant for free? This will bypass the Stripe payment requirements and allow them to register immediately."
+          : "Are you sure you want to confirm payment has been received and approve this applicant? This will add them to the approved list and allow them to register.";
+
+        if (!confirm(confirmMsg)) return;
+
+        const appId = e.target.getAttribute('data-id');
+        const appEmail = e.target.getAttribute('data-email');
+        const appName = e.target.getAttribute('data-name');
+        const tr = e.target.closest('tr');
+        const appTier = tr.querySelector('.admin-app-tier-select').value;
+
+        e.target.innerText = 'Approving...';
+        e.target.disabled = true;
+
+        try {
+          await setDoc(doc(db, "applications", appId), { status: 'approved' }, { merge: true });
+          await setDoc(doc(db, "approved_emails", appEmail), {
+            email: appEmail,
+            name: appName,
+            membershipTier: appTier,
+            approvedAt: serverTimestamp(),
+            registered: false
+          });
+          loadAdminApplications();
+        } catch(err) {
+          console.error("Direct approval failed:", err);
+          e.target.innerText = 'Error';
+          e.target.disabled = false;
+        }
+      });
+    });
+
+    // Send Invite Email (For approved/paid accounts)
     document.querySelectorAll('.admin-app-send-invite-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const targetBtn = e.currentTarget;
@@ -1014,11 +1160,12 @@ async function loadAdminApplications() {
         const originalText = targetBtn.innerHTML;
         targetBtn.innerText = 'Copying...';
 
-        const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your application for the ${appTier.charAt(0).toUpperCase() + appTier.slice(1)} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
+        const tierName = appTier === 'vendor' ? 'Featured Vendor' : appTier === 'sellebrity' ? 'Sellebrity' : appTier === 'guild' ? 'Sellebrity Guild' : 'Sellebrity Council';
+        const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your membership for the ${tierName} tier at the Sports & Entertainment Society is now fully active.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
 
         navigator.clipboard.writeText(emailBody)
           .then(() => {
-            alert(`Approval email template copied to clipboard! Opening your email client to notify ${appName}...`);
+            alert(`Invite email template copied to clipboard! Opening your email client to notify ${appName}...`);
             targetBtn.innerHTML = '✉ Invite Sent!';
             setTimeout(() => { targetBtn.innerHTML = originalText; }, 2000);
           })
@@ -1027,21 +1174,20 @@ async function loadAdminApplications() {
             targetBtn.innerHTML = originalText;
           });
           
-        window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Application is Approved!&body=${encodeURIComponent(emailBody)}`);
+        window.open(`mailto:${appEmail}?subject=Your Sports %26 Entertainment Society Membership is Active!&body=${encodeURIComponent(emailBody)}`);
       });
     });
 
     // Decline / Revoke Handler
     document.querySelectorAll('.admin-app-decline-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
-        if (!confirm("Are you sure you want to decline / revoke this application?")) return;
+        if (!confirm("Are you sure you want to decline, cancel, or revoke this application?")) return;
 
         const appId = e.target.getAttribute('data-id');
         e.target.innerText = 'Removing...';
         e.target.disabled = true;
 
         try {
-          // Delete the application doc from applications collection
           await deleteDoc(doc(db, "applications", appId));
           loadAdminApplications();
         } catch(err) {
