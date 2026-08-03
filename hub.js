@@ -1060,6 +1060,15 @@ async function loadAdminApplications() {
         `;
       } else if (app.status === 'awaiting_payment') {
         awaitingCount++;
+        let paymentLinkDateHtml = '';
+        if (app.paymentLinkSentAt) {
+          const sentDate = app.paymentLinkSentAt.toDate();
+          const dateStr = sentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          paymentLinkDateHtml = `<div style="font-size:0.75rem; color:#888; margin-top:5px;">Last sent: <strong>${dateStr}</strong></div>`;
+        } else {
+          paymentLinkDateHtml = `<div style="font-size:0.75rem; color:#f59e0b; margin-top:5px;">Never sent</div>`;
+        }
+
         awaitingHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
             <td style="padding: 15px;"><strong class="admin-app-name-link" data-id="${appId}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view full application answers">${name}</strong></td>
@@ -1067,10 +1076,13 @@ async function loadAdminApplications() {
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
             <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
-            <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
-              <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
-              <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #4ade80; color:#4ade80; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Confirm payment has been received and approve account">Confirm Paid</button>
-              <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
+            <td style="padding: 15px;">
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
+                <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #4ade80; color:#4ade80; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Confirm payment has been received and approve account">Confirm Paid</button>
+                <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
+              </div>
+              ${paymentLinkDateHtml}
             </td>
           </tr>
         `;
@@ -1234,12 +1246,41 @@ async function loadAdminApplications() {
         const emailBody = `Hello ${appName},\n\nCongratulations! Your application for the ${tierName} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nTo activate your membership, please complete the secure payment of your ${billingTerm} subscription plan here:\n${prefilledLink}\n\nOnce paid, you will receive an automated email containing your official registration link to create your account and access the Society Hub.\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
 
         try {
-          // Set status to awaiting_payment in Firestore
-          await setDoc(doc(db, "applications", appId), { status: 'awaiting_payment' }, { merge: true });
+          // Attempt to send payment link automatically via Vercel Resend endpoint
+          const res = await fetch('/api/send-payment-link', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ appId, isYearly })
+          });
+
+          if (res.ok) {
+            targetBtn.innerHTML = '✉ Sent!';
+            setTimeout(() => {
+              targetBtn.innerHTML = originalText;
+              targetBtn.disabled = false;
+              loadAdminApplications();
+            }, 3000);
+            return;
+          }
+          
+          const errText = await res.text();
+          console.error("Automated send-payment-link failed:", errText);
+        } catch (err) {
+          console.error("Error calling send-payment-link API:", err);
+        }
+
+        // Fallback to manual copy + mailto if automated send fails
+        try {
+          await setDoc(doc(db, "applications", appId), {
+            status: 'awaiting_payment',
+            billing: planType
+          }, { merge: true });
 
           navigator.clipboard.writeText(emailBody)
             .then(() => {
-              alert(`Payment invite template copied to clipboard! Opening your email client to notify ${appName}...`);
+              alert(`Unable to send automatically. Falling back: payment invite copied to clipboard! Opening your email client...`);
             })
             .catch(err => {
               console.error('Clipboard write failed', err);
@@ -1248,7 +1289,7 @@ async function loadAdminApplications() {
           window.open(`mailto:${appEmail}?subject=Your SES Application is Approved - Complete Registration&body=${encodeURIComponent(emailBody)}`);
           loadAdminApplications();
         } catch (err) {
-          console.error("Payment invite trigger failed:", err);
+          console.error("Payment invite fallback trigger failed:", err);
           targetBtn.innerText = 'Error';
           targetBtn.disabled = false;
         }
