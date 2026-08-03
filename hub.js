@@ -733,6 +733,7 @@ async function loadAdminUsers() {
             contactEmail: contactEmail
           }, { merge: true }).catch(console.error);
       }
+      }
 
       window.adminUsersMap[uid] = {
         ...u,
