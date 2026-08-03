@@ -1041,6 +1041,79 @@ footer {
   padding-left: 1.5rem;
 }
 
+/* --- SMALL 3D BOOK PROMO LAYOUT --- */
+.book-single-column {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.book-promo-actions {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.book-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.book-image-container-small {
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-mockup-wrapper-small {
+  position: relative;
+  width: 90px;
+  height: 130px;
+  transform-style: preserve-3d;
+  transform: rotateY(-15deg) rotateX(10deg);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: -8px 10px 20px rgba(0, 0, 0, 0.6);
+}
+
+.book-mockup-wrapper-small:hover {
+  transform: rotateY(5deg) rotateX(5deg) translateY(-5px);
+}
+
+.book-mockup-wrapper-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.book-spine-small {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 100%;
+  background: #111;
+  transform: rotateY(-90deg) translateX(-6px);
+  transform-origin: left center;
+  box-shadow: inset -2px 0 5px rgba(0,0,0,0.8);
+}
+
+.book-shadow-small {
+  position: absolute;
+  bottom: -12px;
+  left: -6px;
+  width: 102px;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 70%);
+  transform: rotateX(90deg);
+  z-index: -1;
+  pointer-events: none;
+}
+
+
 /* --- SECTION 5: MEMBERSHIP TIERS --- */
 .membership-section {
   padding: 8rem 0;
