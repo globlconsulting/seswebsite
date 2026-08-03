@@ -868,9 +868,12 @@ async function loadAdminApplications() {
     let approvedHtml = '';
     let awaitingHtml = '';
 
+    window.adminApplicationsMap = {};
+
     qSnap.forEach(docSnap => {
       const app = docSnap.data();
       const appId = docSnap.id;
+      window.adminApplicationsMap[appId] = app;
 
       const name = escapeHTML(app.fullName || 'No Name');
       const email = escapeHTML(app.email || 'No Email');
@@ -905,20 +908,6 @@ async function loadAdminApplications() {
       `;
 
       const exp = escapeHTML(app.experience || 'No experience provided');
-      const clientele = escapeHTML(app.clientele || 'Not Selected');
-      const industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : 'None';
-      const referrer = escapeHTML(app.referrer || 'None');
-      const headshotUrl = app.headshotUrl ? escapeHTML(app.headshotUrl) : '';
-
-      const appDetailsHtml = `
-        <div style="font-size:0.85rem; line-height: 1.4; max-width: 280px; white-space: normal; word-break: break-word;">
-          <strong>Exp:</strong> ${exp}<br/>
-          <strong>Clientele:</strong> ${clientele}<br/>
-          <strong>Industries:</strong> ${industries}<br/>
-          <strong>Referrer:</strong> ${referrer}
-          ${headshotUrl ? `<br/><a href="${headshotUrl}" target="_blank" style="color:#c8a97e; font-weight:bold; display:inline-flex; align-items:center; gap:3px; margin-top:5px;">🖼 View Photo</a>` : ''}
-        </div>
-      `;
 
       if (app.status === 'pending') {
         pendingCount++;
@@ -937,11 +926,11 @@ async function loadAdminApplications() {
 
         pendingHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
-            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px;"><strong class="admin-app-name-link" data-id="${appId}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view full application answers">${name}</strong></td>
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px;">${appDetailsHtml}</td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
               ${actionButtons}
               <button class="admin-app-decline-btn" data-id="${appId}" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Decline</button>
@@ -952,11 +941,11 @@ async function loadAdminApplications() {
         awaitingCount++;
         awaitingHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
-            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px;"><strong class="admin-app-name-link" data-id="${appId}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view full application answers">${name}</strong></td>
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px;">${appDetailsHtml}</td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px; display: flex; gap: 10px; align-items: center; min-height: 80px; flex-wrap: wrap;">
               <button class="admin-app-payment-invite-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">Resend Link</button>
               <button class="admin-app-direct-approve-btn" data-id="${appId}" data-email="${email.toLowerCase()}" data-name="${name}" style="background:transparent; border:1px solid #4ade80; color:#4ade80; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Confirm payment has been received and approve account">Confirm Paid</button>
@@ -977,11 +966,11 @@ async function loadAdminApplications() {
 
         approvedHtml += `
           <tr style="border-bottom: 1px solid #222;" data-app-id="${appId}">
-            <td style="padding: 15px;"><strong>${name}</strong></td>
+            <td style="padding: 15px;"><strong class="admin-app-name-link" data-id="${appId}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view full application answers">${name}</strong></td>
             <td style="padding: 15px; color: #888;">${email}${phone}</td>
             <td style="padding: 15px;">${companyTitleHtml}</td>
             <td style="padding: 15px;">${tierHtml}</td>
-            <td style="padding: 15px;">${appDetailsHtml}</td>
+            <td style="padding: 15px; font-size:0.85rem; max-width: 250px; white-space: normal; word-break: break-word;">${exp}</td>
             <td style="padding: 15px;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <button class="admin-app-send-invite-btn" data-email="${email.toLowerCase()}" data-name="${name}" style="background:#4ade80; color:black; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Copy template & send invite email">✉ Send Invite</button>
@@ -1253,7 +1242,87 @@ async function loadAdminApplications() {
           e.target.disabled = false;
         }
       });
+    // Name Click Event Handler (Opens Application Details Modal)
+    document.querySelectorAll('.admin-app-name-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const appId = e.currentTarget.getAttribute('data-id');
+        const app = window.adminApplicationsMap[appId];
+        if (app) {
+          const modal = document.getElementById('app-viewer-modal');
+          const container = document.getElementById('app-viewer-container');
+          if (modal && container) {
+            const exp = escapeHTML(app.experience || 'No experience provided');
+            const clientele = escapeHTML(app.clientele || 'Not Selected');
+            const industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : 'None';
+            const referrer = escapeHTML(app.referrer || 'None');
+            const headshotUrl = app.headshotUrl ? escapeHTML(app.headshotUrl) : '';
+            const tier = escapeHTML(app.tier || 'general');
+            const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            
+            container.innerHTML = `
+              <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                ${headshotUrl ? `
+                  <div style="flex-shrink: 0;">
+                    <img src="${headshotUrl}" alt="${escapeHTML(app.fullName)}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #c8a97e;" />
+                  </div>
+                ` : `
+                  <div style="width: 100px; height: 100px; border-radius: 50%; background: #111; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #555;">👤</div>
+                `}
+                <div>
+                  <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">${escapeHTML(app.fullName || 'No Name')}</h4>
+                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Membership Applicant</p>
+                  <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Email: ${escapeHTML(app.email || '')}</p>
+                  <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(app.phone || 'N/A')}</p>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Company</span>
+                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(app.company || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Job Title</span>
+                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(app.title || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Target Clientele</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${clientele}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Referrer</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${referrer}</p>
+                </div>
+              </div>
+              
+              <div style="margin-top: 15px;">
+                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Industries</span>
+                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #222;">${industries}</p>
+              </div>
+              
+              <div style="margin-top: 15px;">
+                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Experience & Background</span>
+                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 12px; border-radius: 4px; border: 1px solid #222; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${exp}</p>
+              </div>
+            `;
+            modal.style.display = 'flex';
+          }
+        }
+      });
     });
+
+    // Close Modal listeners
+    const closeBtn = document.getElementById('close-app-viewer-modal-btn');
+    const modal = document.getElementById('app-viewer-modal');
+    if (closeBtn && modal) {
+      closeBtn.onclick = () => { modal.style.display = 'none'; };
+      window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  }
 
   } catch (err) {
     console.error("Admin applications load error", err);
