@@ -690,10 +690,13 @@ async function loadAdminUsers() {
       const a = aDoc.data();
       if (a.email) appDataMap.set(a.email.toLowerCase().trim(), a);
     });
+
+    window.adminUsersMap = {};
     
     qSnap.forEach(docSnap => {
       const u = docSnap.data();
       const uid = docSnap.id;
+      window.adminUsersMap[uid] = u;
       const uEmail = (u.email || '').toLowerCase().trim();
       
       let name = u.name || '';
@@ -739,7 +742,7 @@ async function loadAdminUsers() {
       
       html += `
         <tr style="border-bottom: 1px solid #222;">
-          <td style="padding: 10px;">${escapeHTML(displayName)}</td>
+          <td style="padding: 10px;"><strong class="admin-user-name-link" data-uid="${uid}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view user profile details">${escapeHTML(displayName)}</strong></td>
           <td style="padding: 10px; color: #888;">${escapeHTML(u.email || 'No Email')}</td>
           <td style="padding: 10px;">
             <select class="admin-tier-select" data-uid="${uid}" style="background:#050505; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
@@ -814,6 +817,110 @@ async function loadAdminUsers() {
         });
       });
     }
+
+    // User Name Click Event Handler (Opens Profile/Application details popup)
+    document.querySelectorAll('.admin-user-name-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const uid = e.currentTarget.getAttribute('data-uid');
+        const user = window.adminUsersMap[uid];
+        if (user) {
+          const modal = document.getElementById('app-viewer-modal');
+          const container = document.getElementById('app-viewer-container');
+          if (modal && container) {
+            const userEmail = (user.email || '').trim().toLowerCase();
+            
+            // Check if they have an original application document
+            let exp = escapeHTML(user.bio || 'No profile bio provided');
+            let clientele = 'Not Selected';
+            let industries = escapeHTML(user.industry || 'None');
+            let referrer = 'None';
+            let headshotUrl = user.photoUrl || '';
+            
+            // Try to pull fields from application document if map exists
+            if (window.adminApplicationsMap) {
+              const app = Object.values(window.adminApplicationsMap).find(a => (a.email || '').trim().toLowerCase() === userEmail);
+              if (app) {
+                exp = escapeHTML(app.experience || user.bio || 'No experience provided');
+                clientele = escapeHTML(app.clientele || 'Not Selected');
+                industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : escapeHTML(user.industry || 'None');
+                referrer = escapeHTML(app.referrer || 'None');
+                headshotUrl = app.headshotUrl || user.photoUrl || '';
+              }
+            }
+            
+            const tier = escapeHTML(user.membershipTier || 'general');
+            const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            
+            container.innerHTML = `
+              <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                ${headshotUrl ? `
+                  <div style="flex-shrink: 0;">
+                    <img src="${headshotUrl}" alt="${escapeHTML(user.name)}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #c8a97e;" />
+                  </div>
+                ` : `
+                  <div style="width: 100px; height: 100px; border-radius: 50%; background: #111; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #555;">👤</div>
+                `}
+                <div>
+                  <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">${escapeHTML(user.name || 'No Name')}</h4>
+                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (Registered)</p>
+                  <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Email: ${escapeHTML(user.email || '')}</p>
+                  <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(user.contactPhone || 'N/A')}</p>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Company</span>
+                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(user.company || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Job Title</span>
+                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(user.title || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Target Clientele</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${clientele}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Referrer</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${referrer}</p>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Location</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${escapeHTML(user.location || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Looking For</span>
+                  <p style="margin: 3px 0 0 0; color: #fff;">${escapeHTML(user.lookingfor || 'N/A')}</p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">LinkedIn</span>
+                  <p style="margin: 3px 0 0 0;"><a href="${escapeHTML(user.linkedin || '#')}" target="_blank" style="color: #c8a97e;">${user.linkedin ? 'Visit LinkedIn' : 'N/A'}</a></p>
+                </div>
+                <div>
+                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Website</span>
+                  <p style="margin: 3px 0 0 0;"><a href="${escapeHTML(user.website || '#')}" target="_blank" style="color: #c8a97e;">${user.website ? 'Visit Website' : 'N/A'}</a></p>
+                </div>
+              </div>
+              
+              <div style="margin-top: 15px;">
+                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Industries</span>
+                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #222;">${industries}</p>
+              </div>
+              
+              <div style="margin-top: 15px;">
+                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Profile Bio & Experience</span>
+                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 12px; border-radius: 4px; border: 1px solid #222; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${exp}</p>
+              </div>
+            `;
+            modal.style.display = 'flex';
+          }
+        }
+      });
+    });
   } catch (err) {
     console.error("Admin user load error", err);
     tbody.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading users</td></tr>`;
