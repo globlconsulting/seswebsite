@@ -99,7 +99,8 @@ onAuthStateChanged(auth, async (user) => {
             industry: industry,
             photoUrl: headshotUrl,
             contactPhone: contactPhone,
-            contactEmail: contactEmail
+            contactEmail: contactEmail,
+            createdAt: new Date()
           });
 
           try {
@@ -120,6 +121,11 @@ onAuthStateChanged(auth, async (user) => {
         const data = docSnap.data();
         userTier = data.membershipTier || 'general';
         currentUserName = data.name || "Anonymous";
+
+        // Auto-heal missing createdAt field
+        if (!data.createdAt) {
+          setDoc(userRef, { createdAt: new Date() }, { merge: true }).catch(console.error);
+        }
 
         // Check if today is the user's birthday and post update if not already posted today
         if (data.birthday && data.name) {
@@ -225,6 +231,7 @@ onAuthStateChanged(auth, async (user) => {
         // Load profile data
         loadUserProfile(user.uid);
         if (typeof loadUpdates === 'function') loadUpdates();
+        if (typeof loadNewMembersThisWeek === 'function') loadNewMembersThisWeek();
         
         // Enforce connect restriction dynamically
         const content = document.getElementById('connect-content');
@@ -840,6 +847,66 @@ function loadUpdates() {
     });
   }, (err) => {
     console.error("loadUpdates query failed:", err);
+  });
+}
+
+function loadNewMembersThisWeek() {
+  const newMembersContainer = document.getElementById('new-members-list');
+  if (!newMembersContainer) return;
+
+  const usersRef = collection(db, "users");
+  
+  getDocs(usersRef).then((querySnapshot) => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const newMembers = [];
+
+    querySnapshot.forEach((docSnap) => {
+      const u = docSnap.data();
+      let joinedDate = null;
+      if (u.createdAt) {
+        joinedDate = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+      }
+      
+      if (joinedDate && joinedDate >= oneWeekAgo) {
+        newMembers.push({
+          uid: docSnap.id,
+          name: u.name || 'Member',
+          industry: u.industry || 'General',
+          photoUrl: u.photoUrl || '',
+          joinedDate: joinedDate
+        });
+      }
+    });
+
+    newMembers.sort((a, b) => b.joinedDate - a.joinedDate);
+
+    if (newMembers.length === 0) {
+      newMembersContainer.innerHTML = `
+        <p style="color: #666; font-size: 0.85rem; margin: 0; text-align: center; padding: 15px 0;">No new members this week. Stay tuned!</p>
+      `;
+      return;
+    }
+
+    newMembersContainer.innerHTML = newMembers.map(m => `
+      <div style="display: flex; align-items: center; gap: 12px; background: rgba(200, 169, 126, 0.03); border: 1px solid #222; padding: 10px; border-radius: 6px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid #c8a97e; display: flex; align-items: center; justify-content: center; background: #050505; flex-shrink: 0;">
+          ${m.photoUrl ? `
+            <img src="${m.photoUrl}" alt="${escapeHTML(m.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+          ` : `
+            <span style="font-size: 1.1rem; color: #555;">👤</span>
+          `}
+        </div>
+        <div style="display: flex; flex-direction: column; overflow: hidden;">
+          <strong style="color: #fff; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(m.name)}</strong>
+          <span style="color: #c8a97e; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(m.industry)}</span>
+        </div>
+      </div>
+    `).join('');
+
+  }).catch((err) => {
+    console.error("Failed to load new members this week:", err);
+    newMembersContainer.innerHTML = '<p style="color: #ef4444; font-size: 0.8rem; margin: 0; text-align: center;">Error loading new members.</p>';
   });
 }
 
