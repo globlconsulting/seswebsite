@@ -145,35 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // (Moved to members.js to support Firestore database applications integration)
 
 
-  // --- NEWSLETTER FORM SUBMISSION HANDLING ---
-  const newsletterForms = document.querySelectorAll('.newsletter-form');
-  newsletterForms.forEach(form => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const emailInput = form.querySelector('input[type="email"]');
-      const email = emailInput ? emailInput.value.trim() : '';
-
-      if (!validateEmail(email)) {
-        alert('Please enter a valid email address.');
-        return;
-      }
-
-      const payload = {
-        person: {
-          emails: [{ value: email }],
-          tags: ["SES_Newsletter_Subscriber"]
-        },
-        source: "SES Website - Newsletter",
-        system: "Custom",
-        type: "Inquiry"
-      };
-
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.textContent : '→';
-      sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", form, null);
-    });
-  });
-
   // --- FLOATING CABINET NEWSLETTER WIDGET ---
   const widgetHtml = `
     <div id="floating-newsletter-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -185,14 +156,21 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="floating-newsletter-close" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #c8a97e; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1;">✕</button>
         <h4 style="color: #c8a97e; margin: 0 0 10px 0; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;">Newsletter</h4>
         <p style="color: #ccc; font-size: 0.9rem; line-height: 1.4; margin: 0 0 15px 0;">Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
-        <form class="newsletter-form" id="floating-newsletter-form" style="display: flex; align-items: center; position: relative; border-bottom: 1px solid #333; padding-bottom: 8px; margin: 0;">
-          <input type="email" placeholder="Your professional email" required style="background: transparent; border: none; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-right: 30px; font-family: inherit;">
-          <button type="submit" style="background: transparent; border: none; color: #c8a97e; cursor: pointer; font-size: 1.1rem; position: absolute; right: 0; padding: 0; outline: none; display: flex; align-items: center; justify-content: center; height: 100%;">➔</button>
+        <form class="newsletter-form" id="floating-newsletter-form" style="display: flex; flex-direction: column; gap: 12px; margin: 0;">
+          <div style="display: flex; gap: 10px;">
+            <input type="text" class="newsletter-firstname" placeholder="First name" required style="background: transparent; border: none; border-bottom: 1px solid #333; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-bottom: 6px; font-family: inherit;">
+            <input type="text" class="newsletter-lastname" placeholder="Last name" required style="background: transparent; border: none; border-bottom: 1px solid #333; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-bottom: 6px; font-family: inherit;">
+          </div>
+          <div style="position: relative; border-bottom: 1px solid #333; padding-bottom: 8px;">
+            <input type="email" placeholder="Your professional email" required style="background: transparent; border: none; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-right: 30px; font-family: inherit;">
+            <button type="submit" style="background: transparent; border: none; color: #c8a97e; cursor: pointer; font-size: 1.1rem; position: absolute; right: 0; bottom: 8px; padding: 0; outline: none; display: flex; align-items: center; justify-content: center;">➔</button>
+          </div>
         </form>
       </div>
     </div>
   `;
 
+  // Inject widget first so it is present in document query selectors
   if (!document.getElementById('floating-newsletter-widget')) {
     const div = document.createElement('div');
     div.innerHTML = widgetHtml;
@@ -213,42 +191,77 @@ document.addEventListener('DOMContentLoaded', () => {
         btnOpen.style.display = 'flex';
       });
     }
-
-    const floatForm = document.getElementById('floating-newsletter-form');
-    if (floatForm) {
-      floatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const emailInput = floatForm.querySelector('input[type="email"]');
-        const email = emailInput ? emailInput.value.trim() : '';
-
-        if (!validateEmail(email)) {
-          alert('Please enter a valid email address.');
-          return;
-        }
-
-        const payload = {
-          person: {
-            emails: [{ value: email }],
-            tags: ["SES_Newsletter_Subscriber"]
-          },
-          source: "SES Website - Floating Newsletter",
-          system: "Custom",
-          type: "Inquiry"
-        };
-
-        const submitBtn = floatForm.querySelector('button[type="submit"]');
-        const originalText = '➔';
-        
-        sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", floatForm, null)
-          .then(() => {
-            setTimeout(() => {
-              cabinet.style.display = 'none';
-              btnOpen.style.display = 'flex';
-            }, 1000);
-          });
-      });
-    }
   }
+
+  // --- NEWSLETTER FORM SUBMISSION & DYNAMIC NAME PREPENDING ---
+  const newsletterForms = document.querySelectorAll('.newsletter-form');
+  
+  newsletterForms.forEach(form => {
+    // For non-floating forms (like footer forms), prepend first/last name inputs dynamically
+    if (form.id !== 'floating-newsletter-form') {
+      const nameContainer = document.createElement('div');
+      nameContainer.style.display = 'flex';
+      nameContainer.style.gap = '10px';
+      nameContainer.style.marginBottom = '15px';
+      nameContainer.innerHTML = `
+        <input type="text" class="newsletter-firstname" placeholder="First name" required style="background: transparent; border: none; border-bottom: 1px solid #333; color: white; padding: 6px 0; width: 50%; outline: none; font-size: 0.95rem; font-family: inherit;">
+        <input type="text" class="newsletter-lastname" placeholder="Last name" required style="background: transparent; border: none; border-bottom: 1px solid #333; color: white; padding: 6px 0; width: 50%; outline: none; font-size: 0.95rem; font-family: inherit;">
+      `;
+      form.insertBefore(nameContainer, form.firstChild);
+    }
+
+    // Handle unified submit listener
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const emailInput = form.querySelector('input[type="email"]');
+      const email = emailInput ? emailInput.value.trim() : '';
+
+      const firstNameInput = form.querySelector('.newsletter-firstname');
+      const lastNameInput = form.querySelector('.newsletter-lastname');
+      const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+      const lastName = lastNameInput ? lastNameInput.value.trim() : '';
+
+      if (!firstName || !lastName) {
+        alert('Please fill out both your first and last name.');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const payload = {
+        person: {
+          firstName: firstName,
+          lastName: lastName,
+          emails: [{ value: email }],
+          tags: ["SES_Newsletter_Subscriber"]
+        },
+        source: form.id === 'floating-newsletter-form' ? "SES Website - Floating Newsletter" : "SES Website - Newsletter",
+        system: "Custom",
+        type: "Inquiry"
+      };
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : '→';
+      
+      sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", form, null)
+        .then(() => {
+          if (form.id === 'floating-newsletter-form') {
+            const btnOpen = document.getElementById('floating-newsletter-btn');
+            const cabinet = document.getElementById('floating-newsletter-cabinet');
+            setTimeout(() => {
+              if (cabinet && btnOpen) {
+                cabinet.style.display = 'none';
+                btnOpen.style.display = 'flex';
+              }
+            }, 1500);
+          }
+        });
+    });
+  });
 });
 
 // ============================================================
