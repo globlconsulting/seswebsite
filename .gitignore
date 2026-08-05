@@ -2,3 +2,4 @@ node_modules/
 package-lock.json
 check_app_scratch.js
 check_app_scratch_url.js
+node_modules

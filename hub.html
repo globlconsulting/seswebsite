@@ -238,6 +238,77 @@
         </div>
       </section>
 
+      <!-- PRIVATE GROUP DETAIL PAGE -->
+      <section id="group-detail" class="hub-section" style="display: none;">
+        <div style="margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 15px; display: flex; align-items: center; gap: 15px;">
+          <button id="btn-back-to-connect" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.background='#c8a97e'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#c8a97e';">← Back</button>
+          <div>
+            <h2 id="group-detail-title" style="margin: 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Private Group Feed</h2>
+            <p id="group-detail-desc" style="margin: 3px 0 0 0; color: #888;">Private discussion and updates space for members.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start;">
+          <!-- Left Column: Create Post & Feed -->
+          <div>
+            <!-- Create Post Card -->
+            <div style="background: #111; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+              <h3 style="color: #c8a97e; margin-top: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">Share a new post</h3>
+              
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <textarea id="group-post-text" rows="3" placeholder="What's on your mind? Share updates, insights, or questions..." style="width: 100%; padding: 12px; background: #050505; border: 1px solid #333; color: white; border-radius: 4px; font-family: inherit; font-size: 0.95rem; resize: vertical; box-sizing: border-box;"></textarea>
+                
+                <!-- Optional Link -->
+                <div style="display: flex; align-items: center; gap: 10px; background: #050505; border: 1px solid #222; border-radius: 4px; padding: 5px 10px;">
+                  <span style="color: #666; font-size: 0.9rem;">🔗</span>
+                  <input type="url" id="group-post-link" placeholder="Add optional link URL (https://...)" style="flex: 1; background: transparent; border: none; color: white; font-size: 0.9rem; outline: none; padding: 5px 0;">
+                </div>
+
+                <!-- Image Attachment Dropzone/Selector -->
+                <div style="background: #050505; border: 1px solid #222; border-radius: 4px; padding: 10px;">
+                  <label for="group-post-image" id="group-post-image-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #aaa; font-size: 0.85rem; user-select: none;">
+                    <span style="font-size: 1.2rem;">📷</span>
+                    <span id="group-post-image-status">Attach an image (optional)</span>
+                    <input type="file" id="group-post-image" accept="image/*" style="display: none;">
+                  </label>
+                  <div id="group-post-image-preview-wrapper" style="display: none; margin-top: 10px; position: relative; width: 100px; height: 100px; border-radius: 4px; overflow: hidden; border: 1px solid #333;">
+                    <img id="group-post-image-preview" style="width: 100%; height: 100%; object-fit: cover;">
+                    <button id="btn-remove-post-image" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); border: none; color: red; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; font-weight: bold;">✕</button>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                  <span id="group-post-status" style="color: #4ade80; font-size: 0.85rem; display: none;">Posting...</span>
+                  <button id="btn-submit-group-post" style="background: #c8a97e; border: none; color: black; font-weight: bold; padding: 10px 24px; border-radius: 4px; cursor: pointer; font-size: 0.95rem; font-family: inherit; margin-left: auto; transition: all 0.2s;">Publish Post</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Posts List Feed -->
+            <div id="group-posts-feed" style="display: flex; flex-direction: column; gap: 20px;">
+              <!-- Dynamic group posts populated by JS -->
+              <p style="color: #666;">Loading group discussion feed...</p>
+            </div>
+          </div>
+
+          <!-- Right Column: Group Info / Members -->
+          <div style="background: #111; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+            <h3 style="color: #c8a97e; margin-top: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">About this Group</h3>
+            <p style="color: #aaa; font-size: 0.85rem; line-height: 1.5; margin: 0 0 15px 0;">This is an exclusive private forum for member connections and industry discussions. Everything shared here remains strictly confidential to the society.</p>
+            <div style="font-size: 0.85rem; color: #888;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Confidentiality:</span>
+                <span style="color: #4ade80; font-weight: bold;">NDA Secure</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Access Level:</span>
+                <span style="color: #60a5fa; font-weight: bold;">Verified Members Only</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- MY PROFILE -->
       <section id="profile" class="hub-section">
         <div style="margin-bottom: 30px;">
@@ -277,27 +348,138 @@
               <textarea id="profile-bio" rows="4" placeholder="Briefly describe your experience and what you are looking for..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
             </div>
 
-            <!-- Contact Links (Restricted) -->
+            <!-- Professional Details & Background -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+              <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.15rem; font-family: var(--font-serif); color: #c8a97e; letter-spacing: 1px; text-transform: uppercase;">Professional Details & Background</h3>
+              
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Job Title</label>
+                <input type="text" id="profile-title" placeholder="e.g. Founder, VP, Senior Advisor" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Referred By</label>
+                <input type="text" id="profile-referrer" placeholder="Name of person who referred you" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">How did you hear about SES?</label>
+                <select id="profile-heard-about" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Referral from a colleague">Referral from a colleague</option>
+                  <option value="Social media">Social media</option>
+                  <option value="The Sellebrity 2.0 book">The Sellebrity 2.0 book</option>
+                  <option value="Podcast or media feature">Podcast or media feature</option>
+                  <option value="Industry event">Industry event</option>
+                  <option value="Web search">Web search</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Previous Industry Experience</label>
+                <textarea id="profile-prev-experience" rows="3" placeholder="Describe your background working with sports and entertainment clients..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Primary S&E Clientele</label>
+                <select id="profile-clientele" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Athletes">Athletes</option>
+                  <option value="Entertainers">Entertainers</option>
+                  <option value="Both">Both</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Years Servicing S&E Clients</label>
+                <select id="profile-years-servicing" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Less than 1 year">Less than 1 year</option>
+                  <option value="1–3 years">1–3 years</option>
+                  <option value="3–5 years">3–5 years</option>
+                  <option value="5–10 years">5–10 years</option>
+                  <option value="10+ years">10+ years</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">S&E Clients Served in Last 3 Years</label>
+                <select id="profile-clients-served" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="None yet">None yet</option>
+                  <option value="1–5">1–5</option>
+                  <option value="5–10">5–10</option>
+                  <option value="10–20">10–20</option>
+                  <option value="20+">20+</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Education, Certifications & Board Positions</label>
+                <textarea id="profile-education" rows="3" placeholder="List relevant degrees, licenses, certifications, or board positions..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Have you ever played sports or worked as an entertainer?</label>
+                <select id="profile-played-sports" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Media Links</label>
+                <input type="text" id="profile-media-links" placeholder="LinkedIn, Instagram, press features, podcast appearances..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Professional References</label>
+                <textarea id="profile-references" rows="3" placeholder="Please provide 2-3 professional references (name, title, company, email/phone)..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">NDA / Confidentiality Protocol in Place?</label>
+                <select id="profile-nda" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="In progress">In progress</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Open to Referral Partnerships?</label>
+                <select id="profile-referrals" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <option value="">Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="Open to discussing">Open to discussing</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Why are you interested in joining SES?</label>
+                <textarea id="profile-why-joining" rows="3" placeholder="Tell us about your goals and what you hope to gain and contribute..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; font-size: 1rem; resize: vertical;"></textarea>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Favorite Sports Team</label>
+                <input type="text" id="profile-fav-team" placeholder="e.g. LA Lakers" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+              </div>
+            </div>
+
+            <!-- Contact & Social Links -->
             <div id="profile-contact-links-container" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
-              <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.1rem;">Contact & Social Links</h3>
-              <p id="contact-restricted-msg" style="color: #888; font-size: 0.9rem; margin-bottom: 20px; display: none;">Contact links are a premium feature of Sellebrity Guild & Council membership tiers.</p>
+              <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.15rem; font-family: var(--font-serif); color: #c8a97e; letter-spacing: 1px; text-transform: uppercase;">Contact & Social Links</h3>
               
               <div id="contact-fields">
                 <div style="margin-bottom: 20px;">
-                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">LinkedIn URL</label>
-                  <input type="url" id="profile-linkedin" placeholder="https://linkedin.com/in/..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">LinkedIn URL</label>
+                  <input type="url" id="profile-linkedin" placeholder="https://linkedin.com/in/..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
                 </div>
                 <div style="margin-bottom: 20px;">
-                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Website URL</label>
-                  <input type="url" id="profile-website" placeholder="https://..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Website URL</label>
+                  <input type="url" id="profile-website" placeholder="https://..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
                 </div>
                 <div style="margin-bottom: 20px;">
-                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Professional Email</label>
-                  <input type="email" id="profile-contact-email" placeholder="contact@company.com" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Professional Email</label>
+                  <input type="email" id="profile-contact-email" placeholder="contact@company.com" style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
+                  <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="profile-hide-email" style="cursor: pointer;">
+                    <label for="profile-hide-email" style="color: #aaa; font-size: 0.85rem; cursor: pointer; user-select: none;">Hide my email from the directory</label>
+                  </div>
                 </div>
                 <div style="margin-bottom: 20px;">
-                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem;">Contact Phone</label>
-                  <input type="tel" id="profile-contact-phone" placeholder="+1..." style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px;">
+                  <label style="display:block; margin-bottom:8px; color:#aaa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Contact Phone</label>
+                  <input type="tel" id="profile-contact-phone" placeholder="+1..." style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">
                 </div>
               </div>
             </div>
@@ -589,6 +771,7 @@
                 <th style="padding: 15px; color: #c8a97e;">Membership Tier</th>
                 <th style="padding: 15px; color: #c8a97e;">Is Admin?</th>
                 <th style="padding: 15px; color: #c8a97e;">CSEP?</th>
+                <th style="padding: 15px; color: #c8a97e;">Spotlight?</th>
                 <th style="padding: 15px; color: #c8a97e;">Action</th>
               </tr>
             </thead>
@@ -799,6 +982,32 @@
       <div style="display:flex; justify-content:flex-end; gap:10px;">
         <button id="btn-close-update" style="background:transparent; border:1px solid #555; color:white; padding:8px 15px; border-radius:4px; cursor:pointer;">Cancel</button>
         <button id="btn-submit-update" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:8px 15px; border-radius:4px; cursor:pointer;">Post Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Modal -->
+  <div id="comments-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1200; justify-content:center; align-items:center;">
+    <div style="background:#0d0d0d; padding:30px; border-radius:8px; border:1px solid #c8a97e; width:100%; max-width:500px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;">
+      <button id="btn-close-comments" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #c8a97e; font-size: 1.5rem; cursor: pointer; padding: 5px;">✕</button>
+      
+      <h3 style="color:#c8a97e; margin-top:0; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; font-family: var(--font-serif); font-size: 1.4rem;">Update & Comments</h3>
+      
+      <!-- Update Details Card -->
+      <div id="comment-modal-update-card" style="background: rgba(200, 169, 126, 0.05); border: 1px solid #333; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+        <!-- Filled by JS -->
+      </div>
+      
+      <!-- Comments Section -->
+      <h4 style="color:#fff; margin:0 0 10px 0; font-size: 1rem;">Comments</h4>
+      <div id="comment-modal-comments-list" style="flex: 1; overflow-y: auto; background: #050505; border: 1px solid #222; border-radius: 4px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 150px;">
+        <!-- Filled by JS -->
+      </div>
+      
+      <!-- Post Comment Form -->
+      <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <textarea id="comment-modal-input" rows="2" placeholder="Write a comment..." style="flex: 1; padding: 10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize: none;"></textarea>
+        <button id="btn-submit-comment" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:10px 20px; border-radius:4px; cursor:pointer; height: fit-content; align-self: stretch; display: flex; align-items: center; justify-content: center;">Send</button>
       </div>
     </div>
   </div>

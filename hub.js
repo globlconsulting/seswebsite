@@ -1,6 +1,7 @@
-import { auth, db } from './firebase.js';
+import { auth, db, storage } from './firebase.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, limit, serverTimestamp, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { learningTracks } from './learnData.js';
 import { weeklyIntelligence } from './intelData.js';
 
@@ -19,81 +20,90 @@ let userFavoriteArticles = [];
 let userReadLaterArticles = [];
 let userBookmarkedIntel = [];
 
+let userSnapshotUnsubscribe = null;
+let updatesSnapshotUnsubscribe = null;
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUserUid = user.uid;
     userEmailDisplay.innerText = user.email || user.phoneNumber || 'Authenticated User';
-    
-    // Check/create user document
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-      if (!docSnap.exists()) {
-        const userEmail = (user.email || '').trim().toLowerCase();
-        let tier = 'general';
-        let name = user.displayName || 'New Member';
-        let company = '';
-        let title = '';
-        let industry = '';
-        let headshotUrl = '';
-        let contactPhone = '';
-        let contactEmail = userEmail;
-        
-        try {
-          const approvedRef = doc(db, "approved_emails", userEmail);
-          const approvedSnap = await getDoc(approvedRef);
-          if (approvedSnap.exists()) {
-            tier = approvedSnap.data().membershipTier || 'general';
-            name = approvedSnap.data().name || name;
+
+    // Unsubscribe from previous listener if any
+    if (userSnapshotUnsubscribe) {
+      userSnapshotUnsubscribe();
+    }
+
+    const userRef = doc(db, "users", user.uid);
+
+    // Setup real-time listener on user doc
+    userSnapshotUnsubscribe = onSnapshot(userRef, async (docSnap) => {
+      try {
+        if (!docSnap.exists()) {
+          const userEmail = (user.email || '').trim().toLowerCase();
+          let tier = 'general';
+          let name = user.displayName || 'New Member';
+          let company = '';
+          let title = '';
+          let industry = '';
+          let headshotUrl = '';
+          let contactPhone = '';
+          let contactEmail = userEmail;
+          
+          try {
+            const approvedRef = doc(db, "approved_emails", userEmail);
+            const approvedSnap = await getDoc(approvedRef);
+            if (approvedSnap.exists()) {
+              tier = approvedSnap.data().membershipTier || 'general';
+              name = approvedSnap.data().name || name;
+            }
+
+            // Fallback/enrichment from the applications document
+            const appsRef = collection(db, "applications");
+            const appQ = query(appsRef, where("email", "==", userEmail));
+            const appQSnap = await getDocs(appQ);
+            appQSnap.forEach((appDoc) => {
+              const appData = appDoc.data();
+              if (appData.fullName) name = appData.fullName;
+              if (appData.company) company = appData.company;
+              if (appData.title) title = appData.title;
+              if (appData.industries && appData.industries.length > 0) {
+                industry = appData.industries.join(', ');
+              }
+              if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
+              if (appData.phone) contactPhone = appData.phone;
+            });
+
+            // Mark email as registered
+            await setDoc(approvedRef, {
+              registered: true,
+              registeredAt: serverTimestamp()
+            }, { merge: true });
+
+            // Also update the application status to 'registered'
+            appQSnap.forEach(async (appDoc) => {
+              await setDoc(appDoc.ref, { status: 'registered' }, { merge: true });
+            });
+
+          } catch(approvedErr) {
+            console.error("Error reading approved email tier:", approvedErr);
           }
 
-          // Fallback/enrichment from the applications document
-          const appsRef = collection(db, "applications");
-          const appQ = query(appsRef, where("email", "==", userEmail));
-          const appQSnap = await getDocs(appQ);
-          appQSnap.forEach((appDoc) => {
-            const appData = appDoc.data();
-            if (appData.fullName) name = appData.fullName;
-            if (appData.company) company = appData.company;
-            if (appData.title) title = appData.title;
-            if (appData.industries && appData.industries.length > 0) {
-              industry = appData.industries.join(', ');
-            }
-            if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
-            if (appData.phone) contactPhone = appData.phone;
+          const isDefaultAdmin = (user.email === 'admin@ses.com');
+          await setDoc(userRef, {
+            name: name,
+            email: user.email,
+            membershipTier: tier,
+            isAdmin: isDefaultAdmin,
+            company: company,
+            title: title,
+            industry: industry,
+            photoUrl: headshotUrl,
+            contactPhone: contactPhone,
+            contactEmail: contactEmail
           });
-
-          // Mark email as registered
-          await setDoc(approvedRef, {
-            registered: true,
-            registeredAt: serverTimestamp()
-          }, { merge: true });
-
-          // Also update the application status to 'registered'
-          appQSnap.forEach(async (appDoc) => {
-            await setDoc(appDoc.ref, { status: 'registered' }, { merge: true });
-          });
-
-        } catch(approvedErr) {
-          console.error("Error reading approved email tier:", approvedErr);
+          return; // The snapshot listener will fire again with the created document
         }
 
-        const isDefaultAdmin = (user.email === 'admin@ses.com');
-        await setDoc(userRef, {
-          name: name,
-          email: user.email,
-          membershipTier: tier,
-          isAdmin: isDefaultAdmin,
-          company: company,
-          title: title,
-          industry: industry,
-          photoUrl: headshotUrl,
-          contactPhone: contactPhone,
-          contactEmail: contactEmail
-        });
-        userTier = tier;
-        isAdmin = isDefaultAdmin;
-      } else {
         const data = docSnap.data();
         userTier = data.membershipTier || 'general';
         currentUserName = data.name || "Anonymous";
@@ -101,7 +111,6 @@ onAuthStateChanged(auth, async (user) => {
         // Auto-heal/Enrich existing user profile if name is missing or default
         if (!data.name || data.name === 'New Member' || data.name === 'Anonymous') {
           const userEmail = (user.email || '').trim().toLowerCase();
-          
           let name = data.name || 'New Member';
           let company = data.company || '';
           let title = data.title || '';
@@ -138,18 +147,11 @@ onAuthStateChanged(auth, async (user) => {
             }, { merge: true });
 
             currentUserName = name;
-            
-            // Force refresh profile UI
-            setTimeout(() => {
-              if (typeof loadUserProfile === 'function') loadUserProfile(user.uid);
-              loadMembers();
-            }, 100);
-
           } catch (enrichErr) {
             console.error("Auto-enrichment failed:", enrichErr);
           }
         }
-        
+
         // Auto-grant admin for testing
         if (user.email === 'admin@ses.com' && !data.isAdmin) {
           await setDoc(userRef, { isAdmin: true }, { merge: true });
@@ -157,56 +159,94 @@ onAuthStateChanged(auth, async (user) => {
         } else {
           isAdmin = !!data.isAdmin;
         }
+
+        // Unhide specialized tabs
+        const writeTab = document.getElementById('nav-write-article');
+        if (writeTab) {
+          if (userTier === 'guild' || userTier === 'council') {
+            writeTab.style.display = 'block';
+          } else {
+            writeTab.style.display = 'none';
+          }
+        }
+        
+        const adminTab = document.getElementById('nav-admin-panel');
+        if (adminTab) {
+          if (isAdmin) {
+            adminTab.style.display = 'block';
+          } else {
+            adminTab.style.display = 'none';
+          }
+        }
+
+        loader.style.display = 'none';
+
+        // Load profile data
+        loadUserProfile(user.uid);
+        if (typeof loadUpdates === 'function') loadUpdates();
+        
+        // Enforce connect restriction dynamically
+        const content = document.getElementById('connect-content');
+        const restrict = document.getElementById('connect-restricted');
+        if (isAdmin || (userTier !== 'general' && userTier !== 'sellebrity')) {
+          if (content) content.style.display = 'grid';
+          if (restrict) restrict.style.display = 'none';
+          // Load the member directory and opportunities
+          loadMembers();
+          loadOpportunities();
+        } else {
+          if (content) content.style.display = 'none';
+          if (restrict) {
+            restrict.style.display = 'block';
+            if (userTier === 'sellebrity') {
+              restrict.innerHTML = `
+                <span style="font-size: 3rem;">🔒</span>
+                <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Upgrade Required</h2>
+                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">Upgrade to Sellebrity Council to access the Member Directory.</p>
+                <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Upgrade Now</button>
+              `;
+            } else {
+              restrict.innerHTML = `
+                <span style="font-size: 3rem;">🔒</span>
+                <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Exclusive Directory</h2>
+                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">The Member Directory is exclusive to Sellebrity Guild and Council members.</p>
+                <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Apply for Sellebrity Status</button>
+              `;
+            }
+          }
+        }
+
+        // Load approved articles
+        if (typeof loadApprovedArticles === 'function') loadApprovedArticles();
+
+        // Preload admin stuff if admin
+        if (isAdmin) {
+          if (typeof loadAdminUsers === 'function') loadAdminUsers();
+          if (typeof loadAdminApplications === 'function') loadAdminApplications();
+          if (typeof loadAdminArticles === 'function') loadAdminArticles();
+        }
+
+        // Restore last active page tab
+        const activeTabId = localStorage.getItem('ses_active_tab') || 'connect';
+        const targetTab = document.querySelector(`.nav-item[data-target="${activeTabId}"]`);
+        if (targetTab) {
+          targetTab.click();
+        }
+
+      } catch (err) {
+        console.error("Error in real-time user document snapshot:", err);
       }
-    } catch (e) {
-      console.error("Error setting up user doc:", e);
-    }
-
-    // Unhide specialized tabs
-    if (userTier === 'guild' || userTier === 'council') {
-      const writeTab = document.getElementById('nav-write-article');
-      if(writeTab) writeTab.style.display = 'block';
-    }
-    if (isAdmin) {
-      const adminTab = document.getElementById('nav-admin-panel');
-      if(adminTab) adminTab.style.display = 'block';
-    }
-
-    loader.style.display = 'none';
-    
-    // Load the user's own profile data
-    loadUserProfile(user.uid);
-    // Load the member directory
-    loadMembers();
-    // Load opportunities feed
-    loadOpportunities();
-    
-    // Load approved articles
-    if(typeof loadApprovedArticles === 'function') loadApprovedArticles();
-    
-    // Preload admin stuff if admin
-    if (isAdmin) {
-      if(typeof loadAdminUsers === 'function') loadAdminUsers();
-      if(typeof loadAdminApplications === 'function') loadAdminApplications();
-      if(typeof loadAdminArticles === 'function') loadAdminArticles();
-    }
-    
-    // Enforce connect restriction if tier is general
-    if (userTier === 'general') {
-      const content = document.getElementById('connect-content');
-      const restrict = document.getElementById('connect-restricted');
-      if(content) content.style.display = 'none';
-      if(restrict) restrict.style.display = 'block';
-    }
-
-    // Restore last active page tab
-    const activeTabId = localStorage.getItem('ses_active_tab') || 'connect';
-    const targetTab = document.querySelector(`.nav-item[data-target="${activeTabId}"]`);
-    if (targetTab) {
-      targetTab.click();
-    }
+    });
 
   } else {
+    if (userSnapshotUnsubscribe) {
+      userSnapshotUnsubscribe();
+      userSnapshotUnsubscribe = null;
+    }
+    if (updatesSnapshotUnsubscribe) {
+      updatesSnapshotUnsubscribe();
+      updatesSnapshotUnsubscribe = null;
+    }
     window.location.replace('login.html');
   }
 });
@@ -283,21 +323,9 @@ async function loadUserProfile(uid) {
   if (userTier === 'general') {
     const resMsg = document.getElementById('profile-restricted');
     if(resMsg) resMsg.style.display = 'block';
-    const formElements = profileForm.elements;
-    for (let i = 0; i < formElements.length; i++) {
-      if(formElements[i].type !== 'submit') formElements[i].disabled = true;
-    }
-    const subBtn = profileForm.querySelector('button[type="submit"]');
-    if(subBtn) subBtn.disabled = true;
-  }
-
-  if (userTier === 'general' || userTier === 'sellebrity') {
-    const cMsg = document.getElementById('contact-restricted-msg');
-    if(cMsg) cMsg.style.display = 'block';
-    const cFields = document.getElementById('contact-fields');
-    if (cFields) {
-      cFields.querySelectorAll('input').forEach(f => f.disabled = true);
-    }
+  } else {
+    const resMsg = document.getElementById('profile-restricted');
+    if(resMsg) resMsg.style.display = 'none';
   }
 
   try {
@@ -311,6 +339,23 @@ async function loadUserProfile(uid) {
       document.getElementById('profile-lookingfor').value = data.lookingfor || '';
       document.getElementById('profile-bio').value = data.bio || '';
       
+      // Load professional detail fields
+      document.getElementById('profile-title').value = data.title || '';
+      document.getElementById('profile-referrer').value = data.referrer || '';
+      document.getElementById('profile-heard-about').value = data.heardAbout || '';
+      document.getElementById('profile-prev-experience').value = data.experience || '';
+      document.getElementById('profile-clientele').value = data.clientele || '';
+      document.getElementById('profile-years-servicing').value = data.yearsServicing || '';
+      document.getElementById('profile-clients-served').value = data.clientsServed || '';
+      document.getElementById('profile-education').value = data.education || '';
+      document.getElementById('profile-played-sports').value = data.playedSports || '';
+      document.getElementById('profile-media-links').value = data.mediaLinks || '';
+      document.getElementById('profile-references').value = data.references || '';
+      document.getElementById('profile-nda').value = data.nda || '';
+      document.getElementById('profile-referrals').value = data.referrals || '';
+      document.getElementById('profile-why-joining').value = data.whyJoining || '';
+      document.getElementById('profile-fav-team').value = data.favTeam || '';
+
       const linkIn = document.getElementById('profile-linkedin');
       if(linkIn) linkIn.value = data.linkedin || '';
       const web = document.getElementById('profile-website');
@@ -319,6 +364,9 @@ async function loadUserProfile(uid) {
       if(em) em.value = data.contactEmail || '';
       const ph = document.getElementById('profile-contact-phone');
       if(ph) ph.value = data.contactPhone || '';
+      
+      const hideEmailCheck = document.getElementById('profile-hide-email');
+      if (hideEmailCheck) hideEmailCheck.checked = !!data.hideEmail;
 
       // Load article progress list states
       userReadArticles = data.readArticles || [];
@@ -353,7 +401,7 @@ async function loadUserProfile(uid) {
 
 profileForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!currentUserUid || userTier === 'general') return;
+  if (!currentUserUid) return;
 
   const profileData = {
     name: document.getElementById('profile-name').value,
@@ -362,15 +410,32 @@ profileForm.addEventListener('submit', async (e) => {
     location: document.getElementById('profile-location').value,
     lookingfor: document.getElementById('profile-lookingfor').value,
     bio: document.getElementById('profile-bio').value,
+    
+    // Save professional detail fields
+    title: document.getElementById('profile-title').value,
+    referrer: document.getElementById('profile-referrer').value,
+    heardAbout: document.getElementById('profile-heard-about').value,
+    experience: document.getElementById('profile-prev-experience').value,
+    clientele: document.getElementById('profile-clientele').value,
+    yearsServicing: document.getElementById('profile-years-servicing').value,
+    clientsServed: document.getElementById('profile-clients-served').value,
+    education: document.getElementById('profile-education').value,
+    playedSports: document.getElementById('profile-played-sports').value,
+    mediaLinks: document.getElementById('profile-media-links').value,
+    references: document.getElementById('profile-references').value,
+    nda: document.getElementById('profile-nda').value,
+    referrals: document.getElementById('profile-referrals').value,
+    whyJoining: document.getElementById('profile-why-joining').value,
+    favTeam: document.getElementById('profile-fav-team').value,
+    
+    linkedin: document.getElementById('profile-linkedin').value,
+    website: document.getElementById('profile-website').value,
+    contactEmail: document.getElementById('profile-contact-email').value,
+    contactPhone: document.getElementById('profile-contact-phone').value,
+    hideEmail: document.getElementById('profile-hide-email').checked,
+    
     updatedAt: new Date()
   };
-
-  if (userTier === 'guild' || userTier === 'council') {
-    profileData.linkedin = document.getElementById('profile-linkedin').value;
-    profileData.website = document.getElementById('profile-website').value;
-    profileData.contactEmail = document.getElementById('profile-contact-email').value;
-    profileData.contactPhone = document.getElementById('profile-contact-phone').value;
-  }
 
   try {
     await setDoc(doc(db, "users", currentUserUid), profileData, { merge: true });
@@ -430,16 +495,14 @@ function renderMembers(members) {
       badge += ' <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; margin-left: 5px;">CSEP CERTIFIED</span>';
     }
 
-    if (m.membershipTier === 'guild' || m.membershipTier === 'council') {
-      const links = [];
-      if (m.linkedin) links.push(`<a href="${escapeHTML(m.linkedin)}" target="_blank" style="color:#60a5fa; text-decoration:none;">LinkedIn</a>`);
-      if (m.website) links.push(`<a href="${escapeHTML(m.website)}" target="_blank" style="color:#60a5fa; text-decoration:none;">Website</a>`);
-      if (m.contactEmail) links.push(`<a href="mailto:${escapeHTML(m.contactEmail)}" style="color:#60a5fa; text-decoration:none;">Email</a>`);
-      if (m.contactPhone) links.push(`<a href="tel:${escapeHTML(m.contactPhone)}" style="color:#60a5fa; text-decoration:none;">Phone</a>`);
-      
-      if (links.length > 0) {
-        contactsHTML = `<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; font-size: 0.8rem; display: flex; gap: 10px; flex-wrap: wrap;">${links.join(' | ')}</div>`;
-      }
+    const links = [];
+    if (m.linkedin) links.push(`<a href="${escapeHTML(m.linkedin)}" target="_blank" style="color:#60a5fa; text-decoration:none;">LinkedIn</a>`);
+    if (m.website) links.push(`<a href="${escapeHTML(m.website)}" target="_blank" style="color:#60a5fa; text-decoration:none;">Website</a>`);
+    if (m.contactEmail && !m.hideEmail) links.push(`<a href="mailto:${escapeHTML(m.contactEmail)}" style="color:#60a5fa; text-decoration:none;">Email</a>`);
+    if (m.contactPhone) links.push(`<a href="tel:${escapeHTML(m.contactPhone)}" style="color:#60a5fa; text-decoration:none;">Phone</a>`);
+    
+    if (links.length > 0) {
+      contactsHTML = `<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; font-size: 0.8rem; display: flex; gap: 10px; flex-wrap: wrap;">${links.join(' | ')}</div>`;
     }
 
     const photoImg = m.photoUrl ? `
@@ -474,18 +537,27 @@ function renderSpotlight(members) {
   const spotlightGrid = document.getElementById('spotlight-members');
   if(!spotlightContainer || !spotlightGrid) return;
   
-  const featured = members.filter(m => m.membershipTier === 'guild' || m.membershipTier === 'council');
+  const featured = members.filter(m => !!m.isSpotlight)
+                          .sort((a, b) => {
+                            const dateA = a.spotlightFeaturedAt ? (a.spotlightFeaturedAt.seconds || new Date(a.spotlightFeaturedAt).getTime() / 1000) : 0;
+                            const dateB = b.spotlightFeaturedAt ? (b.spotlightFeaturedAt.seconds || new Date(b.spotlightFeaturedAt).getTime() / 1000) : 0;
+                            return dateB - dateA;
+                          });
+                          
   if (featured.length > 0) {
     spotlightContainer.style.display = 'block';
-    // Randomize
-    const displayFeatured = featured.sort(() => 0.5 - Math.random()).slice(0, 3);
     
-    spotlightGrid.innerHTML = displayFeatured.map(m => `
-      <div style="background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 15px; border-radius: 6px; min-width: 250px; flex: 1;">
-        <h4 style="color: #fff; margin: 0 0 5px 0;">${escapeHTML(m.name)}</h4>
-        <p style="color: #aaa; margin: 0; font-size: 0.85rem;">${escapeHTML(m.company || '')}</p>
-      </div>
-    `).join('');
+    spotlightGrid.innerHTML = featured.map(m => {
+      const featDate = m.spotlightFeaturedAt ? new Date(m.spotlightFeaturedAt.seconds * 1000 || m.spotlightFeaturedAt).toLocaleDateString() : '';
+      const dateLabel = featDate ? `<span style="font-size: 0.7rem; color: #888; display: block; margin-top: 4px;">Featured: ${featDate}</span>` : '';
+      return `
+        <div style="background: rgba(0,0,0,0.5); border: 1px solid #c8a97e; padding: 15px; border-radius: 6px; min-width: 250px; flex: 1;">
+          <h4 style="color: #fff; margin: 0 0 5px 0;">${escapeHTML(m.name)}</h4>
+          <p style="color: #aaa; margin: 0; font-size: 0.85rem;">${escapeHTML(m.company || '')}</p>
+          ${dateLabel}
+        </div>
+      `;
+    }).join('');
   } else {
     spotlightContainer.style.display = 'none';
   }
@@ -550,16 +622,9 @@ if(btnShareUpdate && updateModal) {
         uid: currentUserUid,
         type: type,
         text: text,
-        timestamp: new Date()
+        timestamp: new Date(),
+        comments: []
       });
-      
-      // Dynamically add it to the top of the UI list
-      const ul = document.getElementById('updates-list');
-      const li = document.createElement('li');
-      li.style.marginBottom = '10px';
-      li.style.cursor = 'pointer';
-      li.innerHTML = `<span style="color:#c8a97e; font-size: 0.75rem;">${type}</span><br>${escapeHTML(text)}`;
-      ul.prepend(li); // add to top
       
       // Clear form and close modal
       document.getElementById('update-text').value = '';
@@ -572,34 +637,423 @@ if(btnShareUpdate && updateModal) {
   });
 }
 
+function loadUpdates() {
+  const updatesRef = collection(db, "updates");
+  const updatesQuery = query(updatesRef, orderBy("timestamp", "desc"), limit(20));
+
+  if (updatesSnapshotUnsubscribe) {
+    updatesSnapshotUnsubscribe();
+  }
+
+  const ul = document.getElementById('updates-list');
+  if (!ul) return;
+
+  updatesSnapshotUnsubscribe = onSnapshot(updatesQuery, async (querySnapshot) => {
+    ul.innerHTML = '';
+    const updates = [];
+    const userDocsMap = {};
+    
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const uid = data.uid;
+      
+      let authorName = "Member";
+      if (uid) {
+        if (!userDocsMap[uid]) {
+          try {
+            const userSnap = await getDoc(doc(db, "users", uid));
+            if (userSnap.exists()) {
+              userDocsMap[uid] = userSnap.data().name || "Member";
+            } else {
+              userDocsMap[uid] = "Member";
+            }
+          } catch (err) {
+            userDocsMap[uid] = "Member";
+          }
+        }
+        authorName = userDocsMap[uid];
+      }
+      
+      updates.push({
+        id: id,
+        authorName: authorName,
+        ...data
+      });
+    }
+
+    if (updates.length === 0) {
+      ul.innerHTML = '<li style="margin-bottom:15px; color:#666; text-align:center; padding: 20px 0;">No updates yet.</li>';
+      return;
+    }
+
+    // Duplicate list items if there are enough of them to keep loop animation smooth
+    const listToRender = updates.length >= 3 ? [...updates, ...updates] : updates;
+
+    ul.innerHTML = listToRender.map((up) => {
+      const type = up.type || 'UPDATE';
+      const text = up.text || '';
+      const author = up.authorName || 'Member';
+      const commentCount = up.comments ? up.comments.length : 0;
+      return `
+        <li class="member-update-item" data-id="${up.id}" style="margin-bottom: 15px; cursor: pointer; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; font-size: 0.75rem;">
+            <span style="color:#c8a97e; font-weight: bold; text-transform: uppercase;">${escapeHTML(type)}</span>
+            <span style="color:#666;">by ${escapeHTML(author)}</span>
+          </div>
+          <p style="color:#eee; margin:5px 0; font-size: 0.85rem; line-height:1.4;">${escapeHTML(text)}</p>
+          ${commentCount > 0 ? `<span style="color:#60a5fa; font-size:0.75rem;">💬 ${commentCount} comment${commentCount > 1 ? 's' : ''}</span>` : `<span style="color:#666; font-size:0.75rem;">💬 Reply</span>`}
+        </li>
+      `;
+    }).join('');
+
+    // Attach click listener to each update item to open comments modal
+    ul.querySelectorAll('.member-update-item').forEach(li => {
+      li.addEventListener('click', () => {
+        const updateId = li.getAttribute('data-id');
+        openCommentsModal(updateId);
+      });
+    });
+  });
+}
+
+let activeCommentsSnapshotUnsubscribe = null;
+
+function openCommentsModal(updateId) {
+  const modal = document.getElementById('comments-modal');
+  const updateCard = document.getElementById('comment-modal-update-card');
+  const commentsList = document.getElementById('comment-modal-comments-list');
+  const modalInput = document.getElementById('comment-modal-input');
+  const btnClose = document.getElementById('btn-close-comments');
+  const btnSubmit = document.getElementById('btn-submit-comment');
+
+  if (!modal || !updateCard || !commentsList || !modalInput || !btnClose || !btnSubmit) return;
+
+  modal.style.display = 'flex';
+
+  btnClose.onclick = () => {
+    modal.style.display = 'none';
+    if (activeCommentsSnapshotUnsubscribe) {
+      activeCommentsSnapshotUnsubscribe();
+      activeCommentsSnapshotUnsubscribe = null;
+    }
+  };
+
+  updateCard.innerHTML = '<p style="color:#aaa; margin:0;">Loading update details...</p>';
+  commentsList.innerHTML = '<p style="color:#aaa; margin:0;">Loading comments...</p>';
+  modalInput.value = '';
+
+  const updateRef = doc(db, "updates", updateId);
+
+  if (activeCommentsSnapshotUnsubscribe) {
+    activeCommentsSnapshotUnsubscribe();
+  }
+
+  activeCommentsSnapshotUnsubscribe = onSnapshot(updateRef, async (docSnap) => {
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+
+    let authorName = "Member";
+    if (data.uid) {
+      try {
+        const uSnap = await getDoc(doc(db, "users", data.uid));
+        if (uSnap.exists()) authorName = uSnap.data().name || "Member";
+      } catch (err) {}
+    }
+
+    const type = data.type || 'UPDATE';
+    const text = data.text || '';
+    const comments = data.comments || [];
+
+    updateCard.innerHTML = `
+      <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:5px;">
+        <span style="color:#c8a97e; font-weight:bold; text-transform:uppercase;">${escapeHTML(type)}</span>
+        <span style="color:#888;">by ${escapeHTML(authorName)}</span>
+      </div>
+      <p style="color:#fff; margin:0; font-size:0.95rem; line-height:1.4;">${escapeHTML(text)}</p>
+    `;
+
+    if (comments.length === 0) {
+      commentsList.innerHTML = '<p style="color:#666; font-size:0.85rem; margin:0; text-align:center; padding: 20px 0;">No comments yet. Be the first to reply!</p>';
+    } else {
+      const sortedComments = [...comments].sort((a, b) => {
+        const tA = a.timestamp ? (a.timestamp.seconds || new Date(a.timestamp).getTime()/1000) : 0;
+        const tB = b.timestamp ? (b.timestamp.seconds || new Date(b.timestamp).getTime()/1000) : 0;
+        return tA - tB;
+      });
+
+      commentsList.innerHTML = sortedComments.map(c => `
+        <div style="background:#111; border:1px solid #222; padding:10px; border-radius:4px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#888; margin-bottom:4px;">
+            <strong style="color:#c8a97e;">${escapeHTML(c.authorName || 'Member')}</strong>
+            <span>${c.timestamp ? new Date(c.timestamp.seconds * 1000 || c.timestamp).toLocaleString() : ''}</span>
+          </div>
+          <p style="color:#ccc; font-size:0.85rem; margin:0; line-height:1.4;">${escapeHTML(c.text)}</p>
+        </div>
+      `).join('');
+    }
+
+    btnSubmit.onclick = async () => {
+      const textVal = modalInput.value.trim();
+      if (!textVal) return;
+
+      btnSubmit.innerText = 'Sending...';
+      btnSubmit.disabled = true;
+
+      try {
+        const newComment = {
+          uid: currentUserUid,
+          authorName: currentUserName || 'Member',
+          text: textVal,
+          timestamp: new Date()
+        };
+
+        await updateDoc(updateRef, {
+          comments: arrayUnion(newComment)
+        });
+        modalInput.value = '';
+      } catch (commentErr) {
+        console.error("Error posting comment:", commentErr);
+        alert("Failed to submit comment. Check console.");
+      } finally {
+        btnSubmit.innerText = 'Send';
+        btnSubmit.disabled = false;
+      }
+    };
+  });
+}
+
 // --- PRIVATE GROUPS LOGIC --- //
 const groupTags = document.querySelectorAll('.private-group-tag');
-const groupModal = document.getElementById('group-modal');
-const groupModalText = document.getElementById('group-modal-text');
-const btnCloseGroup = document.getElementById('btn-close-group');
-const btnSubmitGroup = document.getElementById('btn-submit-group');
 let selectedGroup = '';
+let selectedPostImageFile = null;
+let groupPostsSnapshotUnsubscribe = null;
 
-if (groupTags.length > 0 && groupModal) {
+const fileInput = document.getElementById('group-post-image');
+const previewWrapper = document.getElementById('group-post-image-preview-wrapper');
+const previewImg = document.getElementById('group-post-image-preview');
+const removeImgBtn = document.getElementById('btn-remove-post-image');
+const statusSpan = document.getElementById('group-post-image-status');
+
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedPostImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewWrapper.style.display = 'block';
+        statusSpan.innerText = 'Image attached';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+if (removeImgBtn) {
+  removeImgBtn.addEventListener('click', () => {
+    selectedPostImageFile = null;
+    fileInput.value = '';
+    previewWrapper.style.display = 'none';
+    previewImg.src = '';
+    statusSpan.innerText = 'Attach an image (optional)';
+  });
+}
+
+function loadGroupPosts(groupName) {
+  const postsFeed = document.getElementById('group-posts-feed');
+  if (!postsFeed) return;
+
+  postsFeed.innerHTML = '<p style="color:#aaa;">Loading group posts...</p>';
+
+  if (groupPostsSnapshotUnsubscribe) {
+    groupPostsSnapshotUnsubscribe();
+  }
+
+  const postsRef = collection(db, "group_posts");
+  const postsQuery = query(postsRef, where("groupName", "==", groupName), orderBy("timestamp", "desc"));
+
+  groupPostsSnapshotUnsubscribe = onSnapshot(postsQuery, async (querySnapshot) => {
+    postsFeed.innerHTML = '';
+    
+    if (querySnapshot.empty) {
+      postsFeed.innerHTML = '<p style="color:#666; text-align:center; padding: 40px 0;">No posts in this group yet. Be the first to start the discussion!</p>';
+      return;
+    }
+
+    const posts = [];
+    const userDocsMap = {};
+
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const uid = data.uid;
+      
+      let authorName = "Member";
+      let authorPhoto = "";
+      if (uid) {
+        if (!userDocsMap[uid]) {
+          try {
+            const userSnap = await getDoc(doc(db, "users", uid));
+            if (userSnap.exists()) {
+              userDocsMap[uid] = {
+                name: userSnap.data().name || "Member",
+                photoUrl: userSnap.data().photoUrl || ""
+              };
+            }
+          } catch(e) {}
+        }
+        if (userDocsMap[uid]) {
+          authorName = userDocsMap[uid].name;
+          authorPhoto = userDocsMap[uid].photoUrl;
+        }
+      }
+
+      posts.push({
+        id: id,
+        authorName: authorName,
+        authorPhoto: authorPhoto,
+        ...data
+      });
+    }
+
+    postsFeed.innerHTML = posts.map(p => {
+      const authorPhotoHtml = p.authorPhoto ? `
+        <div style="width:40px; height:40px; border-radius:50%; background-image:url('${escapeHTML(p.authorPhoto)}'); background-size:cover; background-position:center; border:1px solid #c8a97e; flex-shrink:0;"></div>
+      ` : `
+        <div style="width:40px; height:40px; border-radius:50%; background:#222; border:1px solid #444; display:flex; align-items:center; justify-content:center; color:#888; font-weight:bold; font-size:0.9rem; flex-shrink:0;">
+          ${p.authorName ? p.authorName.charAt(0).toUpperCase() : 'M'}
+        </div>
+      `;
+
+      const imageHtml = p.imageUrl ? `
+        <div style="margin-top:15px; border-radius:6px; overflow:hidden; border:1px solid #222; max-height:400px; display:flex; justify-content:center; background:#050505;">
+          <img src="${p.imageUrl}" alt="Post image" style="max-width:100%; max-height:400px; object-fit:contain;">
+        </div>
+      ` : '';
+
+      const linkHtml = p.link ? `
+        <div style="margin-top:10px; background:#080808; border:1px solid #222; padding:10px; border-radius:4px; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.1rem;">🔗</span>
+          <a href="${escapeHTML(p.link)}" target="_blank" style="color:#60a5fa; font-size:0.85rem; word-break:break-all; text-decoration:underline;">${escapeHTML(p.link)}</a>
+        </div>
+      ` : '';
+
+      return `
+        <div style="background:#111; border:1px solid #222; padding:20px; border-radius:8px; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              ${authorPhotoHtml}
+              <div>
+                <strong style="color:#fff; font-size:0.95rem;">${escapeHTML(p.authorName)}</strong>
+                <span style="color:#666; font-size:0.75rem; display:block;">${p.timestamp ? new Date(p.timestamp.seconds * 1000 || p.timestamp).toLocaleString() : ''}</span>
+              </div>
+            </div>
+          </div>
+          <p style="color:#eee; font-size:0.95rem; line-height:1.5; margin:0; white-space:pre-wrap;">${escapeHTML(p.text)}</p>
+          ${linkHtml}
+          ${imageHtml}
+        </div>
+      `;
+    }).join('');
+  });
+}
+
+const btnSubmitGroupPost = document.getElementById('btn-submit-group-post');
+const groupPostText = document.getElementById('group-post-text');
+const groupPostLink = document.getElementById('group-post-link');
+const groupPostStatus = document.getElementById('group-post-status');
+
+if (btnSubmitGroupPost) {
+  btnSubmitGroupPost.addEventListener('click', async () => {
+    const text = groupPostText.value.trim();
+    const link = groupPostLink.value.trim();
+    
+    if (!text) {
+      alert("Post content cannot be empty.");
+      return;
+    }
+
+    btnSubmitGroupPost.innerText = 'Publishing...';
+    btnSubmitGroupPost.disabled = true;
+    if (groupPostStatus) {
+      groupPostStatus.innerText = 'Uploading...';
+      groupPostStatus.style.display = 'inline';
+    }
+
+    try {
+      let imageUrl = '';
+      if (selectedPostImageFile) {
+        const fileExtension = selectedPostImageFile.name.split('.').pop();
+        const fileRef = ref(storage, `group_posts/${currentUserUid}_${Date.now()}.${fileExtension}`);
+        const uploadSnapshot = await uploadBytes(fileRef, selectedPostImageFile);
+        imageUrl = await getDownloadURL(uploadSnapshot.ref);
+      }
+
+      await addDoc(collection(db, "group_posts"), {
+        groupName: selectedGroup,
+        uid: currentUserUid,
+        text: text,
+        link: link || null,
+        imageUrl: imageUrl || null,
+        timestamp: new Date()
+      });
+
+      // Reset form
+      groupPostText.value = '';
+      groupPostLink.value = '';
+      if (removeImgBtn) removeImgBtn.click(); // Reset attachment state
+      if (groupPostStatus) {
+        groupPostStatus.innerText = 'Published successfully!';
+        setTimeout(() => { groupPostStatus.style.display = 'none'; }, 3000);
+      }
+    } catch(err) {
+      console.error("Error creating group post:", err);
+      alert("Failed to publish post. Check console.");
+      if (groupPostStatus) groupPostStatus.style.display = 'none';
+    } finally {
+      btnSubmitGroupPost.innerText = 'Publish Post';
+      btnSubmitGroupPost.disabled = false;
+    }
+  });
+}
+
+const btnBackToConnect = document.getElementById('btn-back-to-connect');
+if (btnBackToConnect) {
+  btnBackToConnect.addEventListener('click', () => {
+    const connectContent = document.getElementById('connect-content');
+    const groupDetailSection = document.getElementById('group-detail');
+    if (connectContent && groupDetailSection) {
+      groupDetailSection.style.display = 'none';
+      connectContent.style.display = 'grid';
+    }
+    if (groupPostsSnapshotUnsubscribe) {
+      groupPostsSnapshotUnsubscribe();
+      groupPostsSnapshotUnsubscribe = null;
+    }
+  });
+}
+
+if (groupTags.length > 0) {
   groupTags.forEach(tag => {
     tag.addEventListener('click', () => {
       selectedGroup = tag.innerText;
-      if (!currentUserUid) {
-        alert("You must be logged in to request access to a private group.");
-        return;
+      
+      const connectContent = document.getElementById('connect-content');
+      const groupDetailSection = document.getElementById('group-detail');
+      const groupDetailTitle = document.getElementById('group-detail-title');
+      const groupDetailDesc = document.getElementById('group-detail-desc');
+      
+      if (connectContent && groupDetailSection) {
+        connectContent.style.display = 'none';
+        groupDetailSection.style.display = 'block';
+        if (groupDetailTitle) groupDetailTitle.innerText = selectedGroup;
+        if (groupDetailDesc) groupDetailDesc.innerText = `Confidential forum for the ${selectedGroup} group members.`;
+        
+        loadGroupPosts(selectedGroup);
       }
-      groupModalText.innerText = `Would you like to send a request to join the "${selectedGroup}" private group?`;
-      groupModal.style.display = 'flex';
     });
-  });
-
-  btnCloseGroup.addEventListener('click', () => {
-    groupModal.style.display = 'none';
-  });
-
-  btnSubmitGroup.addEventListener('click', () => {
-    groupModal.style.display = 'none';
-    alert(`Your request to join "${selectedGroup}" has been sent to the Admins for review.`);
   });
 }
 
@@ -771,6 +1225,10 @@ async function loadAdminUsers() {
             <input type="checkbox" class="admin-csep-checkbox" data-uid="${uid}" ${isCsep?'checked':''}>
           </td>
           <td style="padding: 10px;">
+            <input type="checkbox" class="admin-spotlight-checkbox" data-uid="${uid}" ${u.isSpotlight?'checked':''}>
+            ${u.spotlightFeaturedAt ? `<br><span style="font-size:0.7rem; color:#888; white-space:nowrap;">Featured: ${new Date(u.spotlightFeaturedAt.seconds * 1000 || u.spotlightFeaturedAt).toLocaleDateString()}</span>` : ''}
+          </td>
+          <td style="padding: 10px;">
             <button class="admin-save-user-btn" data-uid="${uid}" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Save</button>
           </td>
         </tr>
@@ -787,14 +1245,29 @@ async function loadAdminUsers() {
         const newTier = tr.querySelector('.admin-tier-select').value;
         const newIsAdmin = tr.querySelector('.admin-isadmin-checkbox').checked;
         const newCsep = tr.querySelector('.admin-csep-checkbox').checked;
+        const newSpotlight = tr.querySelector('.admin-spotlight-checkbox').checked;
         
         e.target.innerText = 'Saving...';
         try {
-          await setDoc(doc(db, "users", uid), {
+          const userRef = doc(db, "users", uid);
+          const userSnap = await getDoc(userRef);
+          const userData = userSnap.exists() ? userSnap.data() : {};
+          
+          let spotlightFeaturedAt = userData.spotlightFeaturedAt || null;
+          if (newSpotlight && !userData.isSpotlight) {
+            spotlightFeaturedAt = new Date();
+          } else if (!newSpotlight) {
+            spotlightFeaturedAt = null;
+          }
+
+          await setDoc(userRef, {
             membershipTier: newTier,
             isAdmin: newIsAdmin,
-            csepCompleted: newCsep
+            csepCompleted: newCsep,
+            isSpotlight: newSpotlight,
+            spotlightFeaturedAt: spotlightFeaturedAt
           }, { merge: true });
+          
           e.target.innerText = 'Saved!';
           setTimeout(() => { e.target.innerText = 'Save'; }, 2000);
           
@@ -802,7 +1275,8 @@ async function loadAdminUsers() {
             userTier = newTier;
             isAdmin = newIsAdmin;
           }
-          // Refresh member grid in case tier or csep changed
+          // Refresh lists
+          loadAdminUsers();
           loadMembers();
         } catch(err) {
           console.error(err);
@@ -840,23 +1314,11 @@ async function loadAdminUsers() {
           if (modal && container) {
             const userEmail = (user.email || '').trim().toLowerCase();
             
-            // Check if they have an original application document
-            let exp = escapeHTML(user.bio || 'No profile bio provided');
-            let clientele = 'Not Selected';
-            let industries = escapeHTML(user.industry || 'None');
-            let referrer = 'None';
-            let headshotUrl = user.photoUrl || '';
-            
-            // Try to pull fields from application document if map exists
+            // Try to pull preferred billing from application document if map exists
             let preferredBilling = 'monthly';
             if (window.adminApplicationsMap) {
               const app = Object.values(window.adminApplicationsMap).find(a => (a.email || '').trim().toLowerCase() === userEmail);
               if (app) {
-                exp = escapeHTML(app.experience || user.bio || 'No experience provided');
-                clientele = escapeHTML(app.clientele || 'Not Selected');
-                industries = Array.isArray(app.industries) ? app.industries.map(escapeHTML).join(', ') : escapeHTML(user.industry || 'None');
-                referrer = escapeHTML(app.referrer || 'None');
-                headshotUrl = app.headshotUrl || user.photoUrl || '';
                 preferredBilling = app.billing || 'monthly';
               }
             }
@@ -864,76 +1326,247 @@ async function loadAdminUsers() {
             const tier = escapeHTML(user.membershipTier || 'general');
             const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
             const billingName = preferredBilling === 'yearly' ? 'Yearly Plan' : 'Monthly Plan';
+            const headshotUrl = user.photoUrl || '';
             
             container.innerHTML = `
-              <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                ${headshotUrl ? `
-                  <div style="flex-shrink: 0;">
-                    <img src="${headshotUrl}" alt="${escapeHTML(user.name)}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #c8a97e;" />
+              <form id="admin-edit-user-form" style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                  ${headshotUrl ? `
+                    <div style="flex-shrink: 0;">
+                      <img src="${headshotUrl}" alt="${escapeHTML(user.name)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #c8a97e;" />
+                    </div>
+                  ` : `
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #111; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555;">👤</div>
+                  `}
+                  <div>
+                    <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">Edit User Profile</h4>
+                    <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (${billingName})</p>
+                    <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Account Email: ${escapeHTML(user.email || '')}</p>
                   </div>
-                ` : `
-                  <div style="width: 100px; height: 100px; border-radius: 50%; background: #111; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #555;">👤</div>
-                `}
-                <div>
-                  <h4 style="margin: 0 0 5px 0; color: #fff; font-size: 1.3rem;">${escapeHTML(user.name || 'No Name')}</h4>
-                  <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (Registered - ${billingName})</p>
-                  <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Email: ${escapeHTML(user.email || '')}</p>
-                  <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(user.contactPhone || 'N/A')}</p>
                 </div>
-              </div>
-              
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Full Name</label>
+                    <input type="text" id="admin-edit-name" value="${escapeHTML(user.name || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Job Title</label>
+                    <input type="text" id="admin-edit-title" value="${escapeHTML(user.title || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Company</label>
+                    <input type="text" id="admin-edit-company" value="${escapeHTML(user.company || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Location</label>
+                    <input type="text" id="admin-edit-location" value="${escapeHTML(user.location || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Industry</label>
+                    <input type="text" id="admin-edit-industry" value="${escapeHTML(user.industry || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Looking For</label>
+                    <input type="text" id="admin-edit-lookingfor" value="${escapeHTML(user.lookingfor || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Professional Email</label>
+                    <input type="email" id="admin-edit-contact-email" value="${escapeHTML(user.contactEmail || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Contact Phone</label>
+                    <input type="tel" id="admin-edit-contact-phone" value="${escapeHTML(user.contactPhone || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">LinkedIn URL</label>
+                    <input type="url" id="admin-edit-linkedin" value="${escapeHTML(user.linkedin || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Website URL</label>
+                    <input type="url" id="admin-edit-website" value="${escapeHTML(user.website || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center; background: #050505; padding: 10px; border: 1px solid #222; border-radius: 4px; margin-top: 5px;">
+                  <input type="checkbox" id="admin-edit-hide-email" ${user.hideEmail ? 'checked' : ''} style="cursor:pointer;">
+                  <label for="admin-edit-hide-email" style="color: #aaa; font-size: 0.85rem; cursor:pointer; user-select:none;">Hide email from the directory</label>
+                </div>
+
+                <h4 style="color: #c8a97e; margin: 15px 0 5px 0; font-size: 1rem; border-bottom: 1px solid #222; padding-bottom: 5px;">Application Details & Background</h4>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Referred By</label>
+                    <input type="text" id="admin-edit-referrer" value="${escapeHTML(user.referrer || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">How did you hear about SES?</label>
+                    <select id="admin-edit-heard-about" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Referral from a colleague" ${user.heardAbout==='Referral from a colleague'?'selected':''}>Referral from a colleague</option>
+                      <option value="Social media" ${user.heardAbout==='Social media'?'selected':''}>Social media</option>
+                      <option value="The Sellebrity 2.0 book" ${user.heardAbout==='The Sellebrity 2.0 book'?'selected':''}>The Sellebrity 2.0 book</option>
+                      <option value="Podcast or media feature" ${user.heardAbout==='Podcast or media feature'?'selected':''}>Podcast or media feature</option>
+                      <option value="Industry event" ${user.heardAbout==='Industry event'?'selected':''}>Industry event</option>
+                      <option value="Web search" ${user.heardAbout==='Web search'?'selected':''}>Web search</option>
+                      <option value="Other" ${user.heardAbout==='Other'?'selected':''}>Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Primary S&E Clientele</label>
+                    <select id="admin-edit-clientele" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Athletes" ${user.clientele==='Athletes'?'selected':''}>Athletes</option>
+                      <option value="Entertainers" ${user.clientele==='Entertainers'?'selected':''}>Entertainers</option>
+                      <option value="Both" ${user.clientele==='Both'?'selected':''}>Both</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Years Servicing S&E Clients</label>
+                    <select id="admin-edit-years-servicing" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Less than 1 year" ${user.yearsServicing==='Less than 1 year'?'selected':''}>Less than 1 year</option>
+                      <option value="1–3 years" ${user.yearsServicing==='1–3 years'?'selected':''}>1–3 years</option>
+                      <option value="3–5 years" ${user.yearsServicing==='3–5 years'?'selected':''}>3–5 years</option>
+                      <option value="5–10 years" ${user.yearsServicing==='5–10 years'?'selected':''}>5–10 years</option>
+                      <option value="10+ years" ${user.yearsServicing==='10+ years'?'selected':''}>10+ years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">S&E Clients Served (Last 3 Years)</label>
+                    <select id="admin-edit-clients-served" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="None yet" ${user.clientsServed==='None yet'?'selected':''}>None yet</option>
+                      <option value="1–5" ${user.clientsServed==='1–5'?'selected':''}>1–5</option>
+                      <option value="5–10" ${user.clientsServed==='5–10'?'selected':''}>5–10</option>
+                      <option value="10–20" ${user.clientsServed==='10–20'?'selected':''}>10–20</option>
+                      <option value="20+" ${user.clientsServed==='20+'?'selected':''}>20+</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Played Sports or Worked as Entertainer</label>
+                    <select id="admin-edit-played-sports" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Yes" ${user.playedSports==='Yes'?'selected':''}>Yes</option>
+                      <option value="No" ${user.playedSports==='No'?'selected':''}>No</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">NDA / Confidentiality Protocol</label>
+                    <select id="admin-edit-nda" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Yes" ${user.nda==='Yes'?'selected':''}>Yes</option>
+                      <option value="No" ${user.nda==='No'?'selected':''}>No</option>
+                      <option value="In progress" ${user.nda==='In progress'?'selected':''}>In progress</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Referral Partnerships Open</label>
+                    <select id="admin-edit-referrals" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                      <option value="">Select</option>
+                      <option value="Yes" ${user.referrals==='Yes'?'selected':''}>Yes</option>
+                      <option value="No" ${user.referrals==='No'?'selected':''}>No</option>
+                      <option value="Open to discussing" ${user.referrals==='Open to discussing'?'selected':''}>Open to discussing</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Company</span>
-                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(user.company || 'N/A')}</p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Media Links</label>
+                  <input type="text" id="admin-edit-media-links" value="${escapeHTML(user.mediaLinks || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Job Title</span>
-                  <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(user.title || 'N/A')}</p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Favorite Sports Team</label>
+                  <input type="text" id="admin-edit-fav-team" value="${escapeHTML(user.favTeam || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Target Clientele</span>
-                  <p style="margin: 3px 0 0 0; color: #fff;">${clientele}</p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Previous Industry Experience</label>
+                  <textarea id="admin-edit-prev-experience" rows="2" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.experience || '')}</textarea>
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Referrer</span>
-                  <p style="margin: 3px 0 0 0; color: #fff;">${referrer}</p>
-                </div>
-              </div>
-              
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
-                <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Location</span>
-                  <p style="margin: 3px 0 0 0; color: #fff;">${escapeHTML(user.location || 'N/A')}</p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Education & Certifications</label>
+                  <textarea id="admin-edit-education" rows="2" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.education || '')}</textarea>
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Looking For</span>
-                  <p style="margin: 3px 0 0 0; color: #fff;">${escapeHTML(user.lookingfor || 'N/A')}</p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Professional References</label>
+                  <textarea id="admin-edit-references" rows="2" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.references || '')}</textarea>
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">LinkedIn</span>
-                  <p style="margin: 3px 0 0 0;"><a href="${escapeHTML(user.linkedin || '#')}" target="_blank" style="color: #c8a97e;">${user.linkedin ? 'Visit LinkedIn' : 'N/A'}</a></p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Why Interested in Joining</label>
+                  <textarea id="admin-edit-why-joining" rows="2" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.whyJoining || '')}</textarea>
                 </div>
                 <div>
-                  <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Website</span>
-                  <p style="margin: 3px 0 0 0;"><a href="${escapeHTML(user.website || '#')}" target="_blank" style="color: #c8a97e;">${user.website ? 'Visit Website' : 'N/A'}</a></p>
+                  <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Profile Bio</label>
+                  <textarea id="admin-edit-bio" rows="3" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.bio || '')}</textarea>
                 </div>
-              </div>
-              
-              <div style="margin-top: 15px;">
-                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Industries</span>
-                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #222;">${industries}</p>
-              </div>
-              
-              <div style="margin-top: 15px;">
-                <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Profile Bio & Experience</span>
-                <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 12px; border-radius: 4px; border: 1px solid #222; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${exp}</p>
-              </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #222; padding-top: 15px;">
+                  <button type="submit" id="btn-admin-save-user-profile" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:10px 24px; border-radius:4px; cursor:pointer; font-family:inherit; transition: all 0.2s;">Save Profile Changes</button>
+                </div>
+              </form>
             `;
+            
+            // Handle Admin Edit Form Submission
+            const form = document.getElementById('admin-edit-user-form');
+            form.addEventListener('submit', async (formEvent) => {
+              formEvent.preventDefault();
+              const saveBtn = document.getElementById('btn-admin-save-user-profile');
+              saveBtn.innerText = 'Saving Changes...';
+              saveBtn.disabled = true;
+              
+              const updatedData = {
+                name: document.getElementById('admin-edit-name').value,
+                title: document.getElementById('admin-edit-title').value,
+                company: document.getElementById('admin-edit-company').value,
+                location: document.getElementById('admin-edit-location').value,
+                industry: document.getElementById('admin-edit-industry').value,
+                lookingfor: document.getElementById('admin-edit-lookingfor').value,
+                contactEmail: document.getElementById('admin-edit-contact-email').value,
+                contactPhone: document.getElementById('admin-edit-contact-phone').value,
+                linkedin: document.getElementById('admin-edit-linkedin').value,
+                website: document.getElementById('admin-edit-website').value,
+                hideEmail: document.getElementById('admin-edit-hide-email').checked,
+                
+                referrer: document.getElementById('admin-edit-referrer').value,
+                heardAbout: document.getElementById('admin-edit-heard-about').value,
+                clientele: document.getElementById('admin-edit-clientele').value,
+                yearsServicing: document.getElementById('admin-edit-years-servicing').value,
+                clientsServed: document.getElementById('admin-edit-clients-served').value,
+                playedSports: document.getElementById('admin-edit-played-sports').value,
+                nda: document.getElementById('admin-edit-nda').value,
+                referrals: document.getElementById('admin-edit-referrals').value,
+                mediaLinks: document.getElementById('admin-edit-media-links').value,
+                favTeam: document.getElementById('admin-edit-fav-team').value,
+                experience: document.getElementById('admin-edit-prev-experience').value,
+                education: document.getElementById('admin-edit-education').value,
+                references: document.getElementById('admin-edit-references').value,
+                whyJoining: document.getElementById('admin-edit-why-joining').value,
+                bio: document.getElementById('admin-edit-bio').value,
+                
+                updatedAt: new Date()
+              };
+              
+              try {
+                await setDoc(doc(db, "users", uid), updatedData, { merge: true });
+                alert("User profile updated successfully!");
+                modal.style.display = 'none';
+                // Reload list
+                loadAdminUsers();
+                loadMembers();
+              } catch (saveError) {
+                console.error("Admin save error:", saveError);
+                alert("Failed to save changes.");
+                saveBtn.innerText = 'Save Profile Changes';
+                saveBtn.disabled = false;
+              }
+            });
+
             modal.style.display = 'flex';
           }
         }
       });
+    });
     });
   } catch (err) {
     console.error("Admin user load error", err);
