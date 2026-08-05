@@ -179,11 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="floating-newsletter-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <button id="floating-newsletter-btn" style="background: #0d0d0d; border: 1px solid #c8a97e; color: #c8a97e; padding: 12px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: all 0.3s; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
         <span style="font-size: 1.1rem; display: flex; align-items: center;">✉️</span>
-        <span>Vetted Insights</span>
+        <span>Subscribe to Newsletter</span>
       </button>
       <div id="floating-newsletter-cabinet" style="display: none; background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; padding: 25px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: relative; flex-direction: column; transition: all 0.3s;">
         <button id="floating-newsletter-close" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #c8a97e; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1;">✕</button>
-        <h4 style="color: #c8a97e; margin: 0 0 10px 0; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;">Vetted Insights</h4>
+        <h4 style="color: #c8a97e; margin: 0 0 10px 0; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;">Newsletter</h4>
         <p style="color: #ccc; font-size: 0.9rem; line-height: 1.4; margin: 0 0 15px 0;">Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
         <form class="newsletter-form" id="floating-newsletter-form" style="display: flex; align-items: center; position: relative; border-bottom: 1px solid #333; padding-bottom: 8px; margin: 0;">
           <input type="email" placeholder="Your professional email" required style="background: transparent; border: none; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-right: 30px; font-family: inherit;">
