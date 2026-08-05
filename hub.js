@@ -1,6 +1,6 @@
 import { auth, db, storage } from './firebase.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, limit, serverTimestamp, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, limit, serverTimestamp, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { learningTracks } from './learnData.js';
 import { weeklyIntelligence } from './intelData.js';
@@ -709,6 +709,11 @@ const btnSubmitUpdate = document.getElementById('btn-submit-update');
 
 if(btnShareUpdate && updateModal) {
   btnShareUpdate.addEventListener('click', () => {
+    const hasConnectAccess = isAdmin || (userTier !== 'general' && userTier !== 'sellebrity');
+    if (!hasConnectAccess) {
+      alert("Upgrade to Sellebrity Guild or Council to share updates.");
+      return;
+    }
     updateModal.style.display = 'flex';
   });
   
@@ -824,6 +829,11 @@ function loadUpdates() {
     // Attach click listener to each update item to open comments modal
     ul.querySelectorAll('.member-update-item').forEach(li => {
       li.addEventListener('click', () => {
+        const hasConnectAccess = isAdmin || (userTier !== 'general' && userTier !== 'sellebrity');
+        if (!hasConnectAccess) {
+          alert("Upgrade to Sellebrity Guild or Council to view update comments and leave reactions.");
+          return;
+        }
         const updateId = li.getAttribute('data-id');
         openCommentsModal(updateId);
       });
@@ -924,6 +934,52 @@ function openCommentsModal(updateId) {
           <p style="color:#ccc; font-size:0.85rem; margin:0; line-height:1.4;">${escapeHTML(c.text)}</p>
         </div>
       `).join('');
+    }
+
+    // Update Likes Count & Button UI
+    const likes = data.likes || [];
+    const likedByCurrentUser = likes.includes(currentUserUid);
+
+    const btnLike = document.getElementById('btn-like-update');
+    const btnLikeIcon = document.getElementById('btn-like-update-icon');
+    const btnLikeText = document.getElementById('btn-like-update-text');
+    const likesCountSpan = document.getElementById('update-likes-count');
+
+    if (likesCountSpan) {
+      likesCountSpan.innerText = `${likes.length} like${likes.length === 1 ? '' : 's'}`;
+    }
+
+    if (btnLike) {
+      if (likedByCurrentUser) {
+        btnLike.style.borderColor = '#c8a97e';
+        btnLike.style.color = '#c8a97e';
+        if (btnLikeIcon) btnLikeIcon.innerText = '❤️';
+        if (btnLikeText) btnLikeText.innerText = 'Liked';
+      } else {
+        btnLike.style.borderColor = '#333';
+        btnLike.style.color = '#fff';
+        if (btnLikeIcon) btnLikeIcon.innerText = '👍';
+        if (btnLikeText) btnLikeText.innerText = 'Like';
+      }
+
+      btnLike.onclick = async () => {
+        btnLike.disabled = true;
+        try {
+          if (likedByCurrentUser) {
+            await updateDoc(updateRef, {
+              likes: arrayRemove(currentUserUid)
+            });
+          } else {
+            await updateDoc(updateRef, {
+              likes: arrayUnion(currentUserUid)
+            });
+          }
+        } catch (likeErr) {
+          console.error("Error toggling update like:", likeErr);
+        } finally {
+          btnLike.disabled = false;
+        }
+      };
     }
 
     const btnSubmit = document.getElementById('btn-submit-comment');

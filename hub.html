@@ -204,18 +204,7 @@
               <h3 style="color: #c8a97e; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Member Updates</h3>
               <div class="updates-wrapper">
                 <ul id="updates-list" class="updates-scroller" style="list-style: none; padding: 0; margin: 0; color: #aaa; font-size: 0.9rem;">
-                  <!-- Original Set -->
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">NEW MEMBER</span><br>Sarah Jenkins joined.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROMOTION</span><br>Marcus Cole named VP of Ops.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROJECT</span><br>LA Stadium Tech Partnership.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">SPOTLIGHT</span><br>Founder of the Month.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">ANNOUNCEMENT</span><br>Society hub premier.</li>
-                  <!-- Duplicated Set for Seamless Loop -->
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">NEW MEMBER</span><br>Sarah Jenkins joined.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROMOTION</span><br>Marcus Cole named VP of Ops.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">PROJECT</span><br>LA Stadium Tech Partnership.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">SPOTLIGHT</span><br>Founder of the Month.</li>
-                  <li style="margin-bottom: 15px; cursor: pointer;"><span style="color:#c8a97e; font-size: 0.75rem;">ANNOUNCEMENT</span><br>Society hub premier.</li>
+                  <li id="updates-loading-item" style="margin-bottom: 15px; color:#666; text-align:center; padding: 20px 0;">Loading updates...</li>
                 </ul>
               </div>
               <button id="btn-share-update" style="width:100%; background:transparent; border:1px solid #c8a97e; color:#c8a97e; padding:8px; border-radius:4px; margin-top:10px; cursor:pointer; transition: all 0.3s;">Share an Update</button>
@@ -1012,8 +1001,16 @@
       <h3 style="color:#c8a97e; margin-top:0; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; font-family: var(--font-serif); font-size: 1.4rem;">Update & Comments</h3>
       
       <!-- Update Details Card -->
-      <div id="comment-modal-update-card" style="background: rgba(200, 169, 126, 0.05); border: 1px solid #333; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+      <div id="comment-modal-update-card" style="background: rgba(200, 169, 126, 0.05); border: 1px solid #333; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
         <!-- Filled by JS -->
+      </div>
+      
+      <!-- Like/Reaction Row -->
+      <div id="comment-modal-like-container" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+        <button id="btn-like-update" style="background: transparent; border: 1px solid #333; color: #fff; padding: 6px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; transition: all 0.2s;">
+          <span id="btn-like-update-icon">👍</span> <span id="btn-like-update-text">Like</span>
+        </button>
+        <span id="update-likes-count" style="font-size: 0.85rem; color: #aaa;">0 likes</span>
       </div>
       
       <!-- Comments Section -->
