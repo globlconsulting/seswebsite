@@ -1567,7 +1567,6 @@ async function loadAdminUsers() {
         }
       });
     });
-    });
   } catch (err) {
     console.error("Admin user load error", err);
     tbody.innerHTML = `<tr><td colspan="6" style="color:red; padding:10px;">Error loading users</td></tr>`;
