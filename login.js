@@ -203,8 +203,31 @@ function switchToRegister() {
   document.getElementById('btn-login').style.display = 'none';
   document.getElementById('btn-register').style.display = 'block';
   document.getElementById('btn-reset').style.display = 'none';
-  document.getElementById('password').parentElement.style.display = 'block';
+  
+  const passwordGroup = passwordInput.closest('.form-group');
+  if (passwordGroup) {
+    passwordGroup.style.display = 'block';
+    const label = passwordGroup.querySelector('label');
+    if (label) label.innerText = "Create Password";
+  }
+  passwordInput.placeholder = "Create a password";
   title.innerText = "Society Hub Registration";
+  msg.innerText = "";
+}
+
+function switchToLogin() {
+  document.getElementById('btn-login').style.display = 'block';
+  document.getElementById('btn-register').style.display = 'none';
+  document.getElementById('btn-reset').style.display = 'none';
+  
+  const passwordGroup = passwordInput.closest('.form-group');
+  if (passwordGroup) {
+    passwordGroup.style.display = 'block';
+    const label = passwordGroup.querySelector('label');
+    if (label) label.innerText = "Password";
+  }
+  passwordInput.placeholder = "Password";
+  title.innerText = "Society Hub Login";
   msg.innerText = "";
 }
 
@@ -229,7 +252,8 @@ document.getElementById('toggle-reset').addEventListener('click', () => {
   document.getElementById('btn-login').style.display = 'none';
   document.getElementById('btn-register').style.display = 'none';
   document.getElementById('btn-reset').style.display = 'block';
-  document.getElementById('password').parentElement.style.display = 'none'; // Hide password field
+  const passwordGroup = passwordInput.closest('.form-group');
+  if (passwordGroup) passwordGroup.style.display = 'none';
   title.innerText = "Reset Password";
   msg.innerText = "";
 });
@@ -244,6 +268,15 @@ document.getElementById('toggle-phone').addEventListener('click', () => {
 document.getElementById('toggle-email').addEventListener('click', () => {
   phoneForm.classList.add('hidden');
   emailForm.classList.remove('hidden');
-  title.innerText = "Society Hub Login";
-  msg.innerText = "";
+  switchToLogin();
 });
+
+// Password visibility toggle handler
+const passwordToggle = document.getElementById('toggle-password-visibility');
+if (passwordToggle) {
+  passwordToggle.addEventListener('click', () => {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    passwordToggle.innerText = isPassword ? '🙈' : '👁️';
+  });
+}

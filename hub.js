@@ -723,11 +723,10 @@ function openCommentsModal(updateId) {
   const modal = document.getElementById('comments-modal');
   const updateCard = document.getElementById('comment-modal-update-card');
   const commentsList = document.getElementById('comment-modal-comments-list');
-  const modalInput = document.getElementById('comment-modal-input');
+  const formContainer = document.getElementById('comment-modal-form-container');
   const btnClose = document.getElementById('btn-close-comments');
-  const btnSubmit = document.getElementById('btn-submit-comment');
 
-  if (!modal || !updateCard || !commentsList || !modalInput || !btnClose || !btnSubmit) return;
+  if (!modal || !updateCard || !commentsList || !btnClose || !formContainer) return;
 
   modal.style.display = 'flex';
 
@@ -741,7 +740,25 @@ function openCommentsModal(updateId) {
 
   updateCard.innerHTML = '<p style="color:#aaa; margin:0;">Loading update details...</p>';
   commentsList.innerHTML = '<p style="color:#aaa; margin:0;">Loading comments...</p>';
-  modalInput.value = '';
+
+  // Render the input form or locking notice based on authorization
+  const hasConnectAccess = isAdmin || (userTier !== 'general' && userTier !== 'sellebrity');
+  if (hasConnectAccess) {
+    formContainer.innerHTML = `
+      <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <textarea id="comment-modal-input" rows="2" placeholder="Write a comment..." style="flex: 1; padding: 10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize: none;"></textarea>
+        <button id="btn-submit-comment" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:10px 20px; border-radius:4px; cursor:pointer; height: fit-content; align-self: stretch; display: flex; align-items: center; justify-content: center;">Send</button>
+      </div>
+    `;
+  } else {
+    formContainer.innerHTML = `
+      <div style="text-align:center; color:#888; font-size:0.9rem; padding: 10px 0;">
+        <span style="font-size:1.5rem;">🔒</span>
+        <p style="margin:5px 0 0 0;">Upgrade to Sellebrity Guild or Council to leave comments.</p>
+        <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:8px 16px; font-weight:bold; border-radius:4px; border:none; cursor:pointer; font-size:0.8rem; margin-top:8px;">Upgrade Now</button>
+      </div>
+    `;
+  }
 
   const updateRef = doc(db, "updates", updateId);
 
@@ -793,33 +810,38 @@ function openCommentsModal(updateId) {
       `).join('');
     }
 
-    btnSubmit.onclick = async () => {
-      const textVal = modalInput.value.trim();
-      if (!textVal) return;
+    const btnSubmit = document.getElementById('btn-submit-comment');
+    const modalInput = document.getElementById('comment-modal-input');
+    
+    if (btnSubmit && modalInput) {
+      btnSubmit.onclick = async () => {
+        const textVal = modalInput.value.trim();
+        if (!textVal) return;
 
-      btnSubmit.innerText = 'Sending...';
-      btnSubmit.disabled = true;
+        btnSubmit.innerText = 'Sending...';
+        btnSubmit.disabled = true;
 
-      try {
-        const newComment = {
-          uid: currentUserUid,
-          authorName: currentUserName || 'Member',
-          text: textVal,
-          timestamp: new Date()
-        };
+        try {
+          const newComment = {
+            uid: currentUserUid,
+            authorName: currentUserName || 'Member',
+            text: textVal,
+            timestamp: new Date()
+          };
 
-        await updateDoc(updateRef, {
-          comments: arrayUnion(newComment)
-        });
-        modalInput.value = '';
-      } catch (commentErr) {
-        console.error("Error posting comment:", commentErr);
-        alert("Failed to submit comment. Check console.");
-      } finally {
-        btnSubmit.innerText = 'Send';
-        btnSubmit.disabled = false;
-      }
-    };
+          await updateDoc(updateRef, {
+            comments: arrayUnion(newComment)
+          });
+          modalInput.value = '';
+        } catch (commentErr) {
+          console.error("Error posting comment:", commentErr);
+          alert("Failed to submit comment. Check console.");
+        } finally {
+          btnSubmit.innerText = 'Send';
+          btnSubmit.disabled = false;
+        }
+      };
+    }
   });
 }
 
