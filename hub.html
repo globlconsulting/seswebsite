@@ -323,6 +323,20 @@
         
         <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 600px;">
           <form id="profile-form">
+            <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+              <div id="profile-photo-container" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #c8a97e; background: #050505; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                <span id="profile-photo-placeholder" style="font-size: 2rem; color: #555;">👤</span>
+                <img id="profile-photo-img" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label for="profile-photo-upload" style="background: #111; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; text-align: center; transition: all 0.2s; user-select: none; display: inline-block;" onmouseover="this.style.background='#c8a97e'; this.style.color='#000';" onmouseout="this.style.background='#111'; this.style.color='#c8a97e';">
+                  Upload Photo
+                  <input type="file" id="profile-photo-upload" accept="image/*" style="display: none;">
+                </label>
+                <span id="profile-photo-status" style="font-size: 0.75rem; color: #888;">PNG, JPG up to 5MB</span>
+              </div>
+            </div>
+
             <div style="margin-bottom: 20px;">
               <label style="display:block; margin-bottom:8px; color:#c8a97e; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">Full Name</label>
               <input type="text" id="profile-name" required style="width:100%; padding:12px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-size: 1rem;">

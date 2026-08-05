@@ -368,6 +368,19 @@ async function loadUserProfile(uid) {
       const hideEmailCheck = document.getElementById('profile-hide-email');
       if (hideEmailCheck) hideEmailCheck.checked = !!data.hideEmail;
 
+      const photoImg = document.getElementById('profile-photo-img');
+      const placeholder = document.getElementById('profile-photo-placeholder');
+      if (photoImg && placeholder) {
+        if (data.photoUrl) {
+          photoImg.src = data.photoUrl;
+          photoImg.style.display = 'block';
+          placeholder.style.display = 'none';
+        } else {
+          photoImg.style.display = 'none';
+          placeholder.style.display = 'block';
+        }
+      }
+
       // Load article progress list states
       userReadArticles = data.readArticles || [];
       userFavoriteArticles = data.favoriteArticles || [];
@@ -449,6 +462,64 @@ profileForm.addEventListener('submit', async (e) => {
     alert("Error saving profile. Check console.");
   }
 });
+
+// --- PROFILE PHOTO UPLOAD LOGIC --- //
+const photoUploadInput = document.getElementById('profile-photo-upload');
+const profilePhotoImg = document.getElementById('profile-photo-img');
+const profilePhotoPlaceholder = document.getElementById('profile-photo-placeholder');
+const profilePhotoStatus = document.getElementById('profile-photo-status');
+
+if (photoUploadInput) {
+  photoUploadInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUserUid) return;
+
+    if (profilePhotoStatus) {
+      profilePhotoStatus.innerText = 'Uploading photo...';
+      profilePhotoStatus.style.color = '#c8a97e';
+    }
+
+    try {
+      const fileExtension = file.name.split('.').pop();
+      const fileRef = ref(storage, `profile_photos/${currentUserUid}.${fileExtension}`);
+      
+      const uploadSnapshot = await uploadBytes(fileRef, file);
+      const photoUrl = await getDownloadURL(uploadSnapshot.ref);
+
+      // Save directly to the user document
+      await setDoc(doc(db, "users", currentUserUid), {
+        photoUrl: photoUrl
+      }, { merge: true });
+
+      // Update UI
+      if (profilePhotoImg && profilePhotoPlaceholder) {
+        profilePhotoImg.src = photoUrl;
+        profilePhotoImg.style.display = 'block';
+        profilePhotoPlaceholder.style.display = 'none';
+      }
+
+      if (profilePhotoStatus) {
+        profilePhotoStatus.innerText = 'Upload successful!';
+        profilePhotoStatus.style.color = '#4ade80';
+        setTimeout(() => {
+          profilePhotoStatus.innerText = 'PNG, JPG up to 5MB';
+          profilePhotoStatus.style.color = '#888';
+        }, 3000);
+      }
+
+      // Refresh directory and admin users lists
+      loadMembers();
+      if (typeof loadAdminUsers === 'function' && isAdmin) loadAdminUsers();
+
+    } catch (uploadErr) {
+      console.error("Profile photo upload failed:", uploadErr);
+      if (profilePhotoStatus) {
+        profilePhotoStatus.innerText = 'Upload failed. Try again.';
+        profilePhotoStatus.style.color = '#ef4444';
+      }
+    }
+  });
+}
 
 // --- MEMBER DIRECTORY LOGIC --- //
 const memberGrid = document.getElementById('member-grid');
@@ -1227,6 +1298,14 @@ async function loadAdminUsers() {
       const isAdm = !!u.isAdmin;
       const isCsep = !!u.csepCompleted;
       
+      // Determine preferred billing plan
+      let preferredBilling = 'monthly';
+      const app = appDataMap.get(uEmail);
+      if (app) {
+        preferredBilling = app.billing || 'monthly';
+      }
+      const billingLabel = preferredBilling === 'yearly' ? 'Yearly' : 'Monthly';
+      
       html += `
         <tr style="border-bottom: 1px solid #222;">
           <td style="padding: 10px;"><strong class="admin-user-name-link" data-uid="${uid}" style="color: #c8a97e; cursor: pointer; text-decoration: underline;" title="Click to view user profile details">${escapeHTML(displayName)}</strong></td>
@@ -1239,6 +1318,8 @@ async function loadAdminUsers() {
               <option value="council" ${t==='council'?'selected':''}>Sellebrity Council</option>
               <option value="vendor" ${t==='vendor'?'selected':''}>Featured Vendor</option>
             </select>
+            <br>
+            <span style="font-size:0.75rem; color:#888; white-space:nowrap; display:block; margin-top:4px;">Plan: ${billingLabel}</span>
           </td>
           <td style="padding: 10px;">
             <input type="checkbox" class="admin-isadmin-checkbox" data-uid="${uid}" ${isAdm?'checked':''}>
