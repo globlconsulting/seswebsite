@@ -173,6 +173,82 @@ document.addEventListener('DOMContentLoaded', () => {
       sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", form, null);
     });
   });
+
+  // --- FLOATING CABINET NEWSLETTER WIDGET ---
+  const widgetHtml = `
+    <div id="floating-newsletter-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <button id="floating-newsletter-btn" style="background: #0d0d0d; border: 1px solid #c8a97e; color: #c8a97e; padding: 12px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: all 0.3s; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+        <span style="font-size: 1.1rem; display: flex; align-items: center;">✉️</span>
+        <span>Vetted Insights</span>
+      </button>
+      <div id="floating-newsletter-cabinet" style="display: none; background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; padding: 25px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: relative; flex-direction: column; transition: all 0.3s;">
+        <button id="floating-newsletter-close" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #c8a97e; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1;">✕</button>
+        <h4 style="color: #c8a97e; margin: 0 0 10px 0; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;">Vetted Insights</h4>
+        <p style="color: #ccc; font-size: 0.9rem; line-height: 1.4; margin: 0 0 15px 0;">Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
+        <form class="newsletter-form" id="floating-newsletter-form" style="display: flex; align-items: center; position: relative; border-bottom: 1px solid #333; padding-bottom: 8px; margin: 0;">
+          <input type="email" placeholder="Your professional email" required style="background: transparent; border: none; color: #fff; font-size: 0.95rem; width: 100%; outline: none; padding-right: 30px; font-family: inherit;">
+          <button type="submit" style="background: transparent; border: none; color: #c8a97e; cursor: pointer; font-size: 1.1rem; position: absolute; right: 0; padding: 0; outline: none; display: flex; align-items: center; justify-content: center; height: 100%;">➔</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  if (!document.getElementById('floating-newsletter-widget')) {
+    const div = document.createElement('div');
+    div.innerHTML = widgetHtml;
+    document.body.appendChild(div.firstElementChild);
+
+    const btnOpen = document.getElementById('floating-newsletter-btn');
+    const cabinet = document.getElementById('floating-newsletter-cabinet');
+    const btnClose = document.getElementById('floating-newsletter-close');
+
+    if (btnOpen && cabinet && btnClose) {
+      btnOpen.addEventListener('click', () => {
+        btnOpen.style.display = 'none';
+        cabinet.style.display = 'flex';
+      });
+
+      btnClose.addEventListener('click', () => {
+        cabinet.style.display = 'none';
+        btnOpen.style.display = 'flex';
+      });
+    }
+
+    const floatForm = document.getElementById('floating-newsletter-form');
+    if (floatForm) {
+      floatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = floatForm.querySelector('input[type="email"]');
+        const email = emailInput ? emailInput.value.trim() : '';
+
+        if (!validateEmail(email)) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+
+        const payload = {
+          person: {
+            emails: [{ value: email }],
+            tags: ["SES_Newsletter_Subscriber"]
+          },
+          source: "SES Website - Floating Newsletter",
+          system: "Custom",
+          type: "Inquiry"
+        };
+
+        const submitBtn = floatForm.querySelector('button[type="submit"]');
+        const originalText = '➔';
+        
+        sendToFUB(payload, submitBtn, originalText, "Thank you for subscribing to Vetted Insights!", floatForm, null)
+          .then(() => {
+            setTimeout(() => {
+              cabinet.style.display = 'none';
+              btnOpen.style.display = 'flex';
+            }, 1000);
+          });
+      });
+    }
+  }
 });
 
 // ============================================================
