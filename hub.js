@@ -101,12 +101,53 @@ onAuthStateChanged(auth, async (user) => {
             contactPhone: contactPhone,
             contactEmail: contactEmail
           });
+
+          try {
+            await addDoc(collection(db, "updates"), {
+              uid: user.uid,
+              type: "NEW MEMBER",
+              text: `${name} joined the society!`,
+              timestamp: new Date(),
+              comments: []
+            });
+          } catch (updateErr) {
+            console.error("Failed to post registration update:", updateErr);
+          }
+
           return; // The snapshot listener will fire again with the created document
         }
 
         const data = docSnap.data();
         userTier = data.membershipTier || 'general';
         currentUserName = data.name || "Anonymous";
+
+        // Check if today is the user's birthday and post update if not already posted today
+        if (data.birthday && data.name) {
+          const birthdayParts = data.birthday.split('-'); // Format YYYY-MM-DD
+          if (birthdayParts.length === 3) {
+            const bdayMonth = parseInt(birthdayParts[1], 10) - 1; // 0-indexed
+            const bdayDay = parseInt(birthdayParts[2], 10);
+            
+            const today = new Date();
+            if (today.getMonth() === bdayMonth && today.getDate() === bdayDay) {
+              const birthdayKey = `ses_bday_${user.uid}_${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
+              if (!localStorage.getItem(birthdayKey)) {
+                try {
+                  await addDoc(collection(db, "updates"), {
+                    uid: user.uid,
+                    type: "BIRTHDAY",
+                    text: `Wishing ${data.name} a very Happy Birthday today! 🎂🎉`,
+                    timestamp: new Date(),
+                    comments: []
+                  });
+                  localStorage.setItem(birthdayKey, 'true');
+                } catch (bdayErr) {
+                  console.error("Failed to post birthday update:", bdayErr);
+                }
+              }
+            }
+          }
+        }
 
         // Auto-heal/Enrich existing user profile if name is missing or default
         if (!data.name || data.name === 'New Member' || data.name === 'Anonymous') {
@@ -336,6 +377,7 @@ async function loadUserProfile(uid) {
       document.getElementById('profile-industry').value = data.industry || '';
       document.getElementById('profile-company').value = data.company || '';
       document.getElementById('profile-location').value = data.location || '';
+      document.getElementById('profile-birthday').value = data.birthday || '';
       document.getElementById('profile-lookingfor').value = data.lookingfor || '';
       document.getElementById('profile-bio').value = data.bio || '';
       
@@ -422,6 +464,7 @@ profileForm.addEventListener('submit', async (e) => {
     company: document.getElementById('profile-company').value,
     location: document.getElementById('profile-location').value,
     lookingfor: document.getElementById('profile-lookingfor').value,
+    birthday: document.getElementById('profile-birthday').value,
     bio: document.getElementById('profile-bio').value,
     
     // Save professional detail fields
@@ -785,6 +828,8 @@ function loadUpdates() {
         openCommentsModal(updateId);
       });
     });
+  }, (err) => {
+    console.error("loadUpdates query failed:", err);
   });
 }
 
@@ -1357,8 +1402,10 @@ async function loadAdminUsers() {
           const userData = userSnap.exists() ? userSnap.data() : {};
           
           let spotlightFeaturedAt = userData.spotlightFeaturedAt || null;
+          let newlySpotlighted = false;
           if (newSpotlight && !userData.isSpotlight) {
             spotlightFeaturedAt = new Date();
+            newlySpotlighted = true;
           } else if (!newSpotlight) {
             spotlightFeaturedAt = null;
           }
@@ -1370,6 +1417,21 @@ async function loadAdminUsers() {
             isSpotlight: newSpotlight,
             spotlightFeaturedAt: spotlightFeaturedAt
           }, { merge: true });
+
+          if (newlySpotlighted) {
+            try {
+              const uName = userData.name || tr.cells[0].textContent || 'A member';
+              await addDoc(collection(db, "updates"), {
+                uid: uid,
+                type: "SPOTLIGHT",
+                text: `${uName} has been featured in the Member Spotlight! 🌟`,
+                timestamp: new Date(),
+                comments: []
+              });
+            } catch (spotlightErr) {
+              console.error("Failed to post spotlight update:", spotlightErr);
+            }
+          }
           
           e.target.innerText = 'Saved!';
           setTimeout(() => { e.target.innerText = 'Save'; }, 2000);
@@ -1488,6 +1550,10 @@ async function loadAdminUsers() {
                   <div>
                     <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Website URL</label>
                     <input type="url" id="admin-edit-website" value="${escapeHTML(user.website || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:5px; color:#aaa; font-size:0.75rem; text-transform:uppercase;">Birthday</label>
+                    <input type="date" id="admin-edit-birthday" value="${escapeHTML(user.birthday || '')}" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; box-sizing:border-box;">
                   </div>
                 </div>
 
@@ -1629,6 +1695,7 @@ async function loadAdminUsers() {
                 contactPhone: document.getElementById('admin-edit-contact-phone').value,
                 linkedin: document.getElementById('admin-edit-linkedin').value,
                 website: document.getElementById('admin-edit-website').value,
+                birthday: document.getElementById('admin-edit-birthday').value,
                 hideEmail: document.getElementById('admin-edit-hide-email').checked,
                 
                 referrer: document.getElementById('admin-edit-referrer').value,
