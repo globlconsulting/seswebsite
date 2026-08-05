@@ -15,6 +15,7 @@ service cloud.firestore {
         ) ||
         request.auth.token.email == "sheena.l@rhiveconstruction.com" ||
         request.auth.token.email == "got@globlconsulting.com" ||
+        request.auth.token.email == "kofi@globlconsulting.com" ||
         request.auth.token.email == "admin@ses.com");
     }
 
