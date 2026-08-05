@@ -1501,7 +1501,9 @@ async function loadAdminUsers() {
           loadMembers();
         } catch(err) {
           console.error(err);
+          alert("Error saving user: " + err.message);
           e.target.innerText = 'Error';
+          setTimeout(() => { e.target.innerText = 'Save'; }, 3000);
         }
       });
     });
