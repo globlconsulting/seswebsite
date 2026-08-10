@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       let galleryHtml = '';
       if (ev.gallery && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
         const thumbs = ev.gallery.map((imgUrl, index) => {
-          return `<div class="event-gallery-thumb" data-event-id="${ev.id}" data-index="${index}" style="background-image: url('${imgUrl}')" title="View Image ${index + 1}"></div>`;
+          return `<img class="event-gallery-thumb" data-event-id="${ev.id}" data-index="${index}" src="${imgUrl}" loading="lazy" decoding="async" alt="Gallery Image ${index + 1}" title="View Image ${index + 1}">`;
         }).join('');
         
         galleryHtml = `
