@@ -4270,16 +4270,24 @@ function initEventsManagement() {
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
       
-      if (galleryStatus) galleryStatus.textContent = `Uploading ${files.length} image(s)...`;
+      if (galleryStatus) galleryStatus.textContent = `Preparing ${files.length} images...`;
       
       let uploadCount = 0;
       for (const file of files) {
         try {
+          const currentProgressPercent = Math.round((uploadCount / files.length) * 100);
+          if (galleryStatus) {
+            galleryStatus.textContent = `Uploading: ${uploadCount + 1} of ${files.length} images (${currentProgressPercent}%)...`;
+          }
+          
           const fileRef = ref(storage, `events/gallery/${Date.now()}_${file.name}`);
           const uploadSnapshot = await uploadBytes(fileRef, file);
           const downloadUrl = await getDownloadURL(uploadSnapshot.ref);
           adminUploadedGalleryUrls.push(downloadUrl);
           uploadCount++;
+          
+          // Show live previews as they upload!
+          updateAdminGalleryPreview();
         } catch (uploadErr) {
           console.error("Gallery image upload failed for file:", file.name, uploadErr);
         }
@@ -4293,7 +4301,6 @@ function initEventsManagement() {
       }
       
       galleryInput.value = '';
-      updateAdminGalleryPreview();
     });
   }
   
