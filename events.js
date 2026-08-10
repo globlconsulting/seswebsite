@@ -249,9 +249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         galleryHtml = `
           <div class="event-gallery">
-            <span class="event-gallery-title">Event Gallery</span>
-            <div class="event-gallery-grid">
-              ${thumbs}
+            <button class="event-gallery-toggle" data-id="${ev.id}">
+              <span>View Event Gallery</span> <span class="gallery-arrow">▼</span>
+            </button>
+            <div class="event-gallery-content" id="gallery-content-${ev.id}">
+              <div class="event-gallery-grid">
+                ${thumbs}
+              </div>
             </div>
           </div>
         `;
@@ -317,6 +321,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           arrow.textContent = '▼';
         } else {
           detailsDiv.style.display = 'block';
+          arrow.textContent = '▲';
+        }
+      });
+    });
+
+    // Toggle gallery expand/collapse
+    container.querySelectorAll('.event-gallery-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const contentDiv = document.getElementById(`gallery-content-${id}`);
+        const arrow = btn.querySelector('.gallery-arrow');
+        
+        if (contentDiv.style.display === 'block') {
+          contentDiv.style.display = 'none';
+          arrow.textContent = '▼';
+        } else {
+          contentDiv.style.display = 'block';
           arrow.textContent = '▲';
         }
       });
