@@ -336,6 +336,10 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -385,12 +389,9 @@
   <!-- EVENTS LIST SECTION -->
   <section class="events-section" style="padding-bottom: 8rem; position: relative; z-index: 2;">
     <div class="container">
-      <div class="events-grid" id="events-list-container">
-        <p style="text-align: center; color: var(--text-muted);">Loading events...</p>
-      </div>
-
-      <!-- NEWSLETTER CTA BANNER -->
-      <div class="newsletter-cta-banner" style="margin-top: 6rem; text-align: center; padding: 4rem 2rem; background: var(--bg-panel); border: var(--border-glass); border-radius: 4px; box-shadow: var(--shadow-premium); position: relative; overflow: hidden;">
+      
+      <!-- NEWSLETTER CTA BANNER (NOW AT TOP) -->
+      <div class="newsletter-cta-banner" style="margin-bottom: 5rem; text-align: center; padding: 4rem 2rem; background: var(--bg-panel); border: var(--border-glass); border-radius: 4px; box-shadow: var(--shadow-premium); position: relative; overflow: hidden;">
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--color-gold-start), var(--color-gold-mid), var(--color-gold-end));"></div>
         <h3 style="font-family: var(--font-serif); font-size: clamp(1.5rem, 3vw, 2.2rem); color: #fff; margin-bottom: 1rem;">Stay Informed on Future Happenings</h3>
         <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 2.5rem auto; font-size: 1.05rem; line-height: 1.8;">
@@ -400,6 +401,29 @@
           SIGN UP TO HEAR ABOUT FUTURE EVENTS
         </button>
       </div>
+
+      <!-- UPCOMING EVENTS CONTAINER -->
+      <div id="upcoming-events-section">
+        <h2 style="font-family: var(--font-serif); font-size: 2rem; color: #fff; margin-bottom: 3rem; text-align: center; position: relative;">
+          Upcoming Events
+          <span style="display: block; width: 60px; height: 2px; background: var(--color-gold-mid); margin: 15px auto 0 auto;"></span>
+        </h2>
+        <div class="events-grid" id="events-list-container">
+          <p style="text-align: center; color: var(--text-muted);">Loading events...</p>
+        </div>
+      </div>
+      
+      <!-- PAST EVENTS SECTION -->
+      <div id="past-events-section" style="margin-top: 6rem; display: none;">
+        <h2 style="font-family: var(--font-serif); font-size: 2rem; color: #fff; margin-bottom: 3rem; text-align: center; position: relative;">
+          Past Events
+          <span style="display: block; width: 60px; height: 2px; background: var(--color-gold-mid); margin: 15px auto 0 auto;"></span>
+        </h2>
+        <div class="events-grid" id="past-events-list-container">
+          <!-- Past events will be loaded here dynamically -->
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -482,9 +506,10 @@
   <!-- LIGHTBOX MODAL -->
   <div class="lightbox-modal" id="lightbox-modal-overlay">
     <div class="lightbox-content">
+      <div id="lightbox-loader" style="position: absolute; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--color-gold-mid); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; z-index: 2005;"></div>
       <button class="lightbox-close-btn" id="lightbox-modal-close" aria-label="Close image view">&times;</button>
       <button class="lightbox-nav-btn lightbox-prev-btn" id="lightbox-modal-prev" aria-label="Previous image">&lsaquo;</button>
-      <img src="" alt="Gallery Preview" class="lightbox-img" id="lightbox-modal-img">
+      <img src="" alt="Gallery Preview" class="lightbox-img" id="lightbox-modal-img" style="opacity: 0; transition: opacity 0.3s ease;">
       <button class="lightbox-nav-btn lightbox-next-btn" id="lightbox-modal-next" aria-label="Next image">&rsaquo;</button>
       <div class="lightbox-counter" id="lightbox-modal-counter">Image 0 of 0</div>
     </div>

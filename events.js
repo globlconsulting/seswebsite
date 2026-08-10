@@ -59,6 +59,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const lightboxNext = document.getElementById('lightbox-modal-next');
   const lightboxCounter = document.getElementById('lightbox-modal-counter');
 
+  const lightboxLoader = document.getElementById('lightbox-loader');
+  if (lightboxImg) {
+    lightboxImg.addEventListener('load', () => {
+      if (lightboxLoader) lightboxLoader.style.display = 'none';
+      lightboxImg.style.opacity = '1';
+    });
+  }
+
   function openLightbox() {
     updateLightboxContent();
     if (lightboxOverlay) lightboxOverlay.classList.add('active');
@@ -68,10 +76,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   function closeLightbox() {
     if (lightboxOverlay) lightboxOverlay.classList.remove('active');
     document.body.style.overflow = '';
+    // Clear image source after transition finishes to avoid lagging on close
+    setTimeout(() => {
+      if (lightboxOverlay && !lightboxOverlay.classList.contains('active') && lightboxImg) {
+        lightboxImg.src = '';
+        lightboxImg.style.opacity = '0';
+      }
+    }, 350);
   }
 
   function updateLightboxContent() {
     if (currentGalleryImages.length === 0 || !lightboxImg) return;
+    if (lightboxLoader) lightboxLoader.style.display = 'block';
+    lightboxImg.style.opacity = '0'; // Hide until fully decoded
     lightboxImg.src = currentGalleryImages[currentImageIndex];
     if (lightboxCounter) {
       lightboxCounter.textContent = `Image ${currentImageIndex + 1} of ${currentGalleryImages.length}`;
@@ -197,106 +214,121 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Render function
-  function renderEventsList(events, container) {
-    if (!container) return;
-    container.innerHTML = '';
+  function renderEventsList(events) {
+    const upcomingContainer = document.getElementById('events-list-container');
+    const pastContainer = document.getElementById('past-events-list-container');
+    const pastSection = document.getElementById('past-events-section');
+    
+    if (!upcomingContainer || !pastContainer) return;
+    
+    upcomingContainer.innerHTML = '';
+    pastContainer.innerHTML = '';
+    
+    const upcomingEvents = events.filter(ev => ev.isPast !== true);
+    const pastEvents = events.filter(ev => ev.isPast === true);
+    
+    // Render Upcoming
+    if (upcomingEvents.length === 0) {
+      upcomingContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1; padding: 2rem 0;">No upcoming events scheduled at this time.</p>';
+    } else {
+      renderCards(upcomingEvents, upcomingContainer);
+    }
+    
+    // Render Past
+    if (pastEvents.length === 0) {
+      if (pastSection) pastSection.style.display = 'none';
+    } else {
+      if (pastSection) pastSection.style.display = 'block';
+      renderCards(pastEvents, pastContainer);
+    }
 
-    // Sort events: upcoming first (isPast falsy/undefined), then past (isPast true)
-    const sortedEvents = [...events].sort((a, b) => {
-      const aPast = a.isPast === true;
-      const bPast = b.isPast === true;
-      if (aPast !== bPast) {
-        return aPast ? 1 : -1;
-      }
-      return 0;
-    });
-
-    sortedEvents.forEach(ev => {
-      const card = document.createElement('div');
-      card.className = 'event-card reveal';
-      card.id = `event-card-${ev.id}`;
-
-      // Convert newlines in description to HTML list/paragraphs
-      const parsedDesc = ev.description ? ev.description
-        .replace(/\n/g, '<br>')
-        .replace(/### (.*?)(<br>|$)/g, '<h3>$1</h3>')
-        .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>')
-        : '';
-
-      const cohostsText = ev.cohosts ? `<div class="event-meta-item"><span class="icon">👥</span><span>Co-Hosted By: ${ev.cohosts}</span></div>` : '';
-      const imageStyle = ev.imageUrl ? `background-image: url('${ev.imageUrl}');` : 'background-color: var(--color-blue);';
-
-      const isPastEvent = ev.isPast === true;
-      const badgeHtml = isPastEvent 
-        ? `<span class="event-badge badge-concluded">📅 CONCLUDED</span>`
-        : `<span class="event-badge badge-date">📅 UPCOMING</span>`;
-
-      let rsvpBtnHtml = '';
-      if (isPastEvent) {
-        rsvpBtnHtml = `<button class="btn btn-concluded" disabled style="margin-top: 2rem; width: 100%;">EVENT CONCLUDED</button>`;
-      } else if (ev.rsvpUrl) {
-        rsvpBtnHtml = `<a href="${ev.rsvpUrl}" target="_blank" class="btn btn-primary" style="margin-top: 2rem; width: 100%; display: block; text-align: center; text-decoration: none; box-sizing: border-box; line-height: 1.5; padding: 12px 0;">RSVP TODAY</a>`;
-      } else {
-        rsvpBtnHtml = `<button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>`;
-      }
-
-      let galleryHtml = '';
-      if (ev.gallery && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
-        const thumbs = ev.gallery.map((imgUrl, index) => {
-          return `<img class="event-gallery-thumb" data-event-id="${ev.id}" data-index="${index}" src="${imgUrl}" loading="lazy" decoding="async" alt="Gallery Image ${index + 1}" title="View Image ${index + 1}">`;
-        }).join('');
+    function renderCards(eventGroup, targetContainer) {
+      eventGroup.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = 'event-card reveal';
+        card.id = `event-card-${ev.id}`;
         
-        galleryHtml = `
-          <div class="event-gallery">
-            <button class="event-gallery-toggle" data-id="${ev.id}">
-              <span>View Event Gallery</span> <span class="gallery-arrow">▼</span>
-            </button>
-            <div class="event-gallery-content" id="gallery-content-${ev.id}">
-              <div class="event-gallery-grid">
-                ${thumbs}
+        // Convert newlines in description to HTML list/paragraphs
+        const parsedDesc = ev.description ? ev.description
+          .replace(/\n/g, '<br>')
+          .replace(/### (.*?)(<br>|$)/g, '<h3>$1</h3>')
+          .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>')
+          : '';
+          
+        const cohostsText = ev.cohosts ? `<div class="event-meta-item"><span class="icon">👥</span><span>Co-Hosted By: ${ev.cohosts}</span></div>` : '';
+        const imageStyle = ev.imageUrl ? `background-image: url('${ev.imageUrl}');` : 'background-color: var(--color-blue);';
+        
+        const isPastEvent = ev.isPast === true;
+        const badgeHtml = isPastEvent 
+          ? `<span class="event-badge badge-concluded">📅 CONCLUDED</span>`
+          : `<span class="event-badge badge-date">📅 UPCOMING</span>`;
+          
+        let rsvpBtnHtml = '';
+        if (isPastEvent) {
+          rsvpBtnHtml = `<button class="btn btn-concluded" disabled style="margin-top: 2rem; width: 100%;">EVENT CONCLUDED</button>`;
+        } else if (ev.rsvpUrl) {
+          rsvpBtnHtml = `<a href="${ev.rsvpUrl}" target="_blank" class="btn btn-primary" style="margin-top: 2rem; width: 100%; display: block; text-align: center; text-decoration: none; box-sizing: border-box; line-height: 1.5; padding: 12px 0;">RSVP TODAY</a>`;
+        } else {
+          rsvpBtnHtml = `<button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>`;
+        }
+        
+        let galleryHtml = '';
+        if (ev.gallery && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
+          const thumbs = ev.gallery.map((imgUrl, index) => {
+            return `<img class="event-gallery-thumb" data-event-id="${ev.id}" data-index="${index}" src="${imgUrl}" loading="lazy" decoding="async" alt="Gallery Image ${index + 1}" title="View Image ${index + 1}">`;
+          }).join('');
+          
+          galleryHtml = `
+            <div class="event-gallery">
+              <button class="event-gallery-toggle" data-id="${ev.id}">
+                <span>View Event Gallery</span> <span class="gallery-arrow">▼</span>
+              </button>
+              <div class="event-gallery-content" id="gallery-content-${ev.id}">
+                <div class="event-gallery-grid">
+                  ${thumbs}
+                </div>
               </div>
             </div>
+          `;
+        }
+        
+        card.innerHTML = `
+          <div class="event-image-container" style="${imageStyle}"></div>
+          <div class="event-content">
+            <div>
+              <div class="event-tag-container">
+                ${badgeHtml}
+                <span class="event-badge badge-price">${ev.ticketPrice || 'Free'}</span>
+              </div>
+              <h2 class="event-title">${ev.title}</h2>
+              <div class="event-meta">
+                <div class="event-meta-item"><span class="icon">🕒</span><span>${ev.date}</span></div>
+                <div class="event-meta-item"><span class="icon">📍</span><span>${ev.location}</span></div>
+                ${cohostsText}
+              </div>
+              <p class="event-overview">${ev.overview}</p>
+              
+              <button class="event-details-toggle" data-id="${ev.id}">
+                <span>View Agenda & Full Details</span> <span class="arrow">▼</span>
+              </button>
+              
+              <div class="event-full-details" id="details-${ev.id}">
+                ${parsedDesc}
+              </div>
+              
+              ${galleryHtml}
+            </div>
+            ${rsvpBtnHtml}
           </div>
         `;
-      }
-
-      card.innerHTML = `
-        <div class="event-image-container" style="${imageStyle}"></div>
-        <div class="event-content">
-          <div>
-            <div class="event-tag-container">
-              ${badgeHtml}
-              <span class="event-badge badge-price">${ev.ticketPrice || 'Free'}</span>
-            </div>
-            <h2 class="event-title">${ev.title}</h2>
-            <div class="event-meta">
-              <div class="event-meta-item"><span class="icon">🕒</span><span>${ev.date}</span></div>
-              <div class="event-meta-item"><span class="icon">📍</span><span>${ev.location}</span></div>
-              ${cohostsText}
-            </div>
-            <p class="event-overview">${ev.overview}</p>
-            
-            <button class="event-details-toggle" data-id="${ev.id}">
-              <span>View Agenda & Full Details</span> <span class="arrow">▼</span>
-            </button>
-            
-            <div class="event-full-details" id="details-${ev.id}">
-              ${parsedDesc}
-            </div>
-
-            ${galleryHtml}
-          </div>
-          ${rsvpBtnHtml}
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
+        
+        targetContainer.appendChild(card);
+      });
+    }
 
     // Add scroll reveal listeners manually if not already running
+    const revealElements = document.querySelectorAll('.reveal');
     if (window.innerWidth > 1024 && typeof IntersectionObserver !== 'undefined') {
-      const revealElements = container.querySelectorAll('.reveal');
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -306,11 +338,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, { threshold: 0.1 });
       revealElements.forEach(el => observer.observe(el));
     } else {
-      container.querySelectorAll('.reveal').forEach(el => el.classList.add('active'));
+      revealElements.forEach(el => el.classList.add('active'));
     }
 
     // Toggle agenda expand/collapse
-    container.querySelectorAll('.event-details-toggle').forEach(btn => {
+    document.querySelectorAll('.event-details-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
         const detailsDiv = document.getElementById(`details-${id}`);
@@ -327,7 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Toggle gallery expand/collapse
-    container.querySelectorAll('.event-gallery-toggle').forEach(btn => {
+    document.querySelectorAll('.event-gallery-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
         const contentDiv = document.getElementById(`gallery-content-${id}`);
@@ -344,7 +376,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Wire up RSVP button click
-    container.querySelectorAll('.rsvp-trigger-btn').forEach(btn => {
+    document.querySelectorAll('.rsvp-trigger-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
         const title = btn.getAttribute('data-title');
@@ -353,12 +385,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Wire up Gallery Thumbnails click
-    container.querySelectorAll('.event-gallery-thumb').forEach(thumb => {
+    document.querySelectorAll('.event-gallery-thumb').forEach(thumb => {
       thumb.addEventListener('click', () => {
         const eventId = thumb.getAttribute('data-event-id');
         const imgIndex = parseInt(thumb.getAttribute('data-index'), 10);
         
-        const eventObj = sortedEvents.find(e => e.id === eventId);
+        const eventObj = events.find(e => e.id === eventId);
         if (eventObj && eventObj.gallery) {
           currentGalleryImages = eventObj.gallery;
           currentImageIndex = imgIndex;
