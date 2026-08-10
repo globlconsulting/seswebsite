@@ -927,6 +927,11 @@
             <input type="url" id="admin-event-image" placeholder="https://..." style="padding:10px; background:#050505; border:1px solid #333; color:#fff; border-radius:4px;">
           </div>
 
+          <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top: 25px;">
+            <input type="checkbox" id="admin-event-is-past" style="width:20px; height:20px; cursor:pointer; accent-color:#c8a97e;">
+            <label for="admin-event-is-past" style="color:#c8a97e; font-size:0.85rem; text-transform:uppercase; font-weight:bold; cursor:pointer; margin-bottom:0; user-select:none;">Mark as Past Event</label>
+          </div>
+
           <div class="form-group" style="grid-column: span 2; display:flex; flex-direction:column; gap:8px;">
             <label style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase;">RSVP URL / Eventbrite Link (optional)</label>
             <input type="url" id="admin-event-rsvp-url" placeholder="https://www.eventbrite.com/e/..." style="padding:10px; background:#050505; border:1px solid #333; color:#fff; border-radius:4px;">
@@ -940,6 +945,21 @@
           <div class="form-group" style="grid-column: span 2; display:flex; flex-direction:column; gap:8px;">
             <label style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase;">Detailed Description & Agenda (Markdown supported) *</label>
             <textarea id="admin-event-description" rows="6" required placeholder="Enter full details, schedules, panels, speakers..." style="padding:12px; background:#050505; border:1px solid #333; color:#fff; border-radius:4px; font-family:inherit; resize:vertical;"></textarea>
+          </div>
+
+          <!-- EVENT GALLERY UPLOADER -->
+          <div class="form-group" style="grid-column: span 2; display:flex; flex-direction:column; gap:12px; background: #080808; padding: 20px; border-radius: 4px; border: 1px solid #222; margin-top: 10px;">
+            <label style="color:#c8a97e; font-size:0.8rem; text-transform:uppercase; font-weight:bold;">Event Gallery Images</label>
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <button type="button" class="btn" id="admin-event-gallery-trigger" style="background: transparent; border: 1px dashed var(--color-gold-start) !important; color: var(--color-gold-mid); padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: var(--transition-smooth);">
+                + Select Gallery Images
+              </button>
+              <input type="file" id="admin-event-gallery-input" multiple accept="image/*" style="display: none;">
+              <span id="admin-event-gallery-status" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+            </div>
+            <div id="admin-event-gallery-preview" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; min-height: 50px; align-items: center;">
+              <p id="admin-event-gallery-placeholder" style="color: #555; font-size: 0.85rem; margin: 0; font-style: italic;">No gallery images uploaded yet.</p>
+            </div>
           </div>
 
           <div style="grid-column: span 2; display: flex; gap: 15px; margin-top: 10px;">
@@ -957,6 +977,7 @@
                 <th style="padding:15px; color:#c8a97e;">Date</th>
                 <th style="padding:15px; color:#c8a97e;">Event Title</th>
                 <th style="padding:15px; color:#c8a97e;">Location</th>
+                <th style="padding:15px; color:#c8a97e;">Status</th>
                 <th style="padding:15px; color:#c8a97e;">Actions</th>
               </tr>
             </thead>

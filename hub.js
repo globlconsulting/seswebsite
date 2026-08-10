@@ -4201,9 +4201,101 @@ Agenda:
 - 12:30 PM - 1:00 PM: Networking & Wrap-up`
 };
 
+let adminUploadedGalleryUrls = [];
+
+function updateAdminGalleryPreview() {
+  const galleryPreview = document.getElementById('admin-event-gallery-preview');
+  if (!galleryPreview) return;
+  galleryPreview.innerHTML = '';
+  
+  if (adminUploadedGalleryUrls.length === 0) {
+    galleryPreview.innerHTML = '<p id="admin-event-gallery-placeholder" style="color: #555; font-size: 0.85rem; margin: 0; font-style: italic;">No gallery images uploaded yet.</p>';
+    return;
+  }
+  
+  adminUploadedGalleryUrls.forEach((url, index) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    wrapper.style.width = '80px';
+    wrapper.style.height = '80px';
+    wrapper.style.borderRadius = '4px';
+    wrapper.style.border = '1px solid #333';
+    wrapper.style.backgroundImage = `url('${url}')`;
+    wrapper.style.backgroundSize = 'cover';
+    wrapper.style.backgroundPosition = 'center';
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.style.position = 'absolute';
+    removeBtn.style.top = '-5px';
+    removeBtn.style.right = '-5px';
+    removeBtn.style.background = '#ef4444';
+    removeBtn.style.color = '#fff';
+    removeBtn.style.border = 'none';
+    removeBtn.style.borderRadius = '50%';
+    removeBtn.style.width = '18px';
+    removeBtn.style.height = '18px';
+    removeBtn.style.fontSize = '12px';
+    removeBtn.style.fontWeight = 'bold';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.display = 'flex';
+    removeBtn.style.alignItems = 'center';
+    removeBtn.style.justifyContent = 'center';
+    removeBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.5)';
+    
+    removeBtn.addEventListener('click', () => {
+      adminUploadedGalleryUrls.splice(index, 1);
+      updateAdminGalleryPreview();
+    });
+    
+    wrapper.appendChild(removeBtn);
+    galleryPreview.appendChild(wrapper);
+  });
+}
+
 function initEventsManagement() {
   const form = document.getElementById('admin-event-form');
   const cancelBtn = document.getElementById('admin-event-cancel-btn');
+  const galleryTrigger = document.getElementById('admin-event-gallery-trigger');
+  const galleryInput = document.getElementById('admin-event-gallery-input');
+  const galleryStatus = document.getElementById('admin-event-gallery-status');
+  
+  if (galleryTrigger && galleryInput) {
+    galleryTrigger.addEventListener('click', () => {
+      galleryInput.click();
+    });
+    
+    galleryInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+      
+      if (galleryStatus) galleryStatus.textContent = `Uploading ${files.length} image(s)...`;
+      
+      let uploadCount = 0;
+      for (const file of files) {
+        try {
+          const fileRef = ref(storage, `events/gallery/${Date.now()}_${file.name}`);
+          const uploadSnapshot = await uploadBytes(fileRef, file);
+          const downloadUrl = await getDownloadURL(uploadSnapshot.ref);
+          adminUploadedGalleryUrls.push(downloadUrl);
+          uploadCount++;
+        } catch (uploadErr) {
+          console.error("Gallery image upload failed for file:", file.name, uploadErr);
+        }
+      }
+      
+      if (galleryStatus) {
+        galleryStatus.textContent = `Successfully uploaded ${uploadCount} of ${files.length} images.`;
+        setTimeout(() => {
+          galleryStatus.textContent = '';
+        }, 4000);
+      }
+      
+      galleryInput.value = '';
+      updateAdminGalleryPreview();
+    });
+  }
   
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -4218,6 +4310,7 @@ function initEventsManagement() {
       const rsvpUrl = document.getElementById('admin-event-rsvp-url').value.trim();
       const overview = document.getElementById('admin-event-overview').value.trim();
       const description = document.getElementById('admin-event-description').value.trim();
+      const isPast = document.getElementById('admin-event-is-past').checked;
       
       const submitBtn = document.getElementById('admin-event-submit-btn');
       const statusSpan = document.getElementById('admin-event-status');
@@ -4238,6 +4331,8 @@ function initEventsManagement() {
           rsvpUrl,
           overview,
           description,
+          isPast,
+          gallery: adminUploadedGalleryUrls,
           createdAt: serverTimestamp()
         };
         
@@ -4258,6 +4353,9 @@ function initEventsManagement() {
         
         form.reset();
         document.getElementById('admin-event-id').value = '';
+        document.getElementById('admin-event-is-past').checked = false;
+        adminUploadedGalleryUrls = [];
+        updateAdminGalleryPreview();
         if (cancelBtn) cancelBtn.style.display = 'none';
         if (submitBtn) submitBtn.textContent = 'Save Event';
         
@@ -4279,6 +4377,9 @@ function initEventsManagement() {
     cancelBtn.addEventListener('click', () => {
       if (form) form.reset();
       document.getElementById('admin-event-id').value = '';
+      document.getElementById('admin-event-is-past').checked = false;
+      adminUploadedGalleryUrls = [];
+      updateAdminGalleryPreview();
       cancelBtn.style.display = 'none';
       const submitBtn = document.getElementById('admin-event-submit-btn');
       if (submitBtn) submitBtn.textContent = 'Save Event';
@@ -4440,10 +4541,16 @@ async function loadAdminEvents() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #222';
     
+    const isPast = ev.isPast === true;
+    const statusText = isPast 
+      ? '<span style="color:#94a3b8; background:rgba(148,163,184,0.1); padding:3px 8px; border-radius:3px; font-size:0.75rem; font-weight:bold;">CONCLUDED</span>' 
+      : '<span style="color:#34d399; background:rgba(52,211,153,0.1); padding:3px 8px; border-radius:3px; font-size:0.75rem; font-weight:bold;">UPCOMING</span>';
+
     tr.innerHTML = `
       <td style="padding:15px; color:#eee;">${ev.date}</td>
       <td style="padding:15px; color:#fff; font-weight:bold;">${ev.title}</td>
       <td style="padding:15px; color:#aaa;">${ev.location}</td>
+      <td style="padding:15px;">${statusText}</td>
       <td style="padding:15px;">
         <button class="admin-edit-event-btn" data-id="${ev.id}" style="background:#c8a97e; color:black; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:8px;">Edit</button>
         <button class="admin-delete-event-btn" data-id="${ev.id}" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">Delete</button>
@@ -4464,6 +4571,9 @@ async function loadAdminEvents() {
       document.getElementById('admin-event-rsvp-url').value = ev.rsvpUrl || '';
       document.getElementById('admin-event-overview').value = ev.overview || '';
       document.getElementById('admin-event-description').value = ev.description || '';
+      document.getElementById('admin-event-is-past').checked = ev.isPast === true;
+      adminUploadedGalleryUrls = ev.gallery ? [...ev.gallery] : [];
+      updateAdminGalleryPreview();
       
       const cancelBtn = document.getElementById('admin-event-cancel-btn');
       if (cancelBtn) cancelBtn.style.display = 'inline-block';

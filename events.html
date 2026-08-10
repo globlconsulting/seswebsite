@@ -177,6 +177,152 @@
     .modal-close-btn:hover {
       color: #fff;
     }
+
+    /* Event Gallery Styles */
+    .event-gallery {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .event-gallery-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-gold-mid);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .event-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+    }
+    .event-gallery-thumb {
+      aspect-ratio: 1.2 / 1;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .event-gallery-thumb:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-gold-mid);
+      box-shadow: 0 4px 15px rgba(191, 161, 95, 0.2);
+    }
+
+    /* Concluded Badge & Button */
+    .badge-concluded {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .btn-concluded {
+      background: rgba(255, 255, 255, 0.02) !important;
+      color: var(--text-muted) !important;
+      border: 1px solid rgba(255, 255, 255, 0.04) !important;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none !important;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 8, 17, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .lightbox-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    .lightbox-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 80%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 4px;
+      border: var(--border-glass);
+      box-shadow: var(--shadow-premium);
+    }
+    .lightbox-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(12, 18, 32, 0.8);
+      border: var(--border-glass);
+      color: #fff;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      z-index: 2010;
+      user-select: none;
+      line-height: 1;
+      padding-bottom: 4px;
+    }
+    .lightbox-nav-btn:hover {
+      background: var(--color-gold-mid);
+      color: #000;
+      box-shadow: var(--shadow-glow-gold);
+    }
+    .lightbox-prev-btn {
+      left: -80px;
+    }
+    .lightbox-next-btn {
+      right: -80px;
+    }
+    @media (max-width: 992px) {
+      .lightbox-prev-btn { left: -10px; }
+      .lightbox-next-btn { right: -10px; }
+    }
+    .lightbox-close-btn {
+      position: absolute;
+      top: -50px;
+      right: 0px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 2.5rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      line-height: 1;
+    }
+    .lightbox-close-btn:hover {
+      color: #fff;
+    }
+    .lightbox-counter {
+      color: var(--text-muted);
+      margin-top: 15px;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -228,6 +374,18 @@
     <div class="container">
       <div class="events-grid" id="events-list-container">
         <p style="text-align: center; color: var(--text-muted);">Loading events...</p>
+      </div>
+
+      <!-- NEWSLETTER CTA BANNER -->
+      <div class="newsletter-cta-banner" style="margin-top: 6rem; text-align: center; padding: 4rem 2rem; background: var(--bg-panel); border: var(--border-glass); border-radius: 4px; box-shadow: var(--shadow-premium); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--color-gold-start), var(--color-gold-mid), var(--color-gold-end));"></div>
+        <h3 style="font-family: var(--font-serif); font-size: clamp(1.5rem, 3vw, 2.2rem); color: #fff; margin-bottom: 1rem;">Stay Informed on Future Happenings</h3>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 2.5rem auto; font-size: 1.05rem; line-height: 1.8;">
+          Join our exclusive circle. Subscribe to receive private invitations, speaker announcements, and notifications about future society events.
+        </p>
+        <button id="events-newsletter-btn" class="btn btn-outline-gold" style="font-size: 0.8rem; letter-spacing: 0.15em; padding: 14px 36px; font-weight: 700; cursor: pointer;">
+          SIGN UP TO HEAR ABOUT FUTURE EVENTS
+        </button>
       </div>
     </div>
   </section>
@@ -307,6 +465,17 @@
       </div>
     </div>
   </footer>
+
+  <!-- LIGHTBOX MODAL -->
+  <div class="lightbox-modal" id="lightbox-modal-overlay">
+    <div class="lightbox-content">
+      <button class="lightbox-close-btn" id="lightbox-modal-close" aria-label="Close image view">&times;</button>
+      <button class="lightbox-nav-btn lightbox-prev-btn" id="lightbox-modal-prev" aria-label="Previous image">&lsaquo;</button>
+      <img src="" alt="Gallery Preview" class="lightbox-img" id="lightbox-modal-img">
+      <button class="lightbox-nav-btn lightbox-next-btn" id="lightbox-modal-next" aria-label="Next image">&rsaquo;</button>
+      <div class="lightbox-counter" id="lightbox-modal-counter">Image 0 of 0</div>
+    </div>
+  </div>
 
   <script src="main.js"></script>
   <script type="module" src="events.js"></script>

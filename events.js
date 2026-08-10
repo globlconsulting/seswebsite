@@ -30,11 +30,13 @@ Featured Speakers:
 - Panel Discussion: Steven Graciano (SVP, Sports Strategy - Canvas Worldwide), Dr. Mimi Nartey (Co-Founder Nartey Sports Foundation. President - Playing For Keeps), Josh Boren (Managing Dir. Strategic Initiatives - RCLCO).
 - Moderator: Brandon Leopoldus (Leopoldus Law / Sports Lawyers Association)
 
-Agenda:
-- 11:00 AM - 11:30 AM: Arrival & Networking
-- 11:30 AM - 12:00 PM: 1 on 1 Conversation w/ Erikk Aldridge & Kofi Nartey
-- 12:00 PM - 12:30 PM: Panel Discussion w/ Steven Graciano, Dr. Mimi Nartey, and Josh Boren. Moderated by Brandon Leopoldus.
-- 12:30 PM - 1:00 PM: Networking & Wrap-up`
+  Agenda:
+  - 11:00 AM - 11:30 AM: Arrival & Networking
+  - 11:30 AM - 12:00 PM: 1 on 1 Conversation w/ Erikk Aldridge & Kofi Nartey
+  - 12:00 PM - 12:30 PM: Panel Discussion w/ Steven Graciano, Dr. Mimi Nartey, and Josh Boren. Moderated by Brandon Leopoldus.
+  - 12:30 PM - 1:00 PM: Networking & Wrap-up`,
+  isPast: false,
+  gallery: []
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,6 +47,84 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rsvpNotification = document.getElementById('rsvp-notification');
 
   let activeEvents = [];
+
+  // Lightbox State
+  let currentGalleryImages = [];
+  let currentImageIndex = 0;
+
+  const lightboxOverlay = document.getElementById('lightbox-modal-overlay');
+  const lightboxImg = document.getElementById('lightbox-modal-img');
+  const lightboxClose = document.getElementById('lightbox-modal-close');
+  const lightboxPrev = document.getElementById('lightbox-modal-prev');
+  const lightboxNext = document.getElementById('lightbox-modal-next');
+  const lightboxCounter = document.getElementById('lightbox-modal-counter');
+
+  function openLightbox() {
+    updateLightboxContent();
+    if (lightboxOverlay) lightboxOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    if (lightboxOverlay) lightboxOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function updateLightboxContent() {
+    if (currentGalleryImages.length === 0 || !lightboxImg) return;
+    lightboxImg.src = currentGalleryImages[currentImageIndex];
+    if (lightboxCounter) {
+      lightboxCounter.textContent = `Image ${currentImageIndex + 1} of ${currentGalleryImages.length}`;
+    }
+  }
+
+  function showNextImage() {
+    if (currentGalleryImages.length === 0) return;
+    currentImageIndex = (currentImageIndex + 1) % currentGalleryImages.length;
+    updateLightboxContent();
+  }
+
+  function showPrevImage() {
+    if (currentGalleryImages.length === 0) return;
+    currentImageIndex = (currentImageIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+    updateLightboxContent();
+  }
+
+  if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+  if (lightboxPrev) lightboxPrev.addEventListener('click', showPrevImage);
+  if (lightboxNext) lightboxNext.addEventListener('click', showNextImage);
+  if (lightboxOverlay) {
+    lightboxOverlay.addEventListener('click', (e) => {
+      if (e.target === lightboxOverlay) closeLightbox();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (lightboxOverlay && lightboxOverlay.classList.contains('active')) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') showNextImage();
+      if (e.key === 'ArrowLeft') showPrevImage();
+    }
+  });
+
+  const newsletterBtn = document.getElementById('events-newsletter-btn');
+  if (newsletterBtn) {
+    newsletterBtn.addEventListener('click', () => {
+      const footerNewsletter = document.getElementById('newsletter-email');
+      if (footerNewsletter) {
+        footerNewsletter.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          footerNewsletter.focus();
+          footerNewsletter.style.boxShadow = 'var(--shadow-glow-gold)';
+          footerNewsletter.style.borderColor = 'var(--color-gold-start)';
+          setTimeout(() => {
+            footerNewsletter.style.boxShadow = '';
+            footerNewsletter.style.borderColor = '';
+          }, 2000);
+        }, 800);
+      }
+    });
+  }
 
   // 1. Fetch events from Firestore
   try {
@@ -122,7 +202,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
     container.innerHTML = '';
 
-    events.forEach(ev => {
+    // Sort events: upcoming first (isPast falsy/undefined), then past (isPast true)
+    const sortedEvents = [...events].sort((a, b) => {
+      const aPast = a.isPast === true;
+      const bPast = b.isPast === true;
+      if (aPast !== bPast) {
+        return aPast ? 1 : -1;
+      }
+      return 0;
+    });
+
+    sortedEvents.forEach(ev => {
       const card = document.createElement('div');
       card.className = 'event-card reveal';
       card.id = `event-card-${ev.id}`;
@@ -137,16 +227,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cohostsText = ev.cohosts ? `<div class="event-meta-item"><span class="icon">👥</span><span>Co-Hosted By: ${ev.cohosts}</span></div>` : '';
       const imageStyle = ev.imageUrl ? `background-image: url('${ev.imageUrl}');` : 'background-color: var(--color-blue);';
 
-      const rsvpBtnHtml = ev.rsvpUrl
-        ? `<a href="${ev.rsvpUrl}" target="_blank" class="btn btn-primary" style="margin-top: 2rem; width: 100%; display: block; text-align: center; text-decoration: none; box-sizing: border-box; line-height: 1.5; padding: 12px 0;">RSVP TODAY</a>`
-        : `<button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>`;
+      const isPastEvent = ev.isPast === true;
+      const badgeHtml = isPastEvent 
+        ? `<span class="event-badge badge-concluded">📅 CONCLUDED</span>`
+        : `<span class="event-badge badge-date">📅 UPCOMING</span>`;
+
+      let rsvpBtnHtml = '';
+      if (isPastEvent) {
+        rsvpBtnHtml = `<button class="btn btn-concluded" disabled style="margin-top: 2rem; width: 100%;">EVENT CONCLUDED</button>`;
+      } else if (ev.rsvpUrl) {
+        rsvpBtnHtml = `<a href="${ev.rsvpUrl}" target="_blank" class="btn btn-primary" style="margin-top: 2rem; width: 100%; display: block; text-align: center; text-decoration: none; box-sizing: border-box; line-height: 1.5; padding: 12px 0;">RSVP TODAY</a>`;
+      } else {
+        rsvpBtnHtml = `<button class="btn btn-primary rsvp-trigger-btn" data-id="${ev.id}" data-title="${ev.title.replace(/"/g, '&quot;')}" style="margin-top: 2rem; width: 100%;">RSVP TODAY</button>`;
+      }
+
+      let galleryHtml = '';
+      if (ev.gallery && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
+        const thumbs = ev.gallery.map((imgUrl, index) => {
+          return `<div class="event-gallery-thumb" data-event-id="${ev.id}" data-index="${index}" style="background-image: url('${imgUrl}')" title="View Image ${index + 1}"></div>`;
+        }).join('');
+        
+        galleryHtml = `
+          <div class="event-gallery">
+            <span class="event-gallery-title">Event Gallery</span>
+            <div class="event-gallery-grid">
+              ${thumbs}
+            </div>
+          </div>
+        `;
+      }
 
       card.innerHTML = `
         <div class="event-image-container" style="${imageStyle}"></div>
         <div class="event-content">
           <div>
             <div class="event-tag-container">
-              <span class="event-badge badge-date">📅 UPCOMING</span>
+              ${badgeHtml}
               <span class="event-badge badge-price">${ev.ticketPrice || 'Free'}</span>
             </div>
             <h2 class="event-title">${ev.title}</h2>
@@ -164,6 +280,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="event-full-details" id="details-${ev.id}">
               ${parsedDesc}
             </div>
+
+            ${galleryHtml}
           </div>
           ${rsvpBtnHtml}
         </div>
@@ -210,6 +328,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const id = btn.getAttribute('data-id');
         const title = btn.getAttribute('data-title');
         openRSVPModal(id, title);
+      });
+    });
+
+    // Wire up Gallery Thumbnails click
+    container.querySelectorAll('.event-gallery-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const eventId = thumb.getAttribute('data-event-id');
+        const imgIndex = parseInt(thumb.getAttribute('data-index'), 10);
+        
+        const eventObj = sortedEvents.find(e => e.id === eventId);
+        if (eventObj && eventObj.gallery) {
+          currentGalleryImages = eventObj.gallery;
+          currentImageIndex = imgIndex;
+          openLightbox();
+        }
       });
     });
   }
