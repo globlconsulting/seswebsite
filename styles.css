@@ -1475,6 +1475,10 @@ footer {
   box-shadow: var(--shadow-premium);
 }
 
+.application-container > .form-group:not(:last-child) {
+  margin-bottom: 2rem;
+}
+
 .application-header {
   text-align: center;
   margin-bottom: 3.5rem;
