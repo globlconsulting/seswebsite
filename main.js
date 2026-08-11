@@ -147,13 +147,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- FLOATING CABINET NEWSLETTER WIDGET ---
   const widgetHtml = `
-    <div id="floating-newsletter-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <button id="floating-newsletter-btn" style="background: #0d0d0d; border: 1px solid #c8a97e; color: #c8a97e; padding: 12px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: all 0.3s; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
-        <span style="font-size: 1.1rem; display: flex; align-items: center;">✉️</span>
+    <div id="floating-newsletter-widget" style="position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 9999; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <style>
+        #floating-newsletter-btn {
+          background: #0d0d0d;
+          border: 1px solid #c8a97e;
+          border-bottom: none;
+          color: #c8a97e;
+          width: 240px;
+          height: 46px;
+          border-top-left-radius: 8px;
+          border-top-right-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+          transition: all 0.3s ease;
+          font-size: 0.85rem;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          position: absolute;
+          right: -97px;
+          top: -23px;
+          transform: rotate(-90deg);
+          transform-origin: center center;
+          margin: 0;
+          outline: none;
+          z-index: 10000;
+        }
+        #floating-newsletter-btn:hover {
+          background: #151515;
+          color: #fff;
+          border-color: #fff;
+          box-shadow: 0 -6px 20px rgba(200, 169, 126, 0.3);
+        }
+        #floating-newsletter-close:hover {
+          color: #fff !important;
+          transform: scale(1.1);
+        }
+      </style>
+      <button id="floating-newsletter-btn">
+        <span style="font-size: 1.1rem; display: flex; align-items: center; transform: rotate(90deg); transition: transform 0.3s;">✉️</span>
         <span>Subscribe to Newsletter</span>
       </button>
-      <div id="floating-newsletter-cabinet" style="display: none; background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; padding: 25px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: relative; flex-direction: column; transition: all 0.3s;">
-        <button id="floating-newsletter-close" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #c8a97e; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1;">✕</button>
+      <div id="floating-newsletter-cabinet" style="display: none; background: #0d0d0d; border: 1px solid #c8a97e; border-radius: 8px; padding: 25px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: absolute; right: 20px; top: 0; transform: translateY(-50%); flex-direction: column; transition: all 0.3s;">
+        <button id="floating-newsletter-close" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #c8a97e; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1; transition: all 0.2s;">✕</button>
         <h4 style="color: #c8a97e; margin: 0 0 10px 0; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;">Newsletter</h4>
         <p style="color: #ccc; font-size: 0.9rem; line-height: 1.4; margin: 0 0 15px 0;">Subscribe to our exclusive newsletter for sports and entertainment specialists.</p>
         <form class="newsletter-form" id="floating-newsletter-form" style="display: flex; flex-direction: column; gap: 12px; margin: 0;">
