@@ -2170,11 +2170,13 @@ async function loadAdminApplications() {
         const emailBody = `Hello ${appName},\n\nCongratulations! Your application for the ${tierName} Membership at the Sports & Entertainment Society has been reviewed and approved.\n\nTo activate your membership, please complete the secure payment of your ${billingTerm} subscription plan here:\n${prefilledLink}\n\nOnce paid, you will receive an automated email containing your official registration link to create your account and access the Society Hub.\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
 
         try {
+          const idToken = await auth.currentUser.getIdToken();
           // Attempt to send payment link automatically via Vercel Resend endpoint
           const res = await fetch('/api/send-payment-link', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
             },
             body: JSON.stringify({ appId, isYearly })
           });
@@ -2274,10 +2276,12 @@ async function loadAdminApplications() {
         const emailBody = `Hello ${appName},\n\nCongratulations! We are thrilled to inform you that your membership for the ${tierName} tier at the Sports & Entertainment Society is now fully active.\n\nYou can now register your account and access the Society Hub here:\n${window.location.origin}/login.html?register=true&email=${encodeURIComponent(appEmail)}\n\nWe look forward to connecting with you in the Society.\n\nBest regards,\nThe Sports & Entertainment Society Team`;
 
         try {
+          const idToken = await auth.currentUser.getIdToken();
           const res = await fetch('/api/send-invite', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
             },
             body: JSON.stringify({ email: appEmail })
           });

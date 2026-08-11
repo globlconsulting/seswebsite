@@ -58,8 +58,8 @@ service cloud.firestore {
     }
 
     match /applications/{appId} {
-      // Anyone can submit an application (authenticated or unauthenticated)
-      allow create: if true;
+      // Anyone can submit an application - Block client-side creation. Must go through /api/apply
+      allow create: if false;
       // Only admins can read/write (list/update/delete) applications
       allow read, write: if isAdmin();
     }
@@ -79,8 +79,8 @@ service cloud.firestore {
     }
 
     match /rsvps/{rsvpId} {
-      // Anyone can submit an RSVP
-      allow create: if true;
+      // Anyone can submit an RSVP - Block client-side creation. Must go through /api/rsvp
+      allow create: if false;
       // Only admins can read or manage RSVPs
       allow read, write: if isAdmin();
     }

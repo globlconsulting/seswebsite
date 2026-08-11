@@ -1,6 +1,3 @@
-import { db } from './firebase.js';
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 document.addEventListener('DOMContentLoaded', () => {
   const csepForm = document.getElementById('csep-application');
   const csepNotification = document.getElementById('form-notification');
@@ -39,52 +36,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        // 1. Write to Firestore applications collection
-        const appData = {
-          email: email.toLowerCase(),
-          fullName: `${firstName} ${lastName}`,
-          phone: '',
-          company: '',
-          title: '',
-          referrer: '',
-          tier: 'sellebrity', // Default tier for CSEP applicants
-          industries: [industryText],
-          clientele: 'Athletes & Entertainers',
-          experience: `[Years Exp: ${experienceText}]\n${experienceDetail}`,
-          status: 'pending',
-          applicationType: 'csep',
-          createdAt: serverTimestamp()
-        };
-        await addDoc(collection(db, "applications"), appData);
-
-        // 2. Submit to CRM /api/fub in background
-        const tags = ["CSEP_Applicant", `Industry: ${industryValue}`];
+        const websiteUrl = csepForm.querySelector('input[name="website_url"]')?.value || '';
         const newsletterCheckbox = document.getElementById('csep-newsletter');
-        if (newsletterCheckbox && newsletterCheckbox.checked) {
-          tags.push("SES_Newsletter_Subscriber");
-        }
+        const subscribeNewsletter = !!(newsletterCheckbox && newsletterCheckbox.checked);
 
+        // 1. Submit to the secure /api/apply serverless function
         const payload = {
-          person: {
-            firstName,
-            lastName,
-            emails: [{ value: email }],
-            tags: tags
-          },
-          source: "SES Website - CSEP",
-          system: "Custom",
-          type: "Inquiry",
-          message: `Years of experience: ${experienceValue}\nDetails: ${experienceDetail}`
+          type: 'csep',
+          firstName,
+          lastName,
+          email,
+          industryValue,
+          industryText,
+          experienceValue,
+          experienceText,
+          experienceDetail,
+          subscribeNewsletter,
+          website_url: websiteUrl
         };
 
-        try {
-          await fetch('/api/fub', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        } catch (fubErr) {
-          console.error("CRM submission failed:", fubErr);
+        const response = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to submit application.');
         }
 
         const successMsg = `Congratulations, ${firstName}! Your application for the CSEP designation has been submitted successfully. A Sellebrity Council member will contact you within 48 hours.`;

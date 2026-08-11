@@ -1,4 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // --- INJECT HONEYPOT FIELDS DYNAMICALLY ---
+  function injectHoneypots() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      if (!form.querySelector('input[name="website_url"]')) {
+        const hpContainer = document.createElement('div');
+        hpContainer.style.position = 'absolute';
+        hpContainer.style.left = '-9999px';
+        hpContainer.setAttribute('aria-hidden', 'true');
+        
+        const hpInput = document.createElement('input');
+        hpInput.type = 'text';
+        hpInput.name = 'website_url';
+        hpInput.tabIndex = -1;
+        hpInput.autocomplete = 'off';
+        
+        hpContainer.appendChild(hpInput);
+        form.appendChild(hpContainer);
+      }
+    });
+  }
+  injectHoneypots();
+
   // --- HEADER SCROLL ACTION ---
   const header = document.querySelector('header');
   const handleScroll = () => {
@@ -217,6 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
     div.innerHTML = widgetHtml;
     document.body.appendChild(div.firstElementChild);
 
+    // Inject honeypot into the newly appended widget form
+    injectHoneypots();
+
     const btnOpen = document.getElementById('floating-newsletter-btn');
     const cabinet = document.getElementById('floating-newsletter-cabinet');
     const btnClose = document.getElementById('floating-newsletter-close');
@@ -254,6 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle unified submit listener
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Check honeypot field for spam bots
+      const hpInput = form.querySelector('input[name="website_url"]');
+      if (hpInput && hpInput.value.trim() !== '') {
+        console.warn("Newsletter spam blocked via honeypot field.");
+        showNotification("Thank you for subscribing to Vetted Insights!", 'success', null);
+        form.reset();
+        return;
+      }
       
       const emailInput = form.querySelector('input[type="email"]');
       const email = emailInput ? emailInput.value.trim() : '';
@@ -282,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         source: form.id === 'floating-newsletter-form' ? "SES Website - Floating Newsletter" : "SES Website - Newsletter",
         system: "Custom",
-        type: "Inquiry"
+        type: "Inquiry",
+        website_url: "" // Explicitly pass empty honeypot field
       };
 
       const submitBtn = form.querySelector('button[type="submit"]');

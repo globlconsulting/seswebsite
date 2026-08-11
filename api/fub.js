@@ -12,7 +12,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = req.body;
+    const payload = req.body || {};
+
+    // Check honeypot field for spam bots
+    if (payload.website_url && payload.website_url.trim() !== '') {
+      console.warn("Spam blocked via /api/fub honeypot validation.");
+      return res.status(200).json({ success: true, message: 'Data sent to FUB successfully' });
+    }
 
     // Follow Up Boss expects Basic Auth with the API key as the username and an empty password
     const authHeader = 'Basic ' + Buffer.from(FUB_API_KEY + ':').toString('base64');

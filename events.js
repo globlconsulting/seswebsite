@@ -1,5 +1,5 @@
 import { db } from './firebase.js';
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // FALLBACK DEFAULT EVENT CONFIGURATION
 const fallbackEvent = {
@@ -189,14 +189,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     submitBtn.textContent = 'SUBMITTING...';
 
     try {
-      // Save RSVP to Firestore
-      await addDoc(collection(db, "rsvps"), {
-        eventId,
-        eventName,
-        fullName,
-        email,
-        createdAt: serverTimestamp()
+      const websiteUrl = rsvpForm.querySelector('input[name="website_url"]')?.value || '';
+
+      // Save RSVP via secure backend API
+      const response = await fetch('/api/rsvp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          eventName,
+          fullName,
+          email,
+          website_url: websiteUrl
+        })
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit RSVP.');
+      }
 
       showModalMessage(`Success! You have RSVP'd for "${eventName}". We look forward to seeing you there!`, 'success');
       rsvpForm.reset();

@@ -37,6 +37,62 @@ const STRIPE_LINKS = {
   }
 };
 
+// Helper to verify if the caller is an authenticated admin
+async function verifyAdmin(req, db, firebaseConfig) {
+  const authHeader = req.headers["authorization"] || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
+  if (!token) {
+    return { authenticated: false, error: "Missing authorization token." };
+  }
+
+  try {
+    const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token })
+    });
+
+    if (!response.ok) {
+      return { authenticated: false, error: "Invalid authorization token." };
+    }
+
+    const lookupData = await response.json();
+    const user = lookupData.users && lookupData.users[0];
+    if (!user) {
+      return { authenticated: false, error: "User not found." };
+    }
+
+    const email = (user.email || "").toLowerCase().trim();
+    const uid = user.localId;
+
+    const adminEmails = [
+      "sheena.l@rhiveconstruction.com",
+      "got@globlconsulting.com",
+      "kofi@globlconsulting.com",
+      "admin@ses.com"
+    ];
+
+    if (adminEmails.includes(email)) {
+      return { authenticated: true, uid, email };
+    }
+
+    // Check users collection in Firestore
+    const userDocRef = doc(db, "users", uid);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+      const data = userDocSnap.data();
+      if (data.role === 'admin' || data.isAdmin === true) {
+        return { authenticated: true, uid, email };
+      }
+    }
+
+    return { authenticated: false, error: "Access denied: User is not an admin." };
+  } catch (err) {
+    console.error("verifyAdmin helper error:", err);
+    return { authenticated: false, error: "Error verifying admin token." };
+  }
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).send("Method Not Allowed");
@@ -58,10 +114,15 @@ module.exports = async (req, res) => {
   const resend = new Resend(resendApiKey);
 
   try {
-    // 1. Authenticate in Firebase
-    await signInWithEmailAndPassword(auth, "got@globlconsulting.com", adminPassword);
+    // 1. Verify caller is admin
+    const adminCheck = await verifyAdmin(req, db, firebaseConfig);
+    if (!adminCheck.authenticated) {
+      console.warn("Unauthorized attempt to call send-payment-link:", adminCheck.error);
+      return res.status(403).send(adminCheck.error);
+    }
 
-    // 2. Fetch the application document to verify
+    // 2. Authenticate in Firebase
+    await signInWithEmailAndPassword(auth, "got@globlconsulting.com", adminPassword);    // 2. Fetch the application document to verify
     const appDocRef = doc(db, "applications", appId);
     const appDocSnap = await getDoc(appDocRef);
 

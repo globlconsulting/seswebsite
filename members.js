@@ -1,5 +1,4 @@
-import { db, storage } from './firebase.js';
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { storage } from './firebase.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -128,11 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
           headshotUrl = await getDownloadURL(uploadSnapshot.ref);
         }
 
-        // 2. Save application doc to Firestore collection "applications"
-        const appData = {
+        const websiteUrl = membershipForm.querySelector('input[name="website_url"]')?.value || '';
+        const newsletterCheckbox = document.getElementById('mem-newsletter');
+        const subscribeNewsletter = !!(newsletterCheckbox && newsletterCheckbox.checked);
+
+        // 2. Save application doc via secure backend /api/apply
+        const payload = {
+          type: 'membership',
           email: email.toLowerCase(),
-          fullName: fullName,
           phone: phone,
+          fullName: fullName,
           company: company,
           title: title,
           referrer: referrer,
@@ -142,49 +146,18 @@ document.addEventListener('DOMContentLoaded', () => {
           clientele: clientele,
           experience: experience,
           headshotUrl: headshotUrl,
-          status: 'pending',
-          createdAt: serverTimestamp()
-        };
-        await addDoc(collection(db, "applications"), appData);
-
-        // 2. Submit to CRM /api/fub in background
-        const nameParts = fullName.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
-        const tags = [
-          "Membership_Applicant", 
-          `Tier: ${tier}`, 
-          `Billing: ${billing}`,
-          ...industries.map(ind => `Industry: ${ind}`),
-          `Clientele: ${clientele}`
-        ];
-        const newsletterCheckbox = document.getElementById('mem-newsletter');
-        if (newsletterCheckbox && newsletterCheckbox.checked) {
-          tags.push("SES_Newsletter_Subscriber");
-        }
-
-        const payload = {
-          person: {
-            firstName: firstName,
-            lastName: lastName,
-            emails: [{ value: email }],
-            phones: [{ value: phone }],
-            tags: tags
-          },
-          source: "SES Website - Membership",
-          system: "Custom",
-          type: "Inquiry",
-          message: `Company: ${company}\nTitle: ${title}\nReferrer: ${referrer}`
+          subscribeNewsletter: subscribeNewsletter,
+          website_url: websiteUrl
         };
 
-        try {
-          await fetch('/api/fub', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        } catch (fubErr) {
-          console.error("CRM submission failed:", fubErr);
+        const response = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to submit application.');
         }
 
         // Show Success notification
