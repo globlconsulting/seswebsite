@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = (formData.get('email') || '').trim();
       const phone = (formData.get('phone') || '').trim();
       const fullName = (formData.get('fullName') || '').trim();
+      const firstName = fullName.split(' ')[0] || '';
       const company = (formData.get('company') || '').trim();
       const title = (formData.get('title') || '').trim();
       const referrer = (formData.get('referrer') || '').trim();
