@@ -233,35 +233,88 @@ onAuthStateChanged(auth, async (user) => {
         if (typeof loadUpdates === 'function') loadUpdates();
         if (typeof loadNewMembersThisWeek === 'function') loadNewMembersThisWeek();
         
-        // Enforce connect restriction dynamically
-        const content = document.getElementById('connect-content');
-        const restrict = document.getElementById('connect-restricted');
+        // Enforce access restrictions dynamically
+        const upgradeLockHTML = `
+          <div class="lock-overlay" style="text-align:center; padding: 60px 20px; background: #111; border: 1px solid #333; border-radius: 8px; margin-top: 20px;">
+            <span style="font-size: 3rem;">🔒</span>
+            <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Upgrade Required</h2>
+            <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+              This feature is exclusive to premium members. To unlock it, please upgrade your membership by opening the live chat support widget in the bottom-right corner or by emailing us at <a href="mailto:got@globlconsulting.com" style="color: #c8a97e; text-decoration: none;">got@globlconsulting.com</a>.
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+              <button onclick="if(typeof Tawk_API !== 'undefined' && Tawk_API.maximize){ Tawk_API.maximize(); } else { alert('Chat support is loading. Please use the bubble in the bottom right corner.'); }" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer; font-size: 1rem; transition: background 0.2s;" onmouseover="this.style.background='#e5c290'" onmouseout="this.style.background='#c8a97e'">
+                Chat with Support
+              </button>
+              <a href="mailto:got@globlconsulting.com?subject=Membership Upgrade Inquiry" style="text-decoration: none;">
+                <button style="background: transparent; color:#fff; border: 1px solid #c8a97e; padding:12px 24px; font-weight:bold; border-radius:4px; cursor:pointer; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(200, 169, 126, 0.1)'" onmouseout="this.style.background='transparent'">
+                  Email Support
+                </button>
+              </a>
+            </div>
+          </div>
+        `;
+
+        const restrictedSections = ['connect', 'learn', 'tools', 'opportunities', 'performance', 'intelligence'];
+
+        restrictedSections.forEach(secName => {
+          const contentEl = document.getElementById(`${secName}-content`);
+          const restrictEl = document.getElementById(`${secName}-restricted`);
+
+          if (isAdmin) {
+            if (contentEl) {
+              if (secName === 'connect' || secName === 'opportunities') {
+                contentEl.style.display = 'grid';
+              } else {
+                contentEl.style.display = 'block';
+              }
+            }
+            if (restrictEl) restrictEl.style.display = 'none';
+          } else if (userTier === 'general') {
+            if (contentEl) contentEl.style.display = 'none';
+            if (restrictEl) {
+              restrictEl.style.display = 'block';
+              restrictEl.innerHTML = upgradeLockHTML;
+            }
+          } else if (userTier === 'sellebrity') {
+            if (secName === 'connect' || secName === 'opportunities') {
+              if (contentEl) contentEl.style.display = 'none';
+              if (restrictEl) {
+                restrictEl.style.display = 'block';
+                if (secName === 'connect') {
+                  restrictEl.innerHTML = `
+                    <span style="font-size: 3rem;">🔒</span>
+                    <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Upgrade Required</h2>
+                    <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">Upgrade to Sellebrity Council to access the Member Directory.</p>
+                    <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Upgrade Now</button>
+                  `;
+                } else if (secName === 'opportunities') {
+                  restrictEl.innerHTML = `
+                    <span style="font-size: 3rem;">🔒</span>
+                    <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Upgrade Required</h2>
+                    <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">Upgrade to Sellebrity Guild or Council to access the Opportunities Marketplace.</p>
+                    <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Upgrade Now</button>
+                  `;
+                }
+              }
+            } else {
+              if (contentEl) contentEl.style.display = 'block';
+              if (restrictEl) restrictEl.style.display = 'none';
+            }
+          } else {
+            if (contentEl) {
+              if (secName === 'connect' || secName === 'opportunities') {
+                contentEl.style.display = 'grid';
+              } else {
+                contentEl.style.display = 'block';
+              }
+            }
+            if (restrictEl) restrictEl.style.display = 'none';
+          }
+        });
+
         if (isAdmin || (userTier !== 'general' && userTier !== 'sellebrity')) {
-          if (content) content.style.display = 'grid';
-          if (restrict) restrict.style.display = 'none';
-          // Load the member directory and opportunities
           loadMembers();
           loadOpportunities();
-        } else {
-          if (content) content.style.display = 'none';
-          if (restrict) {
-            restrict.style.display = 'block';
-            if (userTier === 'sellebrity') {
-              restrict.innerHTML = `
-                <span style="font-size: 3rem;">🔒</span>
-                <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Upgrade Required</h2>
-                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">Upgrade to Sellebrity Council to access the Member Directory.</p>
-                <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Upgrade Now</button>
-              `;
-            } else {
-              restrict.innerHTML = `
-                <span style="font-size: 3rem;">🔒</span>
-                <h2 style="color: #fff; margin-top: 20px; font-family: var(--font-serif); font-size: 2rem;">Exclusive Directory</h2>
-                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1rem;">The Member Directory is exclusive to Sellebrity Guild and Council members.</p>
-                <button onclick="window.location.href='apply.html#csep-section'" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Apply for Sellebrity Status</button>
-              `;
-            }
-          }
         }
 
         // Load approved articles

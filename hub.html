@@ -509,67 +509,72 @@
 
       <!-- 2. LEARN -->
       <section id="learn" class="hub-section">
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Learning Hub</h2>
-          <p style="margin: 0; color: #888;">Masterclasses, keynotes, and workshops to move you from foundation to mastery.</p>
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-          <h3 style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Learning Tracks</h3>
-          <div class="legend-info-wrapper" style="position: relative; display: inline-block; cursor: pointer; color: #888; font-size: 0.9rem; border: 1px solid #444; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace;">i
-            <div class="legend-tooltip" style="visibility: hidden; width: 220px; background-color: #111; border: 1px solid #c8a97e; color: #fff; text-align: left; padding: 12px; border-radius: 6px; position: absolute; z-index: 100; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-family: var(--font-sans); font-size: 0.8rem; font-weight: normal; line-height: 1.4;">
-              <strong style="display:block; margin-bottom:6px; color:#c8a97e;">Article Legend:</strong>
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>✅</span> <span>Completed Lesson</span></div>
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>⭐</span> <span>Favorited Lesson</span></div>
-              <div style="display:flex; align-items:center; gap:8px;"><span>🔖</span> <span>Read Later (Bookmark)</span></div>
+        <!-- Restricted Access Notice -->
+        <div id="learn-restricted" style="display:none;"></div>
+
+        <div id="learn-content">
+          <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Learning Hub</h2>
+            <p style="margin: 0; color: #888;">Masterclasses, keynotes, and workshops to move you from foundation to mastery.</p>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+            <h3 style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Learning Tracks</h3>
+            <div class="legend-info-wrapper" style="position: relative; display: inline-block; cursor: pointer; color: #888; font-size: 0.9rem; border: 1px solid #444; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace;">i
+              <div class="legend-tooltip" style="visibility: hidden; width: 220px; background-color: #111; border: 1px solid #c8a97e; color: #fff; text-align: left; padding: 12px; border-radius: 6px; position: absolute; z-index: 100; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-family: var(--font-sans); font-size: 0.8rem; font-weight: normal; line-height: 1.4;">
+                <strong style="display:block; margin-bottom:6px; color:#c8a97e;">Article Legend:</strong>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>✅</span> <span>Completed Lesson</span></div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span>⭐</span> <span>Favorited Lesson</span></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span>🔖</span> <span>Read Later (Bookmark)</span></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-          <div class="track-card" data-track="sports-leadership" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Sports Leadership</div>
-          <div class="track-card" data-track="executive-presence" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Executive Presence</div>
-          <div class="track-card" data-track="negotiation" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Negotiation</div>
-          <div class="track-card" data-track="personal-branding" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Personal Branding</div>
-          <div class="track-card" data-track="technology-networking" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Technology & Networking</div>
-        </div>
-
-        <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">My Library</h3>
-        <div style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
-          <div class="library-folder" data-folder="favorites">⭐ Favorites <span id="count-favorites" class="folder-count">0</span></div>
-          <div class="library-folder" data-folder="read-later">🔖 Read Later <span id="count-read-later" class="folder-count">0</span></div>
-          <div class="library-folder" data-folder="read">✅ Completed <span id="count-read" class="folder-count">0</span></div>
-        </div>
-
-        <!-- Search Bar -->
-        <div style="margin-bottom: 35px; max-width: 500px;">
-          <div style="position: relative;">
-            <input type="text" id="learn-search" placeholder="Search lessons, tracks, or topics..." style="width: 100%; padding: 12px 20px 12px 40px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.3s; box-sizing: border-box;">
-            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 1rem; pointer-events: none;">🔍</span>
-            <button id="btn-clear-learn-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #888; cursor: pointer; display: none; font-size: 1rem; padding: 0;">✕</button>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <div class="track-card" data-track="sports-leadership" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Sports Leadership</div>
+            <div class="track-card" data-track="executive-presence" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Executive Presence</div>
+            <div class="track-card" data-track="negotiation" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Negotiation</div>
+            <div class="track-card" data-track="personal-branding" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Personal Branding</div>
+            <div class="track-card" data-track="technology-networking" style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; cursor: pointer; transition: all 0.3s ease;">Technology & Networking</div>
           </div>
-        </div>
 
-        <!-- Dynamic Track Articles Section (Hidden by default) -->
-        <div id="learn-track-content" style="display: none; margin-bottom: 40px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">
-            <h3 id="learn-track-title" style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Track Lessons</h3>
-            <button id="btn-clear-track" style="background: transparent; border: 1px solid #444; color: #aaa; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">Show All / Recent</button>
+          <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">My Library</h3>
+          <div style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+            <div class="library-folder" data-folder="favorites">⭐ Favorites <span id="count-favorites" class="folder-count">0</span></div>
+            <div class="library-folder" data-folder="read-later">🔖 Read Later <span id="count-read-later" class="folder-count">0</span></div>
+            <div class="library-folder" data-folder="read">✅ Completed <span id="count-read" class="folder-count">0</span></div>
           </div>
-          <div id="track-articles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-            <!-- Rendered dynamically from JS -->
-          </div>
-        </div>
 
-        <!-- Default Recent Sessions Section -->
-        <div id="learn-default-content">
-          <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Recent Sessions</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-            <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden;">
-              <div style="height: 160px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555;">[Video Placeholder]</div>
-              <div style="padding: 20px;">
-                <span style="background: rgba(200,169,126,0.1); color: #c8a97e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">Keynote</span>
-                <h4 style="margin: 10px 0 5px; color: #fff;">The Art of the Sports Deal</h4>
-                <p style="margin: 0; color: #888; font-size: 0.9rem;">Exclusive breakdown of a recent major franchise sale.</p>
+          <!-- Search Bar -->
+          <div style="margin-bottom: 35px; max-width: 500px;">
+            <div style="position: relative;">
+              <input type="text" id="learn-search" placeholder="Search lessons, tracks, or topics..." style="width: 100%; padding: 12px 20px 12px 40px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.3s; box-sizing: border-box;">
+              <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 1rem; pointer-events: none;">🔍</span>
+              <button id="btn-clear-learn-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #888; cursor: pointer; display: none; font-size: 1rem; padding: 0;">✕</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Track Articles Section (Hidden by default) -->
+          <div id="learn-track-content" style="display: none; margin-bottom: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">
+              <h3 id="learn-track-title" style="color: #c8a97e; margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Track Lessons</h3>
+              <button id="btn-clear-track" style="background: transparent; border: 1px solid #444; color: #aaa; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">Show All / Recent</button>
+            </div>
+            <div id="track-articles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+              <!-- Rendered dynamically from JS -->
+            </div>
+          </div>
+
+          <!-- Default Recent Sessions Section -->
+          <div id="learn-default-content">
+            <h3 style="color: #c8a97e; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Recent Sessions</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+              <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden;">
+                <div style="height: 160px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555;">[Video Placeholder]</div>
+                <div style="padding: 20px;">
+                  <span style="background: rgba(200,169,126,0.1); color: #c8a97e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">Keynote</span>
+                  <h4 style="margin: 10px 0 5px; color: #fff;">The Art of the Sports Deal</h4>
+                  <p style="margin: 0; color: #888; font-size: 0.9rem;">Exclusive breakdown of a recent major franchise sale.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -578,75 +583,85 @@
 
       <!-- 3. TOOLS & VAULT -->
       <section id="tools" class="hub-section">
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Society Playbooks & Tools</h2>
-          <p style="margin: 0; color: #888;">Searchable, dynamic playbooks, templates, and prompts.</p>
-        </div>
+        <!-- Restricted Access Notice -->
+        <div id="tools-restricted" style="display:none;"></div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
-          
-          <div>
-            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">The File Vault</h3>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              <li class="vault-playbook-item" data-vault-key="sports-partnership" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
-                <span>Sports Partnership Playbook</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
-              </li>
-              <li class="vault-playbook-item" data-vault-key="executive-branding" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
-                <span>Executive Branding Guide</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
-              </li>
-              <li class="vault-playbook-item" data-vault-key="board-seat" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
-                <span>Board Seat Playbook</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
-              </li>
-            </ul>
+        <div id="tools-content">
+          <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Society Playbooks & Tools</h2>
+            <p style="margin: 0; color: #888;">Searchable, dynamic playbooks, templates, and prompts.</p>
           </div>
-
-          <div>
-            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">Templates & Checklists</h3>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Pitch Deck Template</li>
-              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Sponsorship Agreement</li>
-              <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">VIP Hosting Checklist</li>
-            </ul>
+  
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
+            
+            <div>
+              <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">The File Vault</h3>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li class="vault-playbook-item" data-vault-key="sports-partnership" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
+                  <span>Sports Partnership Playbook</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
+                </li>
+                <li class="vault-playbook-item" data-vault-key="executive-branding" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
+                  <span>Executive Branding Guide</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
+                </li>
+                <li class="vault-playbook-item" data-vault-key="board-seat" style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#161616'" onmouseout="this.style.borderColor='transparent'; this.style.background='#111'">
+                  <span>Board Seat Playbook</span> <span style="color: #c8a97e; font-size: 0.8rem; font-weight: bold;">PDF</span>
+                </li>
+              </ul>
+            </div>
+  
+            <div>
+              <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">Templates & Checklists</h3>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Pitch Deck Template</li>
+                <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">Sponsorship Agreement</li>
+                <li style="padding: 12px; background: #111; margin-bottom: 8px; border-radius: 4px; border-left: 2px solid #c8a97e;">VIP Hosting Checklist</li>
+              </ul>
+            </div>
+  
+            <div>
+              <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">AI Prompt Library</h3>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li class="prompt-category-item" data-category="negotiation" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Negotiation Tactics</li>
+                <li class="prompt-category-item" data-category="sponsor" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Sponsor Outreach Email</li>
+                <li class="prompt-category-item" data-category="media" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Media Interview Prep</li>
+              </ul>
+            </div>
+  
           </div>
-
-          <div>
-            <h3 style="color: #c8a97e; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px;">AI Prompt Library</h3>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              <li class="prompt-category-item" data-category="negotiation" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Negotiation Tactics</li>
-              <li class="prompt-category-item" data-category="sponsor" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Sponsor Outreach Email</li>
-              <li class="prompt-category-item" data-category="media" style="padding: 12px; background: #0a0a0a; border: 1px solid #333; margin-bottom: 8px; border-radius: 4px; color: #fff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#c8a97e'; this.style.background='#111'" onmouseout="this.style.borderColor='#333'; this.style.background='#0a0a0a'">Media Interview Prep</li>
-            </ul>
-          </div>
-
         </div>
       </section>
 
       <!-- 4. OPPORTUNITIES -->
       <section id="opportunities" class="hub-section">
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Marketplace</h2>
-            <p style="margin: 0; color: #888;">Jobs, board seats, brand partnerships, and investments.</p>
-          </div>
-          <button id="btn-post-opportunity" class="btn" style="background:#c8a97e; color:black; padding:10px 20px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Post Opportunity</button>
-        </div>
+        <!-- Restricted Access Notice -->
+        <div id="opportunities-restricted" style="display:none;"></div>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
-          <!-- Feed -->
-          <div id="opportunities-feed">
-            <p style="color: #888;">Loading opportunities...</p>
+        <div id="opportunities-content">
+          <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">The Marketplace</h2>
+              <p style="margin: 0; color: #888;">Jobs, board seats, brand partnerships, and investments.</p>
+            </div>
+            <button id="btn-post-opportunity" class="btn" style="background:#c8a97e; color:black; padding:10px 20px; font-weight:bold; border-radius:4px; border:none; cursor:pointer;">Post Opportunity</button>
           </div>
-          
-          <!-- Sidebar -->
-          <div>
-            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
-              <h3 style="color: #fff; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Referral Marketplace</h3>
-              <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Have a specific request? Post it to the network.</p>
-              <ul style="list-style: none; padding: 0; margin: 0; color: #aaa; font-size: 0.9rem;">
-                <li style="margin-bottom: 10px;"><strong>"I need..."</strong> a sports attorney in Miami.</li>
-                <li style="margin-bottom: 10px;"><strong>"I know someone..."</strong> hiring a CMO.</li>
-                <li style="margin-bottom: 10px;"><strong>"I'm looking for..."</strong> nonprofit partners.</li>
-              </ul>
+  
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Feed -->
+            <div id="opportunities-feed">
+              <p style="color: #888;">Loading opportunities...</p>
+            </div>
+            
+            <!-- Sidebar -->
+            <div>
+              <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+                <h3 style="color: #fff; margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Referral Marketplace</h3>
+                <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Have a specific request? Post it to the network.</p>
+                <ul style="list-style: none; padding: 0; margin: 0; color: #aaa; font-size: 0.9rem;">
+                  <li style="margin-bottom: 10px;"><strong>"I need..."</strong> a sports attorney in Miami.</li>
+                  <li style="margin-bottom: 10px;"><strong>"I know someone..."</strong> hiring a CMO.</li>
+                  <li style="margin-bottom: 10px;"><strong>"I'm looking for..."</strong> nonprofit partners.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -654,50 +669,60 @@
 
       <!-- 5. PERFORMANCE -->
       <section id="performance" class="hub-section">
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Performance</h2>
-          <p style="margin: 0; color: #888;">Assessments and performance benchmarking.</p>
-        </div>
+        <!-- Restricted Access Notice -->
+        <div id="performance-restricted" style="display:none;"></div>
 
-        <div style="margin-bottom: 30px; max-width: 800px;">
-          <img src="https://firebasestorage.googleapis.com/v0/b/ses-website-970b6.firebasestorage.app/o/ses%20brand%20partner%20logos%2Fibsa.png?alt=media&token=0cd1e76a-2a80-4815-aa9b-d3a8930b9839" alt="IBSA Banner" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: block;">
-        </div>
-
-        <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
-          <h3 style="color: #c8a97e; margin: 0 0 15px 0;">Inner Beast Super Animal Performance Assessment</h3>
-          <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">Discover your unique executive performance profile. This assessment will help you understand your natural leadership style, networking strengths, and areas for rapid growth.</p>
-          <a href="https://grey-cup-d8f.notion.site/Inner-Beast-Super-Animal-23bab16e0297802d996bc9a23c40ec0b" target="_blank" style="text-decoration: none;">
-            <button class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Take the Assessment</button>
-          </a>
+        <div id="performance-content">
+          <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Performance</h2>
+            <p style="margin: 0; color: #888;">Assessments and performance benchmarking.</p>
+          </div>
+  
+          <div style="margin-bottom: 30px; max-width: 800px;">
+            <img src="https://firebasestorage.googleapis.com/v0/b/ses-website-970b6.firebasestorage.app/o/ses%20brand%20partner%20logos%2Fibsa.png?alt=media&token=0cd1e76a-2a80-4815-aa9b-d3a8930b9839" alt="IBSA Banner" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: block;">
+          </div>
+  
+          <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 800px;">
+            <h3 style="color: #c8a97e; margin: 0 0 15px 0;">Inner Beast Super Animal Performance Assessment</h3>
+            <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">Discover your unique executive performance profile. This assessment will help you understand your natural leadership style, networking strengths, and areas for rapid growth.</p>
+            <a href="https://grey-cup-d8f.notion.site/Inner-Beast-Super-Animal-23bab16e0297802d996bc9a23c40ec0b" target="_blank" style="text-decoration: none;">
+              <button class="btn" style="background:#c8a97e; color:black; padding:12px 24px; font-weight:bold; cursor:pointer; border-radius:4px; border: none; font-size: 1rem;">Take the Assessment</button>
+            </a>
+          </div>
         </div>
       </section>
 
       <!-- 6. INTELLIGENCE -->
       <section id="intelligence" class="hub-section">
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-          <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Daily Intelligence</h2>
-          <p style="margin: 0; color: #888;">"Here's what happened this week that could make you smarter, wealthier, or better connected."</p>
-        </div>
+        <!-- Restricted Access Notice -->
+        <div id="intelligence-restricted" style="display:none;"></div>
 
-        <!-- Intelligence Tabs -->
-        <div style="display: flex; gap: 10px; border-bottom: 1px solid #333; margin-bottom: 25px; padding-bottom: 0;">
-          <button class="intel-tab active" data-week="current">Current Week Brief</button>
-          <button class="intel-tab" data-week="previous">Previous Week Brief</button>
-          <button class="intel-tab" data-week="bookmarks">🔖 Bookmarked Intel <span id="intel-bookmark-count" style="background:#c8a97e; color:#000; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-left:5px;">0</span></button>
-        </div>
-
-        <!-- Dynamic Feed Container -->
-        <div id="intel-feed-container" style="display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 40px;">
-          <!-- Populated dynamically by JS -->
-          <p style="color: #888;">Loading intelligence feed...</p>
-        </div>
-
-        <!-- Peer Insights (Approved Articles) -->
-        <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 30px;">
-          <h3 style="color: #c8a97e; margin-bottom: 20px; font-size: 1.5rem; font-family: var(--font-serif);">Peer Insights</h3>
-          <p style="color: #888; margin-bottom: 20px;">Authority articles written by Guild and Council members.</p>
-          <div id="approved-articles-list" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-            <p style="color: #666;">Loading insights...</p>
+        <div id="intelligence-content">
+          <div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-family: var(--font-serif); font-size: 2rem;">Daily Intelligence</h2>
+            <p style="margin: 0; color: #888;">"Here's what happened this week that could make you smarter, wealthier, or better connected."</p>
+          </div>
+  
+          <!-- Intelligence Tabs -->
+          <div style="display: flex; gap: 10px; border-bottom: 1px solid #333; margin-bottom: 25px; padding-bottom: 0;">
+            <button class="intel-tab active" data-week="current">Current Week Brief</button>
+            <button class="intel-tab" data-week="previous">Previous Week Brief</button>
+            <button class="intel-tab" data-week="bookmarks">🔖 Bookmarked Intel <span id="intel-bookmark-count" style="background:#c8a97e; color:#000; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-left:5px;">0</span></button>
+          </div>
+  
+          <!-- Dynamic Feed Container -->
+          <div id="intel-feed-container" style="display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 40px;">
+            <!-- Populated dynamically by JS -->
+            <p style="color: #888;">Loading intelligence feed...</p>
+          </div>
+  
+          <!-- Peer Insights (Approved Articles) -->
+          <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 30px;">
+            <h3 style="color: #c8a97e; margin-bottom: 20px; font-size: 1.5rem; font-family: var(--font-serif);">Peer Insights</h3>
+            <p style="color: #888; margin-bottom: 20px;">Authority articles written by Guild and Council members.</p>
+            <div id="approved-articles-list" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+              <p style="color: #666;">Loading insights...</p>
+            </div>
           </div>
         </div>
       </section>
