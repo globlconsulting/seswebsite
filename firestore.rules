@@ -47,6 +47,7 @@ service cloud.firestore {
                      request.auth.token.email == "admin@ses.com");
       allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && 
                     ((!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin());
+      allow delete: if isAdmin();
     }
 
     match /updates/{updateId} {

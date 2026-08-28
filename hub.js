@@ -1552,8 +1552,9 @@ async function loadAdminUsers() {
             <input type="checkbox" class="admin-spotlight-checkbox" data-uid="${uid}" ${u.isSpotlight?'checked':''}>
             ${u.spotlightFeaturedAt ? `<br><span style="font-size:0.7rem; color:#888; white-space:nowrap;">Featured: ${new Date(u.spotlightFeaturedAt.seconds * 1000 || u.spotlightFeaturedAt).toLocaleDateString()}</span>` : ''}
           </td>
-          <td style="padding: 10px;">
-            <button class="admin-save-user-btn" data-uid="${uid}" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Save</button>
+          <td style="padding: 10px; white-space: nowrap;">
+            <button class="admin-save-user-btn" data-uid="${uid}" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-right:5px;">Save</button>
+            <button class="admin-remove-user-btn" data-uid="${uid}" data-name="${escapeHTML(displayName)}" data-email="${escapeHTML(u.email || '')}" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.85rem;" title="Remove user from hub">Remove</button>
           </td>
         </tr>
       `;
@@ -1624,6 +1625,53 @@ async function loadAdminUsers() {
           alert("Error saving user: " + err.message);
           e.target.innerText = 'Error';
           setTimeout(() => { e.target.innerText = 'Save'; }, 3000);
+        }
+      });
+    });
+
+    // Attach remove user events
+    document.querySelectorAll('.admin-remove-user-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget;
+        const uid = target.getAttribute('data-uid');
+        const uName = target.getAttribute('data-name') || 'this user';
+        const uEmail = target.getAttribute('data-email') || '';
+
+        if (uid === currentUserUid) {
+          alert("You cannot remove your own admin account while logged in.");
+          return;
+        }
+
+        const confirmed = confirm(`Are you sure you want to remove ${uName}${uEmail ? ' (' + uEmail + ')' : ''} from the hub?\n\nThis will delete their user profile, membership status, and access.`);
+        if (!confirmed) return;
+
+        target.disabled = true;
+        target.innerText = 'Removing...';
+
+        try {
+          // 1. Delete user document from Firestore
+          await deleteDoc(doc(db, "users", uid));
+
+          // 2. Remove email from approved_emails collection if it exists
+          const cleanEmail = uEmail.toLowerCase().trim();
+          if (cleanEmail) {
+            try {
+              await deleteDoc(doc(db, "approved_emails", cleanEmail));
+            } catch (errApproved) {
+              console.warn("Could not delete from approved_emails:", errApproved);
+            }
+          }
+
+          alert(`Member ${uName} was successfully removed.`);
+
+          // Refresh lists
+          loadAdminUsers();
+          if (typeof loadMembers === 'function') loadMembers();
+        } catch (err) {
+          console.error("Error removing member:", err);
+          alert("Failed to remove user: " + err.message);
+          target.disabled = false;
+          target.innerText = 'Remove';
         }
       });
     });
@@ -1848,7 +1896,8 @@ async function loadAdminUsers() {
                   <textarea id="admin-edit-bio" rows="3" style="width:100%; padding:10px; background:#050505; border:1px solid #333; color:white; border-radius:4px; font-family:inherit; resize:vertical; box-sizing:border-box;">${escapeHTML(user.bio || '')}</textarea>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #222; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; border-top: 1px solid #222; padding-top: 15px;">
+                  <button type="button" id="btn-admin-remove-user-modal" style="background:transparent; color:#ef4444; border:1px solid #ef4444; font-weight:bold; padding:10px 18px; border-radius:4px; cursor:pointer; font-family:inherit;" title="Remove user from hub">Remove User from Hub</button>
                   <button type="submit" id="btn-admin-save-user-profile" style="background:#c8a97e; border:none; color:black; font-weight:bold; padding:10px 24px; border-radius:4px; cursor:pointer; font-family:inherit; transition: all 0.2s;">Save Profile Changes</button>
                 </div>
               </form>
@@ -1909,6 +1958,49 @@ async function loadAdminUsers() {
                 saveBtn.disabled = false;
               }
             });
+
+            // Handle Admin Modal User Removal
+            const removeBtnModal = document.getElementById('btn-admin-remove-user-modal');
+            if (removeBtnModal) {
+              removeBtnModal.addEventListener('click', async () => {
+                if (uid === currentUserUid) {
+                  alert("You cannot remove your own admin account while logged in.");
+                  return;
+                }
+
+                const uName = user.name || 'this user';
+                const uEmail = user.email || '';
+                const confirmed = confirm(`Are you sure you want to remove ${uName}${uEmail ? ' (' + uEmail + ')' : ''} from the hub?\n\nThis will delete their user profile, membership status, and access.`);
+                if (!confirmed) return;
+
+                removeBtnModal.disabled = true;
+                removeBtnModal.innerText = 'Removing...';
+
+                try {
+                  await deleteDoc(doc(db, "users", uid));
+
+                  const cleanEmail = uEmail.toLowerCase().trim();
+                  if (cleanEmail) {
+                    try {
+                      await deleteDoc(doc(db, "approved_emails", cleanEmail));
+                    } catch (errApproved) {
+                      console.warn("Could not delete from approved_emails:", errApproved);
+                    }
+                  }
+
+                  alert(`Member ${uName} was successfully removed.`);
+                  modal.style.display = 'none';
+
+                  loadAdminUsers();
+                  if (typeof loadMembers === 'function') loadMembers();
+                } catch (err) {
+                  console.error("Error removing member:", err);
+                  alert("Failed to remove user: " + err.message);
+                  removeBtnModal.disabled = false;
+                  removeBtnModal.innerText = 'Remove User from Hub';
+                }
+              });
+            }
 
             modal.style.display = 'flex';
           }
