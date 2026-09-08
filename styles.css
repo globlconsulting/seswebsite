@@ -309,8 +309,8 @@ header .nav-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
   height: 90px;
-  overflow: hidden;
   transition: var(--transition-smooth);
 }
 
@@ -322,7 +322,8 @@ header.scrolled .nav-container {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .logo-crest {
@@ -344,7 +345,6 @@ header.scrolled .nav-container {
   height: 44px;
   max-height: 44px;
   width: auto;
-  max-width: 200px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
@@ -382,18 +382,20 @@ header.scrolled .logo-img {
 nav ul {
   display: flex;
   list-style: none;
-  gap: 2.5rem;
+  gap: clamp(0.75rem, 1.4vw, 1.8rem);
   align-items: center;
+  white-space: nowrap;
 }
 
 nav ul li a {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 0.82vw, 0.85rem);
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: clamp(0.08em, 0.1vw, 0.15em);
   text-transform: uppercase;
   color: var(--text-muted);
   position: relative;
   padding: 0.5rem 0;
+  white-space: nowrap;
 }
 
 nav ul li a::after {
@@ -1259,7 +1261,6 @@ footer {
   border: var(--border-glass);
   padding: 3rem;
   border-radius: 4px;
-  margin-top: 3rem;
 }
 
 .purchase-options {
@@ -1677,7 +1678,17 @@ footer {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1260px) {
+  nav ul {
+    gap: 1.1rem;
+  }
+  nav ul li a {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (max-width: 1060px) {
   header .nav-container {
     height: 75px;
   }
