@@ -208,7 +208,7 @@
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label>Website <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
-              <input type="url" placeholder="https://yourwebsite.com">
+              <input type="url" name="website" placeholder="https://yourwebsite.com">
             </div>
           </div>
           
@@ -219,15 +219,15 @@
           
           <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
             <label>How did you hear about the Sports & Entertainment Society?</label>
-            <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+            <select name="heard_about" style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
               <option value="">Select one</option>
-              <option>Referral from a colleague</option>
-              <option>Social media</option>
-              <option>The Sellebrity 2.0 book</option>
-              <option>Podcast or media feature</option>
-              <option>Industry event</option>
-              <option>Web search</option>
-              <option>Other</option>
+              <option value="Referral from a colleague">Referral from a colleague</option>
+              <option value="Social media">Social media</option>
+              <option value="The Sellebrity 2.0 book">The Sellebrity 2.0 book</option>
+              <option value="Podcast or media feature">Podcast or media feature</option>
+              <option value="Industry event">Industry event</option>
+              <option value="Web search">Web search</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>
@@ -239,71 +239,71 @@
           <div class="form-group">
             <label style="margin-bottom: 1rem;">Industry / profession <span style="color: var(--color-gold);">*</span></label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Professional Sports (Player, Coach, Executive, Staff)</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Wealth Management</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Business Management</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Law</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Accounting</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Real Estate</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Health & Wellness</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Travel & Hospitality</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Technology</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Retail Goods & Services</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Philanthropy</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Venture Capital</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" style="accent-color: var(--color-gold);"> Other</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Professional Sports (Player, Coach, Executive, Staff)" style="accent-color: var(--color-gold);"> Professional Sports (Player, Coach, Executive, Staff)</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Wealth Management" style="accent-color: var(--color-gold);"> Wealth Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Business Management" style="accent-color: var(--color-gold);"> Business Management</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Law" style="accent-color: var(--color-gold);"> Law</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Accounting" style="accent-color: var(--color-gold);"> Accounting</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Real Estate" style="accent-color: var(--color-gold);"> Real Estate</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Health & Wellness" style="accent-color: var(--color-gold);"> Health & Wellness</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Travel & Hospitality" style="accent-color: var(--color-gold);"> Travel & Hospitality</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Technology" style="accent-color: var(--color-gold);"> Technology</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Retail Goods & Services" style="accent-color: var(--color-gold);"> Retail Goods & Services</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Philanthropy" style="accent-color: var(--color-gold);"> Philanthropy</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Venture Capital" style="accent-color: var(--color-gold);"> Venture Capital</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: var(--text-light); font-size: 0.95rem;"><input type="checkbox" name="industries" value="Other" style="accent-color: var(--color-gold);"> Other</label>
             </div>
           </div>
           
           <div class="form-group">
             <label>Previous experience in this industry</label>
-            <textarea style="min-height: 100px;" placeholder="Describe your background working with sports and entertainment clients..."></textarea>
+            <textarea name="experience" style="min-height: 100px;" placeholder="Describe your background working with sports and entertainment clients..."></textarea>
           </div>
           
           <div class="form-group">
             <label style="margin-bottom: 1rem;">Primary S&E clientele <span style="color: var(--color-gold);">*</span></label>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Athletes</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Entertainers</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" style="accent-color: var(--color-gold);"> Both</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" value="Athletes" required checked style="accent-color: var(--color-gold);"> Athletes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" value="Entertainers" required style="accent-color: var(--color-gold);"> Entertainers</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="clientele" value="Both" required style="accent-color: var(--color-gold);"> Both</label>
             </div>
           </div>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Years servicing S&E clients <span style="color: var(--color-gold);">*</span></label>
-              <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+              <label>Years servicing S&E clients</label>
+              <select name="years_servicing" style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
                 <option value="">Select</option>
-                <option>Less than 1 year</option>
-                <option>1–3 years</option>
-                <option>3–5 years</option>
-                <option>5–10 years</option>
-                <option>10+ years</option>
+                <option value="Less than 1 year">Less than 1 year</option>
+                <option value="1–3 years">1–3 years</option>
+                <option value="3–5 years">3–5 years</option>
+                <option value="5–10 years">5–10 years</option>
+                <option value="10+ years">10+ years</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label>S&E clients served in last 3 years <span style="color: var(--color-gold);">*</span></label>
-              <select style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
+              <label>S&E clients served in last 3 years</label>
+              <select name="clients_served" style="width: 100%; padding: 1rem; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: var(--text-light); font-size: 1rem; outline: none;">
                 <option value="">Select</option>
-                <option>None yet</option>
-                <option>1–5</option>
-                <option>5–10</option>
-                <option>10–20</option>
-                <option>20+</option>
+                <option value="None yet">None yet</option>
+                <option value="1–5">1–5</option>
+                <option value="5–10">5–10</option>
+                <option value="10–20">10–20</option>
+                <option value="20+">20+</option>
               </select>
             </div>
           </div>
           
           <div class="form-group">
             <label>Education, certifications, special designations & board positions</label>
-            <textarea style="min-height: 100px;" placeholder="List relevant degrees, licenses, certifications, or board positions..."></textarea>
+            <textarea name="education" style="min-height: 100px;" placeholder="List relevant degrees, licenses, certifications, or board positions..."></textarea>
           </div>
           
           <div class="form-group" style="margin-bottom: 0;">
             <label style="margin-bottom: 1rem;">Have you ever played sports or worked as an entertainer?</label>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" style="accent-color: var(--color-gold);"> Yes</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" style="accent-color: var(--color-gold);"> No</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" value="Yes" style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="athlete" value="No" checked style="accent-color: var(--color-gold);"> No</label>
             </div>
           </div>
         </div>
@@ -314,11 +314,11 @@
           
           <div class="form-group">
             <label>Service areas</label>
-            <input type="text" placeholder="e.g. Los Angeles, New York, Miami, National">
+            <input type="text" name="service_areas" placeholder="e.g. Los Angeles, New York, Miami, National">
           </div>
           <div class="form-group">
             <label>Media links <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
-            <input type="text" placeholder="LinkedIn, Instagram, press features, podcast appearances...">
+            <input type="text" name="media_links" placeholder="LinkedIn, Instagram, press features, podcast appearances...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label>Headshot</label>
@@ -342,7 +342,7 @@
           
           <div class="form-group" style="margin-bottom: 0;">
             <label>Biography <span style="color: var(--color-gold);">*</span></label>
-            <textarea style="min-height:130px" required placeholder="Write a professional third-person biography (150–300 words recommended). This will be used on your SES member profile."></textarea>
+            <textarea name="bio" style="min-height:130px" required placeholder="Write a professional third-person biography (150–300 words recommended). This will be used on your SES member profile."></textarea>
           </div>
         </div>
 
@@ -353,29 +353,29 @@
           <div class="form-group">
             <label style="margin-bottom: 1rem;">Have you completed the CSEP designation?</label>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> Yes — I am already CSEP certified</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> No — I plan to complete it</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" style="accent-color: var(--color-gold);"> Currently in progress</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" value="Yes" style="accent-color: var(--color-gold);"> Yes — I am already CSEP certified</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" value="No" checked style="accent-color: var(--color-gold);"> No — I plan to complete it</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="csep" value="Currently in progress" style="accent-color: var(--color-gold);"> Currently in progress</label>
             </div>
           </div>
           <div class="form-group">
             <label>Professional references</label>
-            <textarea style="min-height:100px" placeholder="Please provide 2–3 professional references (name, title, company, email or phone). References should be from within or adjacent to the sports and entertainment industry."></textarea>
+            <textarea name="references" style="min-height:100px" placeholder="Please provide 2–3 professional references (name, title, company, email or phone). References should be from within or adjacent to the sports and entertainment industry."></textarea>
           </div>
           <div class="form-group">
             <label style="margin-bottom: 1rem;">Do you have a confidentiality protocol or NDA in place in your business?</label>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> Yes</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> No</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" style="accent-color: var(--color-gold);"> In progress</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" value="Yes" style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" value="No" style="accent-color: var(--color-gold);"> No</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="nda_biz" value="In progress" checked style="accent-color: var(--color-gold);"> In progress</label>
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="margin-bottom: 1rem;">Are you open to referral partnerships with other SES members?</label>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> Yes</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> No</label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" style="accent-color: var(--color-gold);"> Open to discussing</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" value="Yes" checked style="accent-color: var(--color-gold);"> Yes</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" value="No" style="accent-color: var(--color-gold);"> No</label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light);"><input type="radio" name="referral" value="Open to discussing" style="accent-color: var(--color-gold);"> Open to discussing</label>
             </div>
           </div>
         </div>
@@ -386,7 +386,7 @@
           
           <div class="form-group" style="margin-bottom: 0;">
             <label>Why are you interested in joining the Sports & Entertainment Society? <span style="color: var(--color-gold);">*</span></label>
-            <textarea style="min-height:120px" required placeholder="Tell us about your goals and what you hope to gain and contribute as a member..."></textarea>
+            <textarea name="statement" style="min-height:120px" required placeholder="Tell us about your goals and what you hope to gain and contribute as a member..."></textarea>
           </div>
         </div>
 
@@ -397,21 +397,46 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Favorite sports team <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
-              <input type="text" placeholder="e.g. LA Lakers">
+              <input type="text" name="fav_team" placeholder="e.g. LA Lakers">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label>Favorite movie <span style="color: var(--text-muted); font-weight: normal; font-size: 0.85rem;">(optional)</span></label>
-              <input type="text" placeholder="e.g. The Godfather">
+              <input type="text" name="fav_movie" placeholder="e.g. The Godfather">
             </div>
           </div>
         </div>
 
         <!-- Confidentiality Agreement & Notices -->
-        <div style="background: rgba(181, 142, 49, 0.05); border: 1px solid rgba(181, 142, 49, 0.2); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 1rem;">
-          <span style="color: var(--color-gold); font-size: 1.5rem;">🔒</span>
-          <div>
-            <p style="color: var(--text-light); margin-bottom: 0.5rem; font-size: 0.95rem;">Before submitting your application, please review and sign the <a href="#" style="color: var(--color-gold); text-decoration: underline;">SES Non-Disclosure Agreement &rarr;</a></p>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">All members are required to uphold the Society's confidentiality standards.</p>
+        <div style="background: rgba(181, 142, 49, 0.05); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+          <div style="display: flex; align-items: flex-start; gap: 1rem;">
+            <span style="color: var(--color-gold); font-size: 1.6rem; line-height: 1;">🔒</span>
+            <div style="flex: 1;">
+              <h4 style="color: var(--text-white); margin: 0 0 0.4rem 0; font-size: 1.05rem;">Member Confidentiality & Non-Disclosure Agreement</h4>
+              <p style="color: var(--text-light); margin-bottom: 0.8rem; font-size: 0.95rem; line-height: 1.5;">
+                All members are required to review and sign the Society's confidentiality standards prior to submitting an application.
+              </p>
+              
+              <!-- NDA Action / Status Display -->
+              <div id="nda-status-box" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(5, 8, 17, 0.6); border: 1px solid rgba(181, 142, 49, 0.2); padding: 1rem 1.2rem; border-radius: 6px;">
+                <div id="nda-status-text-container" style="display: flex; align-items: center; gap: 10px;">
+                  <span id="nda-status-icon" style="color: #f59e0b; font-size: 1.1rem;">⚠️</span>
+                  <div>
+                    <strong id="nda-status-title" style="color: #f59e0b; display: block; font-size: 0.9rem;">Signature Required</strong>
+                    <span id="nda-status-subtitle" style="color: var(--text-muted); font-size: 0.8rem;">Click the button to review and digitally sign the agreement.</span>
+                  </div>
+                </div>
+                
+                <button type="button" id="btn-open-nda-modal" style="background: #c8a97e; color: #050811; font-weight: 700; border: none; padding: 0.65rem 1.25rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s, background 0.2s; white-space: nowrap;">
+                  Review & Sign NDA &rarr;
+                </button>
+              </div>
+
+              <!-- Hidden form inputs populated upon signing -->
+              <input type="checkbox" id="nda-agreement-checkbox" name="nda_signed" style="display: none;" required>
+              <input type="hidden" id="nda-signer-name" name="nda_signer_name" value="">
+              <input type="hidden" id="nda-signed-date" name="nda_signed_date" value="">
+              <input type="hidden" id="nda-signed-at" name="nda_signed_at" value="">
+            </div>
           </div>
         </div>
 
@@ -432,7 +457,7 @@
         </div>
 
         <div style="text-align: center;">
-          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem;">Submit Application</button>
+          <button type="submit" id="btn-submit-application" class="btn btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem;">Submit Application</button>
           <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; line-height: 1.6;">
             Your information is kept strictly confidential.<br>
             You will be contacted within 5–7 business days of submission.
@@ -442,6 +467,100 @@
       </form>
     </div>
   </section>
+
+  <!-- NDA SIGNING MODAL -->
+  <div id="nda-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #0d0f17; border: 1px solid var(--color-gold); border-radius: 8px; width: 100%; max-width: 750px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7); position: relative; overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(5, 8, 17, 0.9);">
+        <div>
+          <span style="color: var(--color-gold); font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">Sports & Entertainment Society</span>
+          <h3 style="margin: 0.3rem 0 0 0; color: #fff; font-family: var(--font-serif); font-size: 1.4rem;">Member Confidentiality & Non-Disclosure Agreement</h3>
+        </div>
+        <button type="button" id="btn-close-nda-modal" style="background: transparent; border: none; color: #aaa; font-size: 1.8rem; cursor: pointer; line-height: 1; padding: 0 5px;" title="Close">&times;</button>
+      </div>
+
+      <!-- Modal Body (Scrollable Legal Text) -->
+      <div id="nda-modal-body" style="padding: 1.75rem 2rem; overflow-y: auto; flex: 1; color: var(--text-light); font-size: 0.95rem; line-height: 1.7; background: #080a10;">
+        <div style="background: rgba(181, 142, 49, 0.04); border-left: 3px solid var(--color-gold); padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-radius: 0 4px 4px 0;">
+          <strong style="color: #fff;">SPORTS & ENTERTAINMENT SOCIETY</strong><br>
+          <span style="color: var(--color-gold); font-size: 0.9rem;">Member Confidentiality & Non-Disclosure Agreement</span>
+        </div>
+
+        <p style="margin-bottom: 1.2rem;">
+          The Sports & Entertainment Society (“Society”) is designed to be a trusted environment where professionals can openly exchange ideas, relationships, referrals, opportunities, experiences, and industry knowledge. Protecting that trust is a condition of membership.
+        </p>
+
+        <p style="margin-bottom: 0.8rem; font-weight: bold; color: var(--color-gold);">
+          By joining and participating in the Society, I agree that:
+        </p>
+
+        <ul style="padding-left: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
+          <li>
+            <strong style="color: #fff;">Confidentiality.</strong> I will keep confidential any non-public, sensitive, or proprietary information shared by another member or guest through Society meetings, events, communications, online communities, or introductions. This includes client identities, personal information, business strategies, deal terms, opportunities, referrals, contacts, and private conversations.
+          </li>
+          <li>
+            <strong style="color: #fff;">No Unauthorized Disclosure.</strong> I will not share, publish, record, screenshot, reproduce, or distribute confidential information outside the Society without the express permission of the person who shared it. I will not identify another member’s clients, relationships, deals, or opportunities without authorization.
+          </li>
+          <li>
+            <strong style="color: #fff;">Referrals & Introductions.</strong> I will respect the relationships behind introductions and referrals. An introduction does not grant permission to bypass, solicit around, or otherwise misuse the relationship of the member who made it.
+          </li>
+          <li>
+            <strong style="color: #fff;">Professional Use.</strong> Information shared within the Society may be used for legitimate professional collaboration, learning, and relationship-building, but never in a manner that could reasonably harm, embarrass, exploit, or compromise another member, client, or third party.
+          </li>
+        </ul>
+
+        <p style="margin-bottom: 1.2rem;">
+          These obligations do not apply to information that is publicly available, independently known or developed, received lawfully from another source, or required to be disclosed by law.
+        </p>
+
+        <p style="margin-bottom: 1.2rem;">
+          This commitment survives the termination of membership. Violations may result in suspension or termination of Society membership and any other remedies available under applicable law.
+        </p>
+
+        <p style="margin-bottom: 1.5rem; padding: 0.8rem 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 4px; font-style: italic; color: var(--color-gold); text-align: center;">
+          “Our standard is simple: What is shared in trust is protected in trust.”
+        </p>
+
+        <!-- Digital Signature Form -->
+        <div style="background: rgba(5, 8, 17, 0.9); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 6px; padding: 1.25rem; margin-top: 1.5rem;">
+          <h4 style="color: var(--color-gold); margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;">Digital Signature & Attestation</h4>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.3rem; display: block;">Member Name (Printed) <span style="color: var(--color-gold);">*</span></label>
+              <input type="text" id="nda-modal-name" placeholder="Full Legal Name" style="width: 100%; padding: 0.75rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 0.95rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.3rem; display: block;">Date <span style="color: var(--color-gold);">*</span></label>
+              <input type="text" id="nda-modal-date" readonly style="width: 100%; padding: 0.75rem; background: #161822; border: 1px solid #333; color: #aaa; border-radius: 4px; font-size: 0.95rem; cursor: not-allowed;">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.3rem; display: block;">Digital Signature (Type your full name as signature) <span style="color: var(--color-gold);">*</span></label>
+            <input type="text" id="nda-modal-signature" placeholder="Type your full legal name to sign" style="width: 100%; padding: 0.75rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 1.1rem; font-family: 'Times New Roman', serif; font-style: italic;">
+          </div>
+
+          <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 1rem;">
+            <input type="checkbox" id="nda-modal-consent" style="margin-top: 4px; cursor: pointer; accent-color: var(--color-gold); width: 18px; height: 18px;">
+            <label for="nda-modal-consent" style="color: #ccc; font-size: 0.85rem; cursor: pointer; user-select: none; line-height: 1.4;">
+              I confirm that I have read, understand, and unconditionally agree to abide by the Sports & Entertainment Society Member Confidentiality & Non-Disclosure Agreement.
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 1.25rem 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(5, 8, 17, 0.95);">
+        <button type="button" id="btn-cancel-nda-modal" style="background: transparent; border: 1px solid #444; color: #ccc; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Cancel</button>
+        <button type="button" id="btn-accept-nda-modal" style="background: #c8a97e; color: #050811; font-weight: bold; border: none; padding: 0.7rem 1.8rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem;">Accept & Sign NDA</button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer>

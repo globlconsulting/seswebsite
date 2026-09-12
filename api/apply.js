@@ -123,18 +123,39 @@ module.exports = async (req, res) => {
         fullName,
         company,
         title,
+        website,
         referrer,
+        heardAbout,
         tier,
         billing,
         industries,
         clientele,
         experience,
+        yearsServicing,
+        clientsServed,
+        education,
+        athlete,
+        serviceAreas,
+        mediaLinks,
+        bio,
+        csep,
+        references,
+        ndaBiz,
+        referral,
+        statement,
+        favTeam,
+        favMovie,
         headshotUrl,
-        subscribeNewsletter
+        subscribeNewsletter,
+        ndaSigned,
+        ndaSignerName,
+        ndaSignedDate,
+        ndaSignedAt,
+        ndaVersion
       } = payload;
 
-      if (!email || !fullName || !company || !title || !phone || !clientele || !experience) {
-        return res.status(400).send("Missing required fields.");
+      if (!email || !fullName || !company || !title || !phone) {
+        return res.status(400).send("Missing required fields (Name, Email, Phone, Company, or Title).");
       }
 
       userEmail = email.toLowerCase().trim();
@@ -147,13 +168,35 @@ module.exports = async (req, res) => {
         phone: phone,
         company: company,
         title: title,
-        referrer: referrer,
-        tier: tier,
+        website: website || '',
+        referrer: referrer || '',
+        heardAbout: heardAbout || '',
+        tier: tier || 'general',
         billing: billing || 'monthly',
         industries: industries || [],
-        clientele: clientele,
-        experience: experience,
+        clientele: clientele || 'Both',
+        experience: experience || statement || bio || '',
+        yearsServicing: yearsServicing || '',
+        clientsServed: clientsServed || '',
+        education: education || '',
+        athlete: athlete || 'No',
+        serviceAreas: serviceAreas || '',
+        mediaLinks: mediaLinks || '',
+        bio: bio || '',
+        csep: csep || 'No',
+        references: references || '',
+        ndaBiz: ndaBiz || 'In progress',
+        referral: referral || 'Yes',
+        statement: statement || '',
+        favTeam: favTeam || '',
+        favMovie: favMovie || '',
         headshotUrl: headshotUrl || '',
+        // Signed NDA fields
+        ndaSigned: !!ndaSigned,
+        ndaSignerName: ndaSignerName || userFullName,
+        ndaSignedDate: ndaSignedDate || '',
+        ndaSignedAt: ndaSignedAt || new Date().toISOString(),
+        ndaVersion: ndaVersion || '1.0',
         status: 'pending',
         createdAt: serverTimestamp()
       };
@@ -164,10 +207,11 @@ module.exports = async (req, res) => {
       const lastName = nameParts.slice(1).join(' ') || '';
       const tags = [
         "Membership_Applicant", 
-        `Tier: ${tier}`, 
+        `Tier: ${tier || 'general'}`, 
         `Billing: ${billing || 'monthly'}`,
         ...(industries || []).map(ind => `Industry: ${ind}`),
-        `Clientele: ${clientele}`
+        `Clientele: ${clientele || 'Both'}`,
+        ...(ndaSigned ? ["NDA_Signed"] : [])
       ];
       if (subscribeNewsletter) {
         tags.push("SES_Newsletter_Subscriber");
@@ -184,7 +228,7 @@ module.exports = async (req, res) => {
         source: `SES Website - Membership`,
         system: "Custom",
         type: "Inquiry",
-        message: `Company: ${company}\nTitle: ${title}\nReferrer: ${referrer}`
+        message: `Company: ${company}\nTitle: ${title}\nReferrer: ${referrer}\nNDA Signed: ${ndaSigned ? 'Yes (' + (ndaSignerName || userFullName) + ' on ' + (ndaSignedDate || '') + ')' : 'No'}`
       };
 
       emailSubject = "New Pending Membership Application Submitted - Action Required";

@@ -319,6 +319,28 @@
         </div>
         
         <div style="background: #111; padding: 30px; border-radius: 8px; border: 1px solid #333; max-width: 600px;">
+          
+          <!-- Member Confidentiality & Non-Disclosure Agreement (NDA) Status Card -->
+          <div style="background: rgba(181, 142, 49, 0.05); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.8rem; color: #c8a97e; line-height: 1;">🔒</span>
+                <div>
+                  <h4 style="margin: 0; color: #fff; font-size: 1.05rem;">Member Confidentiality & NDA</h4>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <span id="profile-nda-badge" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                      ✓ Signed & Active
+                    </span>
+                    <span id="profile-nda-signed-info" style="color: #aaa; font-size: 0.8rem;">Signed by Member</span>
+                  </div>
+                </div>
+              </div>
+              <button type="button" id="btn-view-user-signed-nda" style="background: transparent; border: 1px solid #c8a97e; color: #c8a97e; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.background='#c8a97e'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#c8a97e';">
+                View Signed NDA &rarr;
+              </button>
+            </div>
+          </div>
+
           <form id="profile-form">
             <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
               <div id="profile-photo-container" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #c8a97e; background: #050505; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
@@ -1280,6 +1302,89 @@
       <div id="app-viewer-container" style="display: flex; flex-direction: column; gap: 20px; color: #fff;">
         <!-- Dynamic content goes here -->
       </div>
+    </div>
+  </div>
+
+  <!-- Signed NDA Document Viewer Modal (Shared by Profile and Admin) -->
+  <div id="nda-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #0d0f17; border: 1px solid #c8a97e; border-radius: 8px; width: 100%; max-width: 750px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 15px 40px rgba(0,0,0,0.8); position: relative; overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(5,8,17,0.9);">
+        <div>
+          <span style="color: #c8a97e; font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">Sports & Entertainment Society</span>
+          <h3 style="margin: 0.3rem 0 0 0; color: #fff; font-family: var(--font-serif); font-size: 1.3rem;">Official Signed Non-Disclosure Agreement</h3>
+        </div>
+        <button type="button" id="btn-close-nda-viewer" style="background: transparent; border: none; color: #aaa; font-size: 1.8rem; cursor: pointer; line-height: 1; padding: 0 5px;" title="Close">&times;</button>
+      </div>
+
+      <!-- Modal Content -->
+      <div style="padding: 1.75rem 2rem; overflow-y: auto; flex: 1; color: #ccc; font-size: 0.95rem; line-height: 1.7; background: #080a10;">
+        <div style="background: rgba(181, 142, 49, 0.05); border-left: 3px solid #c8a97e; padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-radius: 0 4px 4px 0;">
+          <strong style="color: #fff; font-size: 1.05rem;">SPORTS & ENTERTAINMENT SOCIETY</strong><br>
+          <span style="color: #c8a97e; font-size: 0.9rem;">Member Confidentiality & Non-Disclosure Agreement</span>
+        </div>
+
+        <p style="margin-bottom: 1.2rem;">
+          The Sports & Entertainment Society (“Society”) is designed to be a trusted environment where professionals can openly exchange ideas, relationships, referrals, opportunities, experiences, and industry knowledge. Protecting that trust is a condition of membership.
+        </p>
+
+        <p style="margin-bottom: 0.8rem; font-weight: bold; color: #c8a97e;">
+          By joining and participating in the Society, I agree that:
+        </p>
+
+        <ul style="padding-left: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
+          <li><strong style="color: #fff;">Confidentiality.</strong> I will keep confidential any non-public, sensitive, or proprietary information shared by another member or guest through Society meetings, events, communications, online communities, or introductions. This includes client identities, personal information, business strategies, deal terms, opportunities, referrals, contacts, and private conversations.</li>
+          <li><strong style="color: #fff;">No Unauthorized Disclosure.</strong> I will not share, publish, record, screenshot, reproduce, or distribute confidential information outside the Society without the express permission of the person who shared it. I will not identify another member’s clients, relationships, deals, or opportunities without authorization.</li>
+          <li><strong style="color: #fff;">Referrals & Introductions.</strong> I will respect the relationships behind introductions and referrals. An introduction does not grant permission to bypass, solicit around, or otherwise misuse the relationship of the member who made it.</li>
+          <li><strong style="color: #fff;">Professional Use.</strong> Information shared within the Society may be used for legitimate professional collaboration, learning, and relationship-building, but never in a manner that could reasonably harm, embarrass, exploit, or compromise another member, client, or third party.</li>
+        </ul>
+
+        <p style="margin-bottom: 1.2rem;">
+          These obligations do not apply to information that is publicly available, independently known or developed, received lawfully from another source, or required to be disclosed by law.
+        </p>
+
+        <p style="margin-bottom: 1.2rem;">
+          This commitment survives the termination of membership. Violations may result in suspension or termination of Society membership and any other remedies available under applicable law.
+        </p>
+
+        <p style="margin-bottom: 1.5rem; padding: 0.8rem 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 4px; font-style: italic; color: #c8a97e; text-align: center;">
+          “Our standard is simple: What is shared in trust is protected in trust.”
+        </p>
+
+        <!-- Signature Attestation Card -->
+        <div style="background: rgba(5, 8, 17, 0.9); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 6px; padding: 1.25rem; margin-top: 1.5rem;">
+          <h4 style="color: #c8a97e; margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;">Signed Execution Record</h4>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <span style="color: #888; font-size: 0.75rem; text-transform: uppercase; display: block;">Member Name:</span>
+              <strong id="nda-viewer-member-name" style="color: #fff; font-size: 1rem; display: block; margin-top: 3px;">Member Name</strong>
+            </div>
+            <div>
+              <span style="color: #888; font-size: 0.75rem; text-transform: uppercase; display: block;">Date:</span>
+              <strong id="nda-viewer-date" style="color: #fff; font-size: 1rem; display: block; margin-top: 3px;">Date</strong>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid #222; padding-top: 12px; margin-top: 12px;">
+            <span style="color: #888; font-size: 0.75rem; text-transform: uppercase; display: block;">Digital Signature:</span>
+            <div id="nda-viewer-signature" style="font-family: 'Times New Roman', serif; font-size: 1.5rem; font-style: italic; color: #c8a97e; margin-top: 5px;">
+              Digital Signature
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #4ade80;">
+            <span>🔒 Verified Electronic Signature • Stored securely on Society database</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 1.25rem 2rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end; align-items: center; background: rgba(5,8,17,0.95);">
+        <button type="button" id="btn-close-nda-viewer-bottom" style="background: #c8a97e; color: #000; font-weight: bold; border: none; padding: 0.7rem 1.8rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem;">Close Agreement</button>
+      </div>
+
     </div>
   </div>
 

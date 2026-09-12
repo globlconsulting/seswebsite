@@ -61,6 +61,12 @@ onAuthStateChanged(auth, async (user) => {
             const appsRef = collection(db, "applications");
             const appQ = query(appsRef, where("email", "==", userEmail));
             const appQSnap = await getDocs(appQ);
+            let ndaSigned = false;
+            let ndaSignerName = '';
+            let ndaSignedDate = '';
+            let ndaSignedAt = '';
+            let ndaVersion = '1.0';
+
             appQSnap.forEach((appDoc) => {
               const appData = appDoc.data();
               if (appData.fullName) name = appData.fullName;
@@ -71,6 +77,13 @@ onAuthStateChanged(auth, async (user) => {
               }
               if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
               if (appData.phone) contactPhone = appData.phone;
+              if (appData.ndaSigned) {
+                ndaSigned = true;
+                ndaSignerName = appData.ndaSignerName || appData.fullName || name;
+                ndaSignedDate = appData.ndaSignedDate || '';
+                ndaSignedAt = appData.ndaSignedAt || '';
+                ndaVersion = appData.ndaVersion || '1.0';
+              }
             });
 
             // Mark email as registered
@@ -100,6 +113,11 @@ onAuthStateChanged(auth, async (user) => {
             photoUrl: headshotUrl,
             contactPhone: contactPhone,
             contactEmail: contactEmail,
+            ndaSigned: ndaSigned,
+            ndaSignerName: ndaSignerName,
+            ndaSignedDate: ndaSignedDate,
+            ndaSignedAt: ndaSignedAt,
+            ndaVersion: ndaVersion,
             createdAt: new Date()
           });
 
@@ -155,8 +173,8 @@ onAuthStateChanged(auth, async (user) => {
           }
         }
 
-        // Auto-heal/Enrich existing user profile if name is missing or default
-        if (!data.name || data.name === 'New Member' || data.name === 'Anonymous') {
+        // Auto-heal/Enrich existing user profile if name or NDA is missing
+        if (!data.name || data.name === 'New Member' || data.name === 'Anonymous' || data.ndaSigned === undefined) {
           const userEmail = (user.email || '').trim().toLowerCase();
           let name = data.name || 'New Member';
           let company = data.company || '';
@@ -165,6 +183,11 @@ onAuthStateChanged(auth, async (user) => {
           let headshotUrl = data.photoUrl || '';
           let contactPhone = data.contactPhone || '';
           let contactEmail = data.contactEmail || userEmail;
+          let ndaSigned = data.ndaSigned !== undefined ? data.ndaSigned : false;
+          let ndaSignerName = data.ndaSignerName || '';
+          let ndaSignedDate = data.ndaSignedDate || '';
+          let ndaSignedAt = data.ndaSignedAt || '';
+          let ndaVersion = data.ndaVersion || '1.0';
 
           try {
             const appsRef = collection(db, "applications");
@@ -180,6 +203,13 @@ onAuthStateChanged(auth, async (user) => {
               }
               if (appData.headshotUrl) headshotUrl = appData.headshotUrl;
               if (appData.phone) contactPhone = appData.phone;
+              if (appData.ndaSigned) {
+                ndaSigned = true;
+                ndaSignerName = appData.ndaSignerName || appData.fullName || name;
+                ndaSignedDate = appData.ndaSignedDate || '';
+                ndaSignedAt = appData.ndaSignedAt || '';
+                ndaVersion = appData.ndaVersion || '1.0';
+              }
             });
 
             // Update user doc with enriched fields
@@ -190,7 +220,12 @@ onAuthStateChanged(auth, async (user) => {
               industry: industry,
               photoUrl: headshotUrl,
               contactPhone: contactPhone,
-              contactEmail: contactEmail
+              contactEmail: contactEmail,
+              ndaSigned: ndaSigned,
+              ndaSignerName: ndaSignerName,
+              ndaSignedDate: ndaSignedDate,
+              ndaSignedAt: ndaSignedAt,
+              ndaVersion: ndaVersion
             }, { merge: true });
 
             currentUserName = name;
@@ -470,6 +505,48 @@ async function loadUserProfile(uid) {
       const hideEmailCheck = document.getElementById('profile-hide-email');
       if (hideEmailCheck) hideEmailCheck.checked = !!data.hideEmail;
 
+      // Update NDA status card in profile
+      const ndaBadge = document.getElementById('profile-nda-badge');
+      const ndaSignedInfo = document.getElementById('profile-nda-signed-info');
+      const btnViewSignedNda = document.getElementById('btn-view-user-signed-nda');
+
+      const isNdaSigned = data.ndaSigned !== false; // Default active for approved society members
+      const signerName = data.ndaSignerName || data.name || 'Member';
+      let signedDate = data.ndaSignedDate;
+      if (!signedDate) {
+        if (data.createdAt && data.createdAt.toDate) {
+          signedDate = data.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        } else if (data.createdAt) {
+          signedDate = new Date(data.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        } else {
+          signedDate = 'Active Member Record';
+        }
+      }
+
+      if (ndaBadge && ndaSignedInfo) {
+        if (isNdaSigned) {
+          ndaBadge.style.display = 'inline-block';
+          ndaBadge.innerText = '✓ Signed & Active';
+          ndaBadge.style.background = 'rgba(74, 222, 128, 0.15)';
+          ndaBadge.style.color = '#4ade80';
+          ndaBadge.style.borderColor = 'rgba(74, 222, 128, 0.3)';
+          ndaSignedInfo.innerText = `Signed by ${signerName} • ${signedDate}`;
+        } else {
+          ndaBadge.style.display = 'inline-block';
+          ndaBadge.innerText = '⚠️ Signature Pending';
+          ndaBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+          ndaBadge.style.color = '#f59e0b';
+          ndaBadge.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+          ndaSignedInfo.innerText = 'Confidentiality agreement required';
+        }
+      }
+
+      if (btnViewSignedNda) {
+        btnViewSignedNda.onclick = () => {
+          openNdaViewerModal(signerName, signedDate, signerName);
+        };
+      }
+
       const photoImg = document.getElementById('profile-photo-img');
       const placeholder = document.getElementById('profile-photo-placeholder');
       if (photoImg && placeholder) {
@@ -513,6 +590,36 @@ async function loadUserProfile(uid) {
     if (typeof refreshActiveIntelView === 'function') refreshActiveIntelView();
   }
 }
+
+// --- NDA Viewer Modal Global Logic --- //
+function openNdaViewerModal(name, date, signature) {
+  const modal = document.getElementById('nda-viewer-modal');
+  const nameEl = document.getElementById('nda-viewer-member-name');
+  const dateEl = document.getElementById('nda-viewer-date');
+  const sigEl = document.getElementById('nda-viewer-signature');
+  
+  if (nameEl) nameEl.innerText = name || 'SES Member';
+  if (dateEl) dateEl.innerText = date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (sigEl) sigEl.innerText = signature || name || 'SES Member';
+  
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeNdaViewerModal() {
+  const modal = document.getElementById('nda-viewer-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+const btnCloseNdaViewer = document.getElementById('btn-close-nda-viewer');
+const btnCloseNdaViewerBottom = document.getElementById('btn-close-nda-viewer-bottom');
+if (btnCloseNdaViewer) btnCloseNdaViewer.addEventListener('click', closeNdaViewerModal);
+if (btnCloseNdaViewerBottom) btnCloseNdaViewerBottom.addEventListener('click', closeNdaViewerModal);
+
+window.addEventListener('click', (e) => {
+  const modal = document.getElementById('nda-viewer-modal');
+  if (e.target === modal) closeNdaViewerModal();
+});
+window.openNdaViewerModal = openNdaViewerModal;
 
 profileForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1719,6 +1826,19 @@ async function loadAdminUsers() {
             const billingName = preferredBilling === 'yearly' ? 'Yearly Plan' : 'Monthly Plan';
             const headshotUrl = user.photoUrl || '';
             
+            const userNdaSigned = user.ndaSigned !== false;
+            const userNdaName = user.ndaSignerName || user.name || 'Member';
+            let userNdaDate = user.ndaSignedDate;
+            if (!userNdaDate) {
+              if (user.createdAt && user.createdAt.toDate) {
+                userNdaDate = user.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              } else if (user.createdAt) {
+                userNdaDate = new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              } else {
+                userNdaDate = 'Active Member Record';
+              }
+            }
+
             container.innerHTML = `
               <form id="admin-edit-user-form" style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
                 <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
@@ -1734,6 +1854,24 @@ async function loadAdminUsers() {
                     <p style="margin: 0; color: #c8a97e; font-weight: bold;">${tierName} Member (${billingName})</p>
                     <p style="margin: 5px 0 0 0; color: #888; font-size: 0.9rem;">Account Email: ${escapeHTML(user.email || '')}</p>
                   </div>
+                </div>
+
+                <!-- NDA Agreement Status Box -->
+                <div style="background: rgba(181, 142, 49, 0.08); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 6px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <strong style="color: #fff; font-size: 0.95rem;">Confidentiality & Non-Disclosure Agreement:</strong>
+                      <span style="background: ${userNdaSigned ? 'rgba(74, 222, 128, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${userNdaSigned ? '#4ade80' : '#f59e0b'}; border: 1px solid ${userNdaSigned ? 'rgba(74, 222, 128, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                        ${userNdaSigned ? '✓ Signed & Verified' : '⚠️ Signature Pending'}
+                      </span>
+                    </div>
+                    <p style="margin: 3px 0 0 0; color: #888; font-size: 0.8rem;">
+                      ${userNdaSigned ? `Signed by ${escapeHTML(userNdaName)} • ${escapeHTML(userNdaDate)}` : 'No signed agreement recorded on file'}
+                    </p>
+                  </div>
+                  <button type="button" class="btn-admin-view-user-nda" style="background: rgba(200, 169, 126, 0.15); border: 1px solid #c8a97e; color: #c8a97e; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                    View Signed NDA &rarr;
+                  </button>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -1903,6 +2041,14 @@ async function loadAdminUsers() {
               </form>
             `;
             
+            // Handle View Signed NDA button
+            const viewNdaBtn = modal.querySelector('.btn-admin-view-user-nda');
+            if (viewNdaBtn) {
+              viewNdaBtn.onclick = () => {
+                openNdaViewerModal(userNdaName, userNdaDate, userNdaName);
+              };
+            }
+
             // Handle Admin Edit Form Submission
             const form = document.getElementById('admin-edit-user-form');
             form.addEventListener('submit', async (formEvent) => {
@@ -2505,6 +2651,19 @@ async function loadAdminApplications() {
             const billing = escapeHTML(app.billing || 'monthly');
             const billingName = billing === 'yearly' ? 'Yearly Plan' : 'Monthly Plan';
             
+            const appNdaSigned = app.ndaSigned !== false;
+            const appNdaName = app.ndaSignerName || app.fullName || 'Applicant';
+            let appNdaDate = app.ndaSignedDate;
+            if (!appNdaDate) {
+              if (app.createdAt && app.createdAt.toDate) {
+                appNdaDate = app.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              } else if (app.createdAt) {
+                appNdaDate = new Date(app.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              } else {
+                appNdaDate = 'Application Record';
+              }
+            }
+
             container.innerHTML = `
               <div style="border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
                 ${headshotUrl ? `
@@ -2521,8 +2680,26 @@ async function loadAdminApplications() {
                   <p style="margin: 2px 0 0 0; color: #888; font-size: 0.9rem;">Phone: ${escapeHTML(app.phone || 'N/A')}</p>
                 </div>
               </div>
+
+              <!-- NDA Agreement Status Box -->
+              <div style="background: rgba(181, 142, 49, 0.08); border: 1px solid rgba(181, 142, 49, 0.3); border-radius: 6px; padding: 12px 16px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <strong style="color: #fff; font-size: 0.95rem;">Confidentiality & Non-Disclosure Agreement:</strong>
+                    <span style="background: ${appNdaSigned ? 'rgba(74, 222, 128, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${appNdaSigned ? '#4ade80' : '#f59e0b'}; border: 1px solid ${appNdaSigned ? 'rgba(74, 222, 128, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                      ${appNdaSigned ? '✓ Signed & Verified' : '⚠️ Pending'}
+                    </span>
+                  </div>
+                  <p style="margin: 3px 0 0 0; color: #888; font-size: 0.8rem;">
+                    ${appNdaSigned ? `Digitally signed by ${escapeHTML(appNdaName)} • ${escapeHTML(appNdaDate)}` : 'No signed agreement recorded on file'}
+                  </p>
+                </div>
+                <button type="button" id="btn-admin-view-app-nda" style="background: rgba(200, 169, 126, 0.15); border: 1px solid #c8a97e; color: #c8a97e; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                  View Signed NDA &rarr;
+                </button>
+              </div>
               
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
                 <div>
                   <span style="color: #888; font-size: 0.8rem; text-transform: uppercase;">Company</span>
                   <p style="margin: 3px 0 0 0; font-weight: bold; color: #fff;">${escapeHTML(app.company || 'N/A')}</p>
@@ -2551,6 +2728,14 @@ async function loadAdminApplications() {
                 <p style="margin: 5px 0 0 0; color: #fff; background: #111; padding: 12px; border-radius: 4px; border: 1px solid #222; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${exp}</p>
               </div>
             `;
+
+            const btnAdminAppNda = document.getElementById('btn-admin-view-app-nda');
+            if (btnAdminAppNda) {
+              btnAdminAppNda.onclick = () => {
+                openNdaViewerModal(appNdaName, appNdaDate, appNdaName);
+              };
+            }
+
             modal.style.display = 'flex';
           }
         }
