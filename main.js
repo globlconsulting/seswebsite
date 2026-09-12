@@ -312,12 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
         person: {
           firstName: firstName,
           lastName: lastName,
-          emails: [{ value: email }],
-          tags: ["SES_Newsletter_Subscriber"]
+          emails: [{ value: email, isPrimary: true }],
+          tags: ["SES_Newsletter_Subscriber", "Newsletter"]
         },
         source: form.id === 'floating-newsletter-form' ? "SES Website - Floating Newsletter" : "SES Website - Newsletter",
-        system: "Custom",
-        type: "Inquiry",
+        system: "SES Website",
+        type: "General Inquiry",
+        message: `Subscribed to Vetted Insights Newsletter (${firstName} ${lastName} <${email}>)`,
+        description: `Newsletter Subscriber via ${form.id === 'floating-newsletter-form' ? 'Floating Widget' : 'Website Footer'}`,
         website_url: "" // Explicitly pass empty honeypot field
       };
 

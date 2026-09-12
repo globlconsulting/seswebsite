@@ -1,6 +1,6 @@
 const { initializeApp } = require("firebase/app");
 const { getAuth, signInWithEmailAndPassword } = require("firebase/auth");
-const { getFirestore, collection, addDoc, serverTimestamp } = require("firebase/firestore");
+const { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp } = require("firebase/firestore");
 const { Resend } = require("resend");
 
 // Firebase client configuration (consistent with other API endpoints)
@@ -237,6 +237,27 @@ module.exports = async (req, res) => {
     // --- 3. Save to Firestore ---
     await addDoc(collection(db, "applications"), appData);
 
+    // If newsletter subscription was opted in, save to newsletter_subscribers collection
+    const subscribeOptIn = (type === 'csep') ? payload.subscribeNewsletter : payload.subscribeNewsletter;
+    if (subscribeOptIn) {
+      try {
+        const cleanDocId = userEmail.replace(/[^a-zA-Z0-9_-]/g, '_');
+        await setDoc(doc(db, "newsletter_subscribers", cleanDocId), {
+          firstName: fubPayload.person?.firstName || userFullName.split(' ')[0] || '',
+          lastName: fubPayload.person?.lastName || userFullName.split(' ').slice(1).join(' ') || '',
+          fullName: userFullName,
+          email: userEmail,
+          phone: appData.phone || '',
+          source: `SES Website - ${type.toUpperCase()} Application`,
+          status: 'active',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (subSaveErr) {
+        console.warn("Could not save to newsletter_subscribers from application:", subSaveErr);
+      }
+    }
+
     // --- 4. Submit to Follow Up Boss (FUB) ---
     if (FUB_API_KEY) {
       try {
@@ -250,6 +271,29 @@ module.exports = async (req, res) => {
           },
           body: JSON.stringify(fubPayload)
         });
+
+        // Direct contact creation / tagging via /v1/people
+        try {
+          await fetch('https://api.followupboss.com/v1/people', {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+              'X-System': 'SES Website'
+            },
+            body: JSON.stringify({
+              firstName: fubPayload.person?.firstName || '',
+              lastName: fubPayload.person?.lastName || '',
+              emails: [{ value: userEmail, isPrimary: true }],
+              ...(appData.phone ? { phones: [{ value: appData.phone, isPrimary: true }] } : {}),
+              tags: fubPayload.person?.tags || ["SES_Newsletter_Subscriber"],
+              source: fubPayload.source || "SES Website",
+              stage: 'Lead'
+            })
+          });
+        } catch (fubPeopleErr) {
+          console.warn("Direct FUB person creation fallback warning in apply:", fubPeopleErr);
+        }
       } catch (fubErr) {
         console.error("CRM FUB submission failed:", fubErr);
       }

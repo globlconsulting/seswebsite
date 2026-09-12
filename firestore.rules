@@ -86,6 +86,13 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /newsletter_subscribers/{subId} {
+      // Creation is handled server-side via /api/fub
+      allow create: if false;
+      // Only admins can read or manage newsletter subscribers
+      allow read, write: if isAdmin();
+    }
+
     match /opportunities/{oppId} {
       // Authenticated members can read or create opportunities
       allow read, list, create: if isAuthenticated();

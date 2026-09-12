@@ -2761,6 +2761,275 @@ async function loadAdminApplications() {
 
 window.loadAdminApplications = loadAdminApplications;
 
+// --- NEWSLETTER SUBSCRIBERS (Admin Panel) --- //
+const SEED_PAST_SUBSCRIBERS = [
+  { firstName: "Joshua", lastName: "Boren", fullName: "Joshua Boren", email: "jboren@rclco.com", source: "SES Website - Newsletter", createdAt: new Date("2026-09-08T14:30:00Z") },
+  { firstName: "Dimitria", lastName: "King", fullName: "Dimitria King", email: "info@theroycelegacygroup.com", source: "SES Website - Newsletter", createdAt: new Date("2026-09-09T10:15:00Z") },
+  { firstName: "Hannah", lastName: "Melotto", fullName: "Hannah Melotto", email: "h.melotto@melottogroup.com", source: "SES Website - Newsletter", createdAt: new Date("2026-09-09T16:45:00Z") },
+  { firstName: "Jeff", lastName: "Allison", fullName: "Jeff Allison", email: "orlandoexceptionalhomes@gmail.com", source: "SES Website - Floating Newsletter", createdAt: new Date("2026-09-10T09:20:00Z") },
+  { firstName: "Robert", lastName: "Roberto", fullName: "Robert Roberto", email: "robert@therise.group", source: "SES Website - Floating Newsletter", createdAt: new Date("2026-09-10T15:10:00Z") },
+  { firstName: "Johnny", lastName: "McMahon", fullName: "Johnny McMahon", email: "johnny@next-game.me", source: "SES Website - Floating Newsletter", createdAt: new Date("2026-09-11T11:05:00Z") },
+  { firstName: "Farren", lastName: "", fullName: "Farren", email: "farren@farrwestmgmt.com", source: "SES Website - Newsletter", createdAt: new Date("2026-09-11T17:40:00Z") },
+  { firstName: "Jasmin", lastName: "Conner", fullName: "Jasmin Conner", email: "jasminconner@gmail.com", source: "SES Website - Newsletter", createdAt: new Date("2026-09-12T05:25:00Z") }
+];
+
+let allNewsletterSubscribers = [];
+
+async function loadAdminNewsletterSubscribers() {
+  const tbody = document.getElementById('admin-subscribers-tbody');
+  const countSpan = document.getElementById('admin-subscribers-count');
+  const badge = document.getElementById('admin-subscribers-badge');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888; padding: 20px;">Loading newsletter subscribers...</td></tr>`;
+
+  try {
+    const subscriberMap = new Map();
+
+    // 1. Fetch subscribers from newsletter_subscribers collection
+    try {
+      const subSnap = await getDocs(collection(db, "newsletter_subscribers"));
+      subSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.email) {
+          const key = data.email.toLowerCase().trim();
+          subscriberMap.set(key, { id: docSnap.id, ...data });
+        }
+      });
+    } catch (subErr) {
+      console.warn("Could not read newsletter_subscribers collection:", subErr);
+    }
+
+    // 2. Also aggregate subscribers from applications collection where subscribeNewsletter is true
+    try {
+      const appsSnap = await getDocs(collection(db, "applications"));
+      appsSnap.forEach(appDoc => {
+        const app = appDoc.data();
+        if (app.email && (app.subscribeNewsletter || (app.source && app.source.includes('Newsletter')))) {
+          const key = app.email.toLowerCase().trim();
+          if (!subscriberMap.has(key)) {
+            subscriberMap.set(key, {
+              id: appDoc.id,
+              firstName: (app.fullName || '').split(' ')[0] || '',
+              lastName: (app.fullName || '').split(' ').slice(1).join(' ') || '',
+              fullName: app.fullName || 'Applicant Subscriber',
+              email: app.email,
+              phone: app.phone || '',
+              source: app.source || 'Membership Application Form',
+              status: 'active',
+              createdAt: app.createdAt
+            });
+          }
+        }
+      });
+    } catch (appErr) {
+      console.warn("Could not aggregate from applications collection:", appErr);
+    }
+
+    // 3. Ensure known past subscribers from notifications are seeded into Firestore and local map
+    for (const seed of SEED_PAST_SUBSCRIBERS) {
+      const key = seed.email.toLowerCase().trim();
+      if (!subscriberMap.has(key)) {
+        subscriberMap.set(key, { ...seed, status: 'active' });
+        const cleanDocId = key.replace(/[^a-zA-Z0-9_-]/g, '_');
+        try {
+          await setDoc(doc(db, "newsletter_subscribers", cleanDocId), {
+            firstName: seed.firstName,
+            lastName: seed.lastName,
+            fullName: seed.fullName,
+            email: seed.email,
+            source: seed.source,
+            status: 'active',
+            createdAt: seed.createdAt
+          }, { merge: true });
+        } catch (seedWriteErr) {
+          console.warn("Seeding past subscriber warning:", seedWriteErr);
+        }
+      }
+    }
+
+    allNewsletterSubscribers = Array.from(subscriberMap.values()).sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      return dateB - dateA;
+    });
+
+    if (badge) {
+      if (allNewsletterSubscribers.length > 0) {
+        badge.style.display = 'inline-block';
+        badge.innerText = allNewsletterSubscribers.length;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    if (countSpan) {
+      countSpan.innerText = `${allNewsletterSubscribers.length} Subscribers`;
+    }
+
+    if (allNewsletterSubscribers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888; padding: 25px;">No newsletter subscribers recorded yet.</td></tr>`;
+      return;
+    }
+
+    renderSubscriberRows(allNewsletterSubscribers);
+
+    // Search filter
+    const searchInput = document.getElementById('admin-subscriber-search');
+    if (searchInput && !searchInput.dataset.listenerAttached) {
+      searchInput.dataset.listenerAttached = 'true';
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const filtered = allNewsletterSubscribers.filter(sub => 
+          (sub.fullName && sub.fullName.toLowerCase().includes(query)) ||
+          (sub.email && sub.email.toLowerCase().includes(query)) ||
+          (sub.source && sub.source.toLowerCase().includes(query))
+        );
+        renderSubscriberRows(filtered);
+      });
+    }
+
+    // Sync to CRM (Follow Up Boss)
+    const syncBtn = document.getElementById('btn-sync-subscribers-fub');
+    if (syncBtn && !syncBtn.dataset.listenerAttached) {
+      syncBtn.dataset.listenerAttached = 'true';
+      syncBtn.addEventListener('click', async () => {
+        if (allNewsletterSubscribers.length === 0) {
+          alert("No subscribers to sync.");
+          return;
+        }
+
+        const originalText = syncBtn.innerHTML;
+        syncBtn.disabled = true;
+        syncBtn.innerText = `Syncing (0/${allNewsletterSubscribers.length})...`;
+
+        let successCount = 0;
+        for (let i = 0; i < allNewsletterSubscribers.length; i++) {
+          const sub = allNewsletterSubscribers[i];
+          syncBtn.innerText = `Syncing (${i + 1}/${allNewsletterSubscribers.length})...`;
+          try {
+            const res = await fetch('/api/fub', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                person: {
+                  firstName: sub.firstName || (sub.fullName ? sub.fullName.split(' ')[0] : 'Subscriber'),
+                  lastName: sub.lastName || (sub.fullName ? sub.fullName.split(' ').slice(1).join(' ') : ''),
+                  emails: [{ value: sub.email, isPrimary: true }],
+                  tags: ["SES_Newsletter_Subscriber", "Newsletter"]
+                },
+                source: sub.source || "SES Website - Newsletter",
+                system: "SES Website",
+                type: "General Inquiry",
+                message: `Subscribed to Vetted Insights Newsletter (${sub.fullName || sub.email})`,
+                description: `Newsletter Subscriber: ${sub.fullName || sub.email}`,
+                website_url: ""
+              })
+            });
+            if (res.ok) successCount++;
+          } catch (syncErr) {
+            console.warn("Sync error for subscriber:", sub.email, syncErr);
+          }
+        }
+
+        syncBtn.innerHTML = `✓ ${successCount} Synced to CRM!`;
+        setTimeout(() => {
+          syncBtn.innerHTML = originalText;
+          syncBtn.disabled = false;
+        }, 4000);
+      });
+    }
+
+    // CSV Export
+    const exportBtn = document.getElementById('btn-export-subscribers-csv');
+    if (exportBtn && !exportBtn.dataset.listenerAttached) {
+      exportBtn.dataset.listenerAttached = 'true';
+      exportBtn.addEventListener('click', () => {
+        if (allNewsletterSubscribers.length === 0) {
+          alert("No subscribers to export.");
+          return;
+        }
+
+        const headers = ["First Name", "Last Name", "Full Name", "Email", "Phone", "Source", "Date Subscribed", "CRM Tag"];
+        const rows = allNewsletterSubscribers.map(s => {
+          let dateStr = 'N/A';
+          if (s.createdAt?.toDate) {
+            dateStr = s.createdAt.toDate().toLocaleDateString();
+          } else if (s.createdAt) {
+            dateStr = new Date(s.createdAt).toLocaleDateString();
+          }
+          return [
+            `"${(s.firstName || '').replace(/"/g, '""')}"`,
+            `"${(s.lastName || '').replace(/"/g, '""')}"`,
+            `"${(s.fullName || '').replace(/"/g, '""')}"`,
+            `"${(s.email || '').replace(/"/g, '""')}"`,
+            `"${(s.phone || '').replace(/"/g, '""')}"`,
+            `"${(s.source || '').replace(/"/g, '""')}"`,
+            `"${dateStr}"`,
+            `"SES_Newsletter_Subscriber"`
+          ].join(',');
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `ses_newsletter_subscribers_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+  } catch (err) {
+    console.error("Admin subscribers load error:", err);
+    tbody.innerHTML = `<tr><td colspan="5" style="color:red; padding:15px;">Error loading subscribers: ${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+
+function renderSubscriberRows(subscribers) {
+  const tbody = document.getElementById('admin-subscribers-tbody');
+  if (!tbody) return;
+
+  if (subscribers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888; padding: 20px;">No matching subscribers found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = subscribers.map(s => {
+    let dateStr = 'Recent';
+    if (s.createdAt?.toDate) {
+      dateStr = s.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } else if (s.createdAt) {
+      dateStr = new Date(s.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    return `
+      <tr style="border-bottom: 1px solid #222;">
+        <td style="padding: 15px; color: #fff; font-weight: bold;">
+          ${escapeHTML(s.fullName || 'Subscriber')}
+        </td>
+        <td style="padding: 15px;">
+          <a href="mailto:${escapeHTML(s.email)}" style="color: #60a5fa; text-decoration: none;">${escapeHTML(s.email)}</a>
+        </td>
+        <td style="padding: 15px; color: #aaa; font-size: 0.85rem;">
+          ${escapeHTML(s.source || 'Website')}
+        </td>
+        <td style="padding: 15px; color: #888; font-size: 0.85rem;">
+          ${escapeHTML(dateStr)}
+        </td>
+        <td style="padding: 15px;">
+          <span style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+            ✓ Follow Up Boss
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.loadAdminNewsletterSubscribers = loadAdminNewsletterSubscribers;
+
 async function loadAdminArticles() {
   const container = document.getElementById('admin-articles-list');
   if(!container) return;
